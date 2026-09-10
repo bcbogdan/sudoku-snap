@@ -2,9 +2,20 @@
 
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import NumberDial from './NumberDial';
+import AppHeader from './components/AppHeader';
+import AttemptHistory from './components/AttemptHistory';
+import CreatePuzzle from './components/CreatePuzzle';
+import GameToolbar from './components/GameToolbar';
+import NumberKeypad from './components/NumberKeypad';
+import PuzzleActions from './components/PuzzleActions';
+import PuzzleDetail from './components/PuzzleDetail';
+import PuzzleLibrary from './components/PuzzleLibrary';
+import PuzzleTitle from './components/PuzzleTitle';
+import StatusNotice from './components/StatusNotice';
+import SudokuBoard from './components/SudokuBoard';
 import { useFocusTimer } from '@/lib/use-focus-timer';
 import { puzzleShareURL } from '@/lib/sharing';
-import { peers, solve } from '@/lib/sudoku';
+import { solve } from '@/lib/sudoku';
 import {
   durationLabel,
   undoTarget,
@@ -57,13 +68,6 @@ export default function Sudoku() {
     return () => clearTimeout(timer);
   }, [copied]);
   const [dialCell, setDialCell] = useState<number | null>(null);
-  const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const holdOrigin = useRef({ x: 0, y: 0 });
-  function cancelHold() {
-    if (hold.current !== null) clearTimeout(hold.current);
-    hold.current = null;
-  }
-  useEffect(() => cancelHold, []);
   const [editingName, setEditingName] = useState(false),
     [nameValue, setNameValue] = useState('');
   useEffect(() => {
@@ -129,12 +133,20 @@ export default function Sudoku() {
     () => (puzzle?.status === 'ready' ? solve(puzzle.clues).solution : null),
     [puzzle],
   );
-  const position = attempt
-    ? positionAt(attempt, step)
-    : puzzle
-      ? initialPosition(puzzle.clues)
-      : null;
+  const position = useMemo(
+    () => (attempt ? positionAt(attempt, step) : puzzle ? initialPosition(puzzle.clues) : null),
+    [attempt, step, puzzle],
+  );
   const board = position?.board ?? [];
+  const wrongCells = useMemo(
+    () =>
+      position && screen === 'play' && check
+        ? position.board.flatMap((value, cell) =>
+            value && !puzzle?.clues[cell] && solution?.[cell] !== value ? [cell] : [],
+          )
+        : [],
+    [position, screen, check, puzzle, solution],
+  );
   const historical = !!attempt && step < attempt.moves.length,
     complete = attempt?.completedAt !== null && !!attempt;
   const readOnly = historical || complete;
@@ -257,277 +269,111 @@ export default function Sudoku() {
     });
   }
   const puzzleActions = puzzle ? (
-    <div className="puzzle-actions">
-      <button
-        className="secondary"
-        disabled={busy}
-        onClick={() =>
-          void action(async () => {
-            const link = puzzleShareURL(window.location.origin, puzzle.clues, puzzle.name);
-            try {
-              await navigator.clipboard.writeText(link);
-              setCopied(true);
-            } catch {
-              throw new Error('Could not copy the link. Allow clipboard access and try again.');
-            }
-          })
-        }
-      >
-        Share puzzle
-      </button>
-      <button
-        className="secondary remove-button"
-        disabled={busy}
-        onClick={() => void removeCurrentPuzzle()}
-      >
-        Remove puzzle
-      </button>
-    </div>
+    <PuzzleActions
+      busy={busy}
+      onShare={() =>
+        void action(async () => {
+          const link = puzzleShareURL(window.location.origin, puzzle.clues, puzzle.name);
+          try {
+            await navigator.clipboard.writeText(link);
+            setCopied(true);
+          } catch {
+            throw new Error('Could not copy the link. Allow clipboard access and try again.');
+          }
+        })
+      }
+      onRemove={() => void removeCurrentPuzzle()}
+    />
   ) : null;
-  const header = (
-    <header>
-      <a href="/" className="brand">
-        <span aria-hidden="true">▦</span> Sudoku
-      </a>
-      <nav>
-        <a href="/" aria-current={screen === 'library' ? 'page' : undefined}>
-          My puzzles
-        </a>
-        <a href="/?new" aria-current={screen === 'create' ? 'page' : undefined}>
-          New puzzle
-        </a>
-      </nav>
-    </header>
-  );
+  const header = <AppHeader screen={screen} />;
   const puzzleTitle = puzzle ? (
-    editingName ? (
-      <form
-        className="name-editor"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void action(async () => {
-            const updated = await renamePuzzle(puzzle, nameValue);
-            setPuzzle(updated);
-            setPuzzles((old) => old.map((p) => (p.id === updated.id ? updated : p)));
-            setEditingName(false);
-          });
-        }}
-      >
-        <label htmlFor="puzzle-name">Puzzle name</label>
-        <input
-          id="puzzle-name"
-          autoFocus
-          value={nameValue}
-          maxLength={80}
-          required
-          disabled={busy}
-          onChange={(e) => setNameValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              e.preventDefault();
-              setEditingName(false);
-            }
-          }}
-        />
-        <div>
-          <button className="primary" disabled={busy || !nameValue.trim()} type="submit">
-            Save name
-          </button>
-          <button
-            className="secondary"
-            disabled={busy}
-            type="button"
-            onClick={() => setEditingName(false)}
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    ) : (
-      <div className="puzzle-title">
-        <h1>{puzzle.name}</h1>
-        <button
-          className="rename-button"
-          aria-label="Rename puzzle"
-          title="Rename puzzle"
-          disabled={busy}
-          onClick={() => {
-            setNameValue(puzzle.name);
-            setEditingName(true);
-          }}
-        >
-          ✎
-        </button>
-      </div>
-    )
+    <PuzzleTitle
+      name={puzzle.name}
+      editing={editingName}
+      value={nameValue}
+      busy={busy}
+      onEdit={() => {
+        setNameValue(puzzle.name);
+        setEditingName(true);
+      }}
+      onValueChange={setNameValue}
+      onSave={() =>
+        void action(async () => {
+          const updated = await renamePuzzle(puzzle, nameValue);
+          setPuzzle(updated);
+          setPuzzles((old) => old.map((p) => (p.id === updated.id ? updated : p)));
+          setEditingName(false);
+        })
+      }
+      onCancel={() => setEditingName(false)}
+    />
   ) : null;
+  const lastMove = attempt && step ? attempt.moves[step - 1] : null;
+  const moveDescription = lastMove
+    ? `${lastMove.kind === 'undo' ? 'Move undone' : lastMove.kind === 'note' ? 'Pencil note' : lastMove.value ? 'Number entered' : 'Cell erased'} · Row ${Math.floor(lastMove.cell / 9) + 1}, column ${(lastMove.cell % 9) + 1} · ${dateLabel(lastMove.at)}`
+    : 'Original puzzle';
+
   if (!loaded)
     return (
       <main>
         {header}
-        {copied ? (
-          <div className="copy-notice" role="status">
-            Link copied to clipboard.
-          </div>
-        ) : null}
-        <p className="status" role="status">
-          Opening your puzzles…
-        </p>
+        {copied ? <StatusNotice kind="copied" message="Link copied to clipboard." /> : null}
+        <StatusNotice kind="loading" message="Opening your puzzles…" />
       </main>
     );
   return (
     <main className={screen === 'play' || screen === 'review' ? 'board-screen' : ''}>
       {header}
       {screen === 'library' ? (
-        <section className="library">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">YOUR COLLECTION</p>
-              <h1>My puzzles</h1>
-            </div>
-            <a className="primary" href="/?new">
-              ＋ New puzzle
-            </a>
-          </div>
-          {puzzles.length === 0 ? (
-            <div className="empty-state">
-              <span aria-hidden="true">▦</span>
-              <h2>A place for every puzzle.</h2>
-              <p>Choose a photo or enter clues to start your collection.</p>
-              <a href="/?new" className="primary">
-                Create a puzzle
-              </a>
-            </div>
-          ) : (
-            <div className="puzzle-list">
-              {puzzles.map((p) => {
-                const plays = attempts.filter((a) => a.puzzleId === p.id),
-                  finished = plays.filter((a) => a.completedAt !== null);
-                return (
-                  <a
-                    className="puzzle-card"
-                    key={p.id}
-                    href={plays[0] ? attemptURL(p.id, plays[0].id) : puzzleURL(p.id)}
-                  >
-                    <div className="mini-board" aria-hidden="true">
-                      {p.clues.map((v, i) => (
-                        <span key={i}>{v || ''}</span>
-                      ))}
-                    </div>
-                    <div>
-                      <span className="badge">
-                        {p.status === 'draft' ? 'Draft' : `${finished.length} completed`}
-                      </span>
-                      <h2>{p.name}</h2>
-                      <p>{dateLabel(p.createdAt)}</p>
-                      <p>
-                        {p.clues.filter(Boolean).length} clues · {plays.length}{' '}
-                        {plays.length === 1 ? 'attempt' : 'attempts'}
-                      </p>
-                    </div>
-                    <span className="card-arrow" aria-hidden="true">
-                      ↗
-                    </span>
-                  </a>
-                );
-              })}
-            </div>
-          )}
-          <p className="storage-note">
-            Saved in this browser on this device. Clearing browser data removes your puzzles and
-            attempts.
-          </p>
-        </section>
+        <PuzzleLibrary
+          items={puzzles.map((p) => {
+            const plays = attempts.filter((a) => a.puzzleId === p.id);
+            return {
+              id: p.id,
+              name: p.name,
+              clues: p.clues,
+              createdLabel: dateLabel(p.createdAt),
+              status: p.status,
+              attemptCount: plays.length,
+              completedCount: plays.filter((a) => a.completedAt !== null).length,
+              href: plays[0] ? attemptURL(p.id, plays[0].id) : puzzleURL(p.id),
+            };
+          })}
+        />
       ) : null}
       {screen === 'create' ? (
-        <section className="create-screen">
-          <p className="eyebrow">ADD TO YOUR COLLECTION</p>
-          <h1>A new puzzle.</h1>
-          <p>Start with a photo, or enter the printed clues yourself.</p>
-          <label
-            className="upload"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              void upload(e.dataTransfer.files[0]);
-            }}
-          >
-            <span aria-hidden="true">＋</span>
-            <strong>{busy ? 'Reading your photo…' : 'Choose a Sudoku photo'}</strong>
-            <small>or drop or paste an image · up to 20 MB</small>
-            <input
-              aria-label="Choose a Sudoku photo"
-              type="file"
-              accept="image/*"
-              disabled={busy}
-              onChange={(e) => {
-                void upload(e.target.files?.[0]);
-                e.target.value = '';
-              }}
-            />
-          </label>
-          <div className="create-actions">
-            <button disabled={busy} className="secondary" onClick={() => void pasteImage()}>
-              Paste image
-            </button>
-            <button
-              disabled={busy}
-              className="secondary"
-              onClick={() =>
-                void action(async () => {
-                  const p = await createPuzzle();
-                  window.location.assign(puzzleURL(p.id));
-                })
-              }
-            >
-              Enter clues by hand
-            </button>
-          </div>
-          <p className="storage-note">Photos are processed and saved on your device.</p>
-        </section>
+        <CreatePuzzle
+          busy={busy}
+          onUpload={(file) => void upload(file)}
+          onPasteImage={() => void pasteImage()}
+          onCreateManual={() =>
+            void action(async () => {
+              const p = await createPuzzle();
+              window.location.assign(puzzleURL(p.id));
+            })
+          }
+        />
       ) : null}
       {screen === 'detail' && puzzle ? (
-        <section className="library">
-          <a className="back" href="/">
-            ← My puzzles
-          </a>
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">{dateLabel(puzzle.createdAt)}</p>
-              {puzzleTitle}
-              <p>{puzzle.clues.filter(Boolean).length} original clues</p>
-            </div>
-            <button className="primary" disabled={busy} onClick={() => void begin()}>
-              ＋ New attempt
-            </button>
-          </div>
-          {puzzleActions}
-          <h2>Attempts</h2>
-          <div className="attempt-list">
-            {attempts
-              .filter((a) => a.puzzleId === puzzle.id)
-              .map((a, i, all) => (
-                <a href={attemptURL(puzzle.id, a.id)} key={a.id} className="attempt-row">
-                  <div>
-                    <strong>Attempt {all.length - i}</strong>
-                    <p>Started {dateLabel(a.startedAt)}</p>
-                  </div>
-                  <span className="badge">
-                    {a.completedAt !== null ? 'Completed' : 'In progress'}
-                  </span>
-                  <span>{a.moves.length} moves</span>
-                  <span>{a.durationMs !== null ? durationLabel(a.durationMs) : 'Resume →'}</span>
-                </a>
-              ))}
-          </div>
-          {!attempts.some((a) => a.puzzleId === puzzle.id) ? (
-            <p>No attempts yet. Start a fresh one whenever you’re ready.</p>
-          ) : null}
-          <p className="storage-note">
-            Duration counts only while the attempt page is focused and visible. Completed attempts
-            remain available to replay.
-          </p>
-        </section>
+        <PuzzleDetail
+          createdLabel={dateLabel(puzzle.createdAt)}
+          clueCount={puzzle.clues.filter(Boolean).length}
+          busy={busy}
+          title={puzzleTitle}
+          actions={puzzleActions}
+          onBegin={() => void begin()}
+          attempts={attempts
+            .filter((a) => a.puzzleId === puzzle.id)
+            .map((a, i, all) => ({
+              id: a.id,
+              href: attemptURL(puzzle.id, a.id),
+              number: all.length - i,
+              startedLabel: dateLabel(a.startedAt),
+              complete: a.completedAt !== null,
+              moveCount: a.moves.length,
+              durationLabel: a.durationMs !== null ? durationLabel(a.durationMs) : null,
+            }))}
+        />
       ) : null}
       {(screen === 'play' || screen === 'review') && puzzle && position ? (
         <section className="play-surface" aria-label="Sudoku game">
@@ -552,210 +398,59 @@ export default function Sudoku() {
             </div>
           </div>
           {screen === 'review' ? (
-            <div className="review-toolbar">
-              <span>
-                {board.filter(Boolean).length} clues · Check the numbers before playing.
-                {puzzle.uncertain.length ? ` ${puzzle.uncertain.length} cells need review.` : ''}
-              </span>
-              <button className="primary" disabled={busy} onClick={() => void begin()}>
-                Confirm clues & play →
-              </button>
-            </div>
+            <GameToolbar
+              mode="review"
+              clueCount={board.filter(Boolean).length}
+              uncertainCount={puzzle.uncertain.length}
+              busy={busy}
+              onBegin={() => void begin()}
+            />
           ) : (
-            <div className="play-toolbar">
-              <button
-                className="secondary"
-                aria-pressed={notesMode}
-                disabled={readOnly || busy}
-                onClick={() => setNotesMode((v) => !v)}
-              >
-                Pencil notes {notesMode ? 'On' : 'Off'}
-              </button>
-              <button
-                className="secondary"
-                aria-pressed={check}
-                onClick={() => setCheck((v) => !v)}
-              >
-                Mistake check {check ? 'On' : 'Off'}
-              </button>
-              <span className="mistakes">Mistakes {position.mistakes}</span>
-              <span className="save-state">{busy ? 'Saving…' : 'Saved'}</span>
-            </div>
+            <GameToolbar
+              mode="play"
+              notesMode={notesMode}
+              check={check}
+              mistakes={position.mistakes}
+              busy={busy}
+              readOnly={readOnly}
+              onToggleNotes={() => setNotesMode((v) => !v)}
+              onToggleCheck={() => setCheck((v) => !v)}
+            />
           )}
           <div className="board-wrap">
-            <div
-              className="board"
-              role="group"
-              aria-label="Sudoku board"
-              onKeyDown={(e) => {
-                if (/^[1-9]$/.test(e.key)) {
-                  e.preventDefault();
-                  void enter(Number(e.key));
-                } else if (['Backspace', 'Delete', '0'].includes(e.key)) {
-                  e.preventDefault();
-                  void enter(0);
-                } else if (e.key.toLowerCase() === 'n' && !readOnly) {
-                  setNotesMode((v) => !v);
-                } else {
-                  const delta: Record<string, number> = {
-                    ArrowUp: -9,
-                    ArrowDown: 9,
-                    ArrowLeft: -1,
-                    ArrowRight: 1,
-                  };
-                  if (e.key in delta) {
-                    e.preventDefault();
-                    const next = Math.max(0, Math.min(80, selected + delta[e.key]));
-                    setSelected(next);
-                    document.getElementById(`cell-${next}`)?.focus();
-                  }
-                }
-              }}
-            >
-              {board.map((value, i) => {
-                const given = screen === 'play' && !!puzzle.clues[i],
-                  wrong = screen === 'play' && check && value && !given && solution?.[i] !== value;
-                return (
-                  <button
-                    key={i}
-                    id={`cell-${i}`}
-                    type="button"
-                    data-value={value}
-                    data-given={given}
-                    data-wrong={!!wrong}
-                    aria-label={`Row ${Math.floor(i / 9) + 1} column ${(i % 9) + 1}, ${value || 'empty'}${given ? ', given' : ''}`}
-                    aria-pressed={selected === i}
-                    tabIndex={selected === i ? 0 : -1}
-                    className={`cell ${given ? 'given' : ''} ${peers(selected, i) ? 'peer' : ''} ${value && value === board[selected] ? 'match' : ''} ${selected === i ? 'selected' : ''} ${wrong ? 'wrong' : ''} ${screen === 'review' && puzzle.uncertain.includes(i) ? 'uncertain' : ''}`}
-                    onPointerDown={(e) => {
-                      cancelHold();
-                      if (given || readOnly || busy || e.button !== 0 || !e.isPrimary) return;
-                      holdOrigin.current = { x: e.clientX, y: e.clientY };
-                      hold.current = setTimeout(() => {
-                        setSelected(i);
-                        setDialCell(i);
-                        hold.current = null;
-                      }, 450);
-                    }}
-                    onPointerMove={(e) => {
-                      if (
-                        Math.hypot(
-                          e.clientX - holdOrigin.current.x,
-                          e.clientY - holdOrigin.current.y,
-                        ) > 10
-                      )
-                        cancelHold();
-                    }}
-                    onPointerUp={cancelHold}
-                    onPointerCancel={cancelHold}
-                    onPointerLeave={cancelHold}
-                    onContextMenu={(e) => {
-                      if (!given && !readOnly) e.preventDefault();
-                    }}
-                    onClick={() => setSelected(i)}
-                  >
-                    {value || (
-                      <span className="notes">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                          <span key={n}>{position.notes[i].includes(n) ? n : ''}</span>
-                        ))}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <SudokuBoard
+              mode={screen}
+              board={board}
+              notes={position.notes}
+              clues={puzzle.clues}
+              uncertain={puzzle.uncertain}
+              wrongCells={wrongCells}
+              selected={selected}
+              readOnly={readOnly}
+              busy={busy}
+              onSelect={setSelected}
+              onEnter={(value, cell) => void enter(value, cell)}
+              onToggleNotes={() => setNotesMode((v) => !v)}
+              onOpenDial={setDialCell}
+            />
             {!complete ? (
-              <div className="keypad">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n) => (
-                  <button
-                    key={n}
-                    aria-label={n ? `Enter ${n}` : 'Erase cell'}
-                    disabled={readOnly || busy}
-                    onClick={() => void enter(n)}
-                  >
-                    {n || '⌫'}
-                  </button>
-                ))}
-              </div>
+              <NumberKeypad disabled={readOnly || busy} onEnter={(value) => void enter(value)} />
             ) : null}
           </div>
           {attempt ? (
-            <div className="history">
-              {!complete ? (
-                <button
-                  className="secondary"
-                  disabled={busy || readOnly || undoTarget(attempt) === undefined}
-                  onClick={() => void undo()}
-                >
-                  Undo move
-                </button>
-              ) : null}
-              <div className="history-buttons">
-                <button
-                  className="secondary"
-                  aria-label="First move"
-                  disabled={step === 0 || busy}
-                  onClick={() => setStep(0)}
-                >
-                  ↤
-                </button>
-                <button
-                  className="secondary"
-                  aria-label="Previous move"
-                  disabled={step === 0 || busy}
-                  onClick={() => setStep((v) => v - 1)}
-                >
-                  ←
-                </button>
-                <label>
-                  Move {step} of {attempt.moves.length}
-                  <input
-                    aria-label="Attempt history"
-                    type="range"
-                    min="0"
-                    max={attempt.moves.length}
-                    value={step}
-                    disabled={busy || !attempt.moves.length}
-                    onChange={(e) => setStep(Number(e.target.value))}
-                  />
-                </label>
-                <button
-                  className="secondary"
-                  aria-label="Next move"
-                  disabled={step === attempt.moves.length || busy}
-                  onClick={() => setStep((v) => v + 1)}
-                >
-                  →
-                </button>
-                <button
-                  className="secondary"
-                  aria-label="Latest move"
-                  disabled={step === attempt.moves.length || busy}
-                  onClick={() => setStep(attempt.moves.length)}
-                >
-                  ↦
-                </button>
-              </div>
-              <p>
-                {step
-                  ? `${attempt.moves[step - 1].kind === 'undo' ? 'Move undone' : attempt.moves[step - 1].kind === 'note' ? 'Pencil note' : attempt.moves[step - 1].value ? 'Number entered' : 'Cell erased'} · Row ${Math.floor(attempt.moves[step - 1].cell / 9) + 1}, column ${(attempt.moves[step - 1].cell % 9) + 1} · ${dateLabel(attempt.moves[step - 1].at)}`
-                  : 'Original puzzle'}
-                {historical
-                  ? ' · History is read-only. Return to the latest move to continue.'
-                  : ''}
-              </p>
-              {complete ? (
-                <div className="completion">
-                  <strong>
-                    Completed in {durationLabel(attempt.durationMs!)}. This attempt is locked.
-                  </strong>
-                  <button className="primary" disabled={busy} onClick={() => void begin()}>
-                    Start a new attempt
-                  </button>
-                </div>
-              ) : null}
-            </div>
+            <AttemptHistory
+              step={step}
+              moveCount={attempt.moves.length}
+              busy={busy}
+              readOnly={readOnly}
+              complete={complete}
+              canUndo={undoTarget(attempt) !== undefined}
+              moveDescription={moveDescription}
+              completionDuration={complete ? durationLabel(attempt.durationMs!) : ''}
+              onStepChange={setStep}
+              onUndo={() => void undo()}
+              onBegin={() => void begin()}
+            />
           ) : (
             <p className="hint">
               Select a square, then use 1–9 or Delete. Your draft saves automatically.
@@ -773,18 +468,11 @@ export default function Sudoku() {
           }}
           onClose={() => {
             setDialCell(null);
-            document.getElementById(`cell-${dialCell}`)?.focus();
           }}
         />
       ) : null}
-      {copied ? (
-        <div className="copy-notice" role="status">
-          Link copied to clipboard.
-        </div>
-      ) : null}
-      <p className="status" role="status" aria-live="polite">
-        {message}
-      </p>
+      {copied ? <StatusNotice kind="copied" message="Link copied to clipboard." /> : null}
+      <StatusNotice message={message} />
     </main>
   );
 }

@@ -1,24 +1,31 @@
 'use client';
-import { useEffect, useRef } from 'react';
-export default function NumberDial({
-  onChoose,
-  onClose,
-}: {
+import { useLayoutEffect, useRef } from 'react';
+export interface NumberDialProps {
   onChoose: (value: number) => void;
   onClose: () => void;
-}) {
+}
+
+export default function NumberDial({ onChoose, onClose }: NumberDialProps) {
   const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = dialog.current!;
+    const origin = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     element.showModal();
-    return () => element.close();
+    return () => {
+      // Release modal inertness before restoring focus, while the dialog is still connected.
+      element.close();
+      if (origin?.isConnected) origin.focus();
+    };
   }, []);
   return (
     <dialog
       ref={dialog}
       className="number-dial"
       aria-labelledby="dial-title"
-      onCancel={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

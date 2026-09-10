@@ -37,6 +37,15 @@ Behavioral migration fixtures live in `benchmarks/fixtures`; `npm test` checks t
 
 `npm run typecheck` checks TypeScript separately. `npm start` serves the production build. The postinstall script copies OpenCV, Tesseract workers, WASM and English OCR data into the ignored `public/vendor` directory. Re-run `node scripts/copy-assets.mjs` if those generated files are removed.
 
+## Component regression tests
+
+`npm run storybook` opens isolated React components on port 6006. Run
+`npm run test:storybook` for Chromium interaction/accessibility tests and
+`npm run test:visual` for built-Storybook screenshots in desktop/mobile light/dark
+themes. Neither suite starts Next or loads OCR/storage. See
+[Storybook testing](docs/storybook.md) for setup and deliberate baseline review
+with `npm run test:visual:update`.
+
 ## Vercel
 
 The repository includes `vercel.json` with the Next.js framework preset, `npm ci` for reproducible installs, and `npm run build`. `package.json` pins the deployment runtime to Node.js 22.x. Leave the output directory on the Next.js default; do not set it to `public`.

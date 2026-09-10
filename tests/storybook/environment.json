@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "os": { "ID": "ubuntu", "VERSION_ID": "26.04" },
+  "platform": "linux",
+  "architecture": "x64",
+  "node": "v22.23.2",
+  "playwright": "1.63.0",
+  "chromium": "153.0.8010.12",
+  "chromiumExecutableSha256": "ded93a9c9a53a1ae040f08124badcca95c938e9d5015ff340c3b5538c41bf39e",
+  "packages": [
+    "fontconfig\t2.17.1-3ubuntu1",
+    "fonts-freefont-ttf\t20211204+svn4273-4build1",
+    "fonts-ipafont-gothic\t00303-23ubuntu1",
+    "fonts-ipafont-mincho\t00303-23ubuntu1",
+    "fonts-liberation\t1:2.1.5-3build1",
+    "fonts-liberation-sans-narrow\t1:1.07.6-4build1",
+    "fonts-noto-color-emoji\t2.051-1build1",
+    "fonts-tlwg-loma\t1:0.7.3-1build1",
+    "fonts-tlwg-loma-otf\t1:0.7.3-1build1",
+    "fonts-ubuntu-console\t0.869+git20240321-0ubuntu2",
+    "fonts-unifont\t1:16.0.04-1build1",
+    "fonts-wqy-zenhei\t0.9.45-8build1",
+    "libc6:amd64\t2.43-2ubuntu2.3",
+    "libfontconfig1:amd64\t2.17.1-3ubuntu1",
+    "libfreetype6:amd64\t2.14.2+dfsg-1ubuntu0.1",
+    "libharfbuzz0b:amd64\t12.3.2-2",
+    "xfonts-base\t1:1.0.5+nmu1build1",
+    "xfonts-cyrillic\t1:1.0.5+nmu1build1",
+    "xfonts-encodings\t1:1.0.5-0ubuntu3",
+    "xfonts-scalable\t1:1.0.3-1.3build1",
+    "xfonts-utils\t1:7.7+7build1"
+  ],
+  "fontFiles": {
+    "count": 55,
+    "sha256": "3fe52264524061cfd779a07b4aaa5286cb121ec61a1d61417b105ada0a43facf"
+  },
+  "fontConfig": {
+    "count": 28,
+    "sha256": "332dbfe3f505cbb40da64a50b72826d7009a7717033951160eb3909e1938e822"
+  },
+  "renderedFonts": {
+    "sans": [
+      {
+        "familyName": "Liberation Sans",
+        "postScriptName": "LiberationSans",
+        "isCustomFont": false,
+        "glyphCount": 24
+      }
+    ],
+    "bold": [
+      {
+        "familyName": "Liberation Sans",
+        "postScriptName": "LiberationSans-Bold",
+        "isCustomFont": false,
+        "glyphCount": 24
+      }
+    ],
+    "serif": [
+      {
+        "familyName": "Liberation Serif",
+        "postScriptName": "LiberationSerif",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ],
+    "symbols": [
+      {
+        "familyName": "FreeSerif",
+        "postScriptName": "FreeSerif",
+        "isCustomFont": false,
+        "glyphCount": 4
+      },
+      {
+        "familyName": "Liberation Sans",
+        "postScriptName": "LiberationSans",
+        "isCustomFont": false,
+        "glyphCount": 2
+      },
+      {
+        "familyName": "WenQuanYi Zen Hei",
+        "postScriptName": "WenQuanYiZenHei",
+        "isCustomFont": false,
+        "glyphCount": 3
+      }
+    ]
+  },
+  "renderedFontFiles": [
+    {
+      "path": "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+      "sha256": "55ec3a32b3b94995bc6063e5ff5cbe4d27cfd7b1991b53f01428a9547076c843"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+      "sha256": "b72c65e551d653b54217ffad0d1454ce0657e4e8d4a28bcc79e0acd2598f4bf3"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+      "sha256": "075e71be4c58beda172ecb574a799308f04c3d054c6a5b7434954d3b0f1b28d8"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+      "sha256": "350f4ffd773cae53560c63dca3d89a5070595614fde12f772bf43feb63d81064"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+      "sha256": "79c18ebe7b811951e8311bad7103ebeae8c337ed9988ea69e8a78a66cfe029b9"
+    }
+  ]
+}
