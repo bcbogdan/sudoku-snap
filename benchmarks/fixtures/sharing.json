@@ -1,0 +1,67 @@
+{
+  "fixtureVersion": 1,
+  "encodings": [
+    {
+      "board": "easy",
+      "versioned": "1.R4cYca_tIzmEoZKI_mF9wvj1J4FqGpmmhQ-Y98uh1kFrP",
+      "legacy": "NTMwMDcwMDAwNjAwMTk1MDAwMDk4MDAwMDYwODAwMDYwMDAzNDAwODAzMDAxNzAwMDIwMDA2MDYwMDAwMjgwMDAwNDE5MDA1MDAwMDgwMDc5"
+    },
+    { "board": "empty", "versioned": "1.A" }
+  ],
+  "names": [
+    { "id": "default", "raw": null, "name": "Shared puzzle" },
+    { "id": "unicode-whitespace", "raw": "\uFEFF Café\t\n\u00a0🧩\u3000", "name": "Café 🧩" },
+    { "id": "combining-not-normalized", "raw": "Cafe\u0301", "name": "Cafe\u0301" },
+    {
+      "id": "url-reserved",
+      "raw": "Weekend & café 🧩 / ? # +",
+      "name": "Weekend & café 🧩 / ? # +"
+    },
+    { "id": "zero-width-is-not-whitespace", "raw": "\u200b", "name": "\u200b" },
+    {
+      "id": "80-ascii",
+      "raw": { "repeat": "a", "count": 80 },
+      "name": { "repeat": "a", "count": 80 }
+    },
+    {
+      "id": "40-astral-80-utf16",
+      "raw": { "repeat": "🧩", "count": 40 },
+      "name": { "repeat": "🧩", "count": 40 }
+    },
+    { "id": "81-ascii", "raw": { "repeat": "a", "count": 81 }, "error": "invalid-name" },
+    { "id": "41-astral-82-utf16", "raw": { "repeat": "🧩", "count": 41 }, "error": "invalid-name" },
+    { "id": "blank", "raw": "\t\n\u00a0\u3000", "error": "invalid-name" },
+    { "id": "empty", "raw": "", "error": "invalid-name" }
+  ],
+  "invalid": [
+    { "id": "unknown-version", "encoded": "2.A", "error": "invalid-link" },
+    { "id": "missing-payload", "encoded": "1.", "error": "invalid-link" },
+    { "id": "invalid-alphabet", "encoded": "1.!", "error": "invalid-link" },
+    {
+      "id": "overflow",
+      "encoded": "1._____________________________________________",
+      "error": "invalid-link"
+    },
+    {
+      "id": "too-long",
+      "encoded": "1.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "error": "invalid-link"
+    },
+    {
+      "id": "legacy-nondigits",
+      "encoded": { "repeat": "A", "count": 108 },
+      "error": "invalid-link"
+    },
+    {
+      "id": "legacy-conflicting",
+      "encoded": { "repeat": "MTEx", "count": 27 },
+      "error": "conflicting-clues"
+    }
+  ],
+  "errors": {
+    "invalid-name": "The shared puzzle name must be between 1 and 80 characters.",
+    "invalid-link": "This puzzle link is invalid.",
+    "conflicting-clues": "This puzzle link contains conflicting clues.",
+    "unshareable": "Correct conflicting clues before sharing this puzzle."
+  }
+}

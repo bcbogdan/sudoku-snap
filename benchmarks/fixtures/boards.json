@@ -1,0 +1,113 @@
+{
+  "fixtureVersion": 1,
+  "boards": [
+    {
+      "id": "easy",
+      "description": "Classic 30-clue unique puzzle; zeros are unfilled cells.",
+      "digits": "530070000600195000098000060800060003400803001700020006060000280000419005000080079",
+      "valid": true,
+      "solutionCount": 1,
+      "solution": "534678912672195348198342567859761423426853791713924856961537284287419635345286179"
+    },
+    {
+      "id": "hard",
+      "description": "Arto Inkala's 21-clue puzzle; exercises search beyond easy propagation.",
+      "digits": "800000000003600000070090200050007000000045700000100030001000068008500010090000400",
+      "valid": true,
+      "solutionCount": 1,
+      "solution": "812753649943682175675491283154237896369845721287169534521974368438526917796318452"
+    },
+    {
+      "id": "unsolvable",
+      "description": "Easy puzzle with r1c3=1: no peer duplicates, but contradicts its unique solution (r1c3=4).",
+      "digits": "531070000600195000098000060800060003400803001700020006060000280000419005000080079",
+      "valid": true,
+      "solutionCount": 0,
+      "solution": null
+    },
+    {
+      "id": "conflicting",
+      "description": "Easy puzzle with r1c3=5 duplicates r1c1. Allowed as draft/player state, not solver input.",
+      "digits": "535070000600195000098000060800060003400803001700020006060000280000419005000080079",
+      "valid": false,
+      "solutionCount": 0,
+      "solution": null
+    },
+    {
+      "id": "column-conflict",
+      "description": "Easy puzzle with r1c4=4 duplicates r8c4 without a row or box duplicate.",
+      "digits": "530470000600195000098000060800060003400803001700020006060000280000419005000080079",
+      "valid": false,
+      "solutionCount": 0,
+      "solution": null
+    },
+    {
+      "id": "box-conflict",
+      "description": "Easy puzzle with r1c3=6 duplicates r2c1 without a row or column duplicate.",
+      "digits": "536070000600195000098000060800060003400803001700020006060000280000419005000080079",
+      "valid": false,
+      "solutionCount": 0,
+      "solution": null
+    },
+    {
+      "id": "ambiguous",
+      "description": "Remove every 1 and 2 from a solved grid: swapping them gives two distinct completions. First solution order is not a contract.",
+      "digits": "534678900670095348098340567859760403406853790703904856960537084087409635345086079",
+      "valid": true,
+      "solutionCount": 2
+    },
+    {
+      "id": "empty",
+      "digits": "000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "valid": true,
+      "solutionCount": 2
+    },
+    {
+      "id": "almost",
+      "digits": "034678912672195348198342567859761423426853791713924856961537284287419635345286179",
+      "valid": true,
+      "solutionCount": 1,
+      "solution": "534678912672195348198342567859761423426853791713924856961537284287419635345286179"
+    }
+  ],
+  "malformed": [
+    { "id": "short", "board": [1], "valid": false, "solutionCount": 0 },
+    { "id": "empty-array", "board": [], "valid": false, "solutionCount": 0 },
+    { "id": "long", "base": "easy", "append": [0], "valid": false, "solutionCount": 0 },
+    {
+      "id": "negative",
+      "base": "easy",
+      "replace": { "2": -1 },
+      "valid": false,
+      "solutionCount": 0
+    },
+    {
+      "id": "too-large",
+      "base": "easy",
+      "replace": { "2": 10 },
+      "valid": false,
+      "solutionCount": 0
+    },
+    {
+      "id": "fraction",
+      "base": "easy",
+      "replace": { "2": 1.5 },
+      "valid": false,
+      "solutionCount": 0
+    },
+    {
+      "id": "numeric-string",
+      "base": "easy",
+      "replace": { "2": "4" },
+      "valid": false,
+      "solutionCount": 0
+    },
+    {
+      "id": "null-cell",
+      "base": "easy",
+      "replace": { "2": null },
+      "valid": false,
+      "solutionCount": 0
+    }
+  ]
+}

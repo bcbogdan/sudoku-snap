@@ -31,7 +31,9 @@ npm run build
 npm run test:e2e
 ```
 
-The browser tests require Google Chrome installed locally. They start the production server on port 3187, upload `tests/fixtures/original.jpeg`, compare all 81 recognized cells with `tests/fixtures/expected.json`, check no photo POSTs or external requests, and exercise saved drafts, reload recovery, independent attempts, notes, read-only history, completed-attempt locking and mobile overflow.
+Install the pinned browser with `npx playwright install chromium` before running browser tests. Set `PLAYWRIGHT_CHANNEL=chrome` to use an installed Google Chrome instead. The tests start the production server on port 3187, upload `tests/fixtures/original.jpeg`, compare all 81 recognized cells with `tests/fixtures/expected.json`, check no photo POSTs or external requests, and exercise saved drafts, reload recovery, independent attempts, notes, read-only history, completed-attempt locking and mobile overflow.
+
+Behavioral migration fixtures live in `benchmarks/fixtures`; `npm test` checks them against the TypeScript implementation. See [performance baselines](benchmarks/README.md) for repeatable core and production-browser measurements and report comparison.
 
 `npm run typecheck` checks TypeScript separately. `npm start` serves the production build. The postinstall script copies OpenCV, Tesseract workers, WASM and English OCR data into the ignored `public/vendor` directory. Re-run `node scripts/copy-assets.mjs` if those generated files are removed.
 

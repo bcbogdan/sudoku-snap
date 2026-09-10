@@ -1,0 +1,731 @@
+{
+  "fixtureVersion": 1,
+  "errors": {
+    "invalid-move": "Invalid move.",
+    "invalid-interval": "Invalid active interval.",
+    "locked-move": "Completed attempts are read-only. Start a new attempt to play again.",
+    "locked-undo": "Completed attempts are read-only.",
+    "invalid-history": "Invalid history position."
+  },
+  "positions": {
+    "initial": { "board": "easy", "entries": {}, "notes": {}, "mistakes": 0 },
+    "n9": { "board": "easy", "entries": {}, "notes": { "2": [9] }, "mistakes": 0 },
+    "n29": { "board": "easy", "entries": {}, "notes": { "2": [2, 9] }, "mistakes": 0 },
+    "n2": { "board": "easy", "entries": {}, "notes": { "2": [2] }, "mistakes": 0 },
+    "wrong5": { "board": "easy", "entries": { "2": 5 }, "notes": {}, "mistakes": 1 },
+    "unchecked1": { "board": "easy", "entries": { "2": 1 }, "notes": {}, "mistakes": 1 },
+    "erased": { "board": "easy", "entries": {}, "notes": {}, "mistakes": 1 },
+    "correct4": { "board": "easy", "entries": { "2": 4 }, "notes": {}, "mistakes": 1 },
+    "almost": { "board": "almost", "entries": {}, "notes": {}, "mistakes": 0 },
+    "full-conflict": { "board": "almost", "entries": { "0": 1 }, "notes": {}, "mistakes": 1 },
+    "complete": { "board": "almost", "entries": { "0": 5 }, "notes": {}, "mistakes": 1 },
+    "almost-note": { "board": "almost", "entries": {}, "notes": { "0": [1] }, "mistakes": 0 },
+    "complete-clean": { "board": "almost", "entries": { "0": 5 }, "notes": {}, "mistakes": 0 }
+  },
+  "timers": {
+    "zero": { "activeMs": 0, "lastActiveEnd": null, "activeDuration": 0 },
+    "one-second": { "activeMs": 1000, "lastActiveEnd": 2000, "activeDuration": 1000 },
+    "overlap": { "activeMs": 1500, "lastActiveEnd": 2500, "activeDuration": 1500 },
+    "legacy": { "activeMs": null, "lastActiveEnd": null, "activeDuration": 5000 },
+    "legacy-resumed": { "activeMs": 6000, "lastActiveEnd": 101000, "activeDuration": 6000 },
+    "legacy-zero": { "activeMs": null, "lastActiveEnd": null, "activeDuration": 0 },
+    "legacy-wall": { "activeMs": null, "lastActiveEnd": null, "activeDuration": 64000 }
+  },
+  "scenarios": [
+    {
+      "id": "notes-entries-ui-toggle-undo-branch",
+      "board": "easy",
+      "initial": { "id": "editing", "puzzleId": "easy", "startedAt": 1000, "activeMs": 0 },
+      "moves": {
+        "n9": {
+          "cell": 2,
+          "kind": "note",
+          "value": 9,
+          "at": 1000,
+          "elapsedMs": 0,
+          "position": "n9"
+        },
+        "n29": {
+          "cell": 2,
+          "kind": "note",
+          "value": 2,
+          "at": 1100,
+          "elapsedMs": 0,
+          "position": "n29"
+        },
+        "n2": {
+          "cell": 2,
+          "kind": "note",
+          "value": 9,
+          "at": 1200,
+          "elapsedMs": 0,
+          "position": "n2"
+        },
+        "erase-notes": {
+          "cell": 2,
+          "kind": "entry",
+          "value": 0,
+          "at": 1300,
+          "elapsedMs": 0,
+          "position": "initial"
+        },
+        "n2-again": {
+          "cell": 2,
+          "kind": "note",
+          "value": 2,
+          "at": 1400,
+          "elapsedMs": 0,
+          "position": "n2"
+        },
+        "wrong": {
+          "cell": 2,
+          "kind": "entry",
+          "value": 5,
+          "at": 1500,
+          "elapsedMs": 0,
+          "position": "wrong5"
+        },
+        "unchecked": {
+          "cell": 2,
+          "kind": "entry",
+          "value": 1,
+          "at": 1600,
+          "elapsedMs": 0,
+          "position": "unchecked1"
+        },
+        "ui-erase": {
+          "cell": 2,
+          "kind": "entry",
+          "value": 0,
+          "at": 1700,
+          "elapsedMs": 0,
+          "position": "erased"
+        },
+        "undo-erase": {
+          "cell": 2,
+          "kind": "undo",
+          "undoOf": 7,
+          "value": 1,
+          "at": 1800,
+          "elapsedMs": 0,
+          "position": "unchecked1"
+        },
+        "undo-unchecked": {
+          "cell": 2,
+          "kind": "undo",
+          "undoOf": 6,
+          "value": 5,
+          "at": 1900,
+          "elapsedMs": 0,
+          "position": "wrong5"
+        },
+        "branch": {
+          "cell": 2,
+          "kind": "entry",
+          "value": 4,
+          "at": 1900,
+          "elapsedMs": 0,
+          "position": "correct4"
+        },
+        "undo-branch": {
+          "cell": 2,
+          "kind": "undo",
+          "undoOf": 10,
+          "value": 5,
+          "at": 2000,
+          "elapsedMs": 0,
+          "position": "wrong5"
+        },
+        "undo-wrong": {
+          "cell": 2,
+          "kind": "undo",
+          "undoOf": 5,
+          "value": 0,
+          "at": 2100,
+          "elapsedMs": 0,
+          "position": "n2"
+        }
+      },
+      "commands": [
+        {
+          "op": "undo",
+          "at": 1000,
+          "expect": { "position": "initial", "revision": 0, "timer": "zero", "undoTarget": null }
+        },
+        {
+          "op": "move",
+          "cell": 0,
+          "value": 1,
+          "note": false,
+          "check": true,
+          "at": 1000,
+          "expect": { "position": "initial", "revision": 0, "timer": "zero", "undoTarget": null }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 0,
+          "note": false,
+          "check": true,
+          "at": 1000,
+          "expect": { "position": "initial", "revision": 0, "timer": "zero", "undoTarget": null }
+        },
+        {
+          "op": "move",
+          "cell": -1,
+          "value": 1,
+          "note": false,
+          "check": false,
+          "at": 1000,
+          "error": "invalid-move"
+        },
+        {
+          "op": "move",
+          "cell": 81,
+          "value": 1,
+          "note": false,
+          "check": false,
+          "at": 1000,
+          "error": "invalid-move"
+        },
+        {
+          "op": "move",
+          "cell": 2.5,
+          "value": 1,
+          "note": false,
+          "check": false,
+          "at": 1000,
+          "error": "invalid-move"
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": -1,
+          "note": false,
+          "check": false,
+          "at": 1000,
+          "error": "invalid-move"
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 10,
+          "note": false,
+          "check": false,
+          "at": 1000,
+          "error": "invalid-move"
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 1.5,
+          "note": false,
+          "check": false,
+          "at": 1000,
+          "error": "invalid-move"
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 9,
+          "note": true,
+          "check": true,
+          "at": 900,
+          "expect": {
+            "append": "n9",
+            "position": "n9",
+            "revision": 1,
+            "timer": "zero",
+            "undoTarget": 0
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 2,
+          "note": true,
+          "check": true,
+          "at": 1100,
+          "expect": {
+            "append": "n29",
+            "position": "n29",
+            "revision": 2,
+            "timer": "zero",
+            "undoTarget": 1
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 9,
+          "note": true,
+          "check": true,
+          "at": 1200,
+          "expect": {
+            "append": "n2",
+            "position": "n2",
+            "revision": 3,
+            "timer": "zero",
+            "undoTarget": 2
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 0,
+          "note": true,
+          "check": true,
+          "at": 1300,
+          "expect": {
+            "append": "erase-notes",
+            "position": "initial",
+            "revision": 4,
+            "timer": "zero",
+            "undoTarget": 3
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 2,
+          "note": true,
+          "check": true,
+          "at": 1400,
+          "expect": {
+            "append": "n2-again",
+            "position": "n2",
+            "revision": 5,
+            "timer": "zero",
+            "undoTarget": 4
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 5,
+          "note": false,
+          "check": true,
+          "at": 1500,
+          "expect": {
+            "append": "wrong",
+            "position": "wrong5",
+            "revision": 6,
+            "timer": "zero",
+            "undoTarget": 5
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 5,
+          "note": false,
+          "check": true,
+          "at": 1550,
+          "expect": { "position": "wrong5", "revision": 6, "timer": "zero", "undoTarget": 5 }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 1,
+          "note": true,
+          "check": true,
+          "at": 1550,
+          "expect": { "position": "wrong5", "revision": 6, "timer": "zero", "undoTarget": 5 }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 1,
+          "note": false,
+          "check": false,
+          "at": 1600,
+          "expect": {
+            "append": "unchecked",
+            "position": "unchecked1",
+            "revision": 7,
+            "timer": "zero",
+            "undoTarget": 6
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 1,
+          "note": false,
+          "check": true,
+          "at": 1650,
+          "expect": { "position": "unchecked1", "revision": 7, "timer": "zero", "undoTarget": 6 }
+        },
+        {
+          "op": "ui-digit",
+          "cell": 2,
+          "value": 1,
+          "note": false,
+          "check": true,
+          "at": 1700,
+          "expect": {
+            "append": "ui-erase",
+            "position": "erased",
+            "revision": 8,
+            "timer": "zero",
+            "undoTarget": 7
+          }
+        },
+        {
+          "op": "undo",
+          "at": 1800,
+          "expect": {
+            "append": "undo-erase",
+            "position": "unchecked1",
+            "revision": 9,
+            "timer": "zero",
+            "undoTarget": 6
+          }
+        },
+        {
+          "op": "undo",
+          "at": 1900,
+          "expect": {
+            "append": "undo-unchecked",
+            "position": "wrong5",
+            "revision": 10,
+            "timer": "zero",
+            "undoTarget": 5
+          }
+        },
+        {
+          "op": "move",
+          "cell": 2,
+          "value": 4,
+          "note": false,
+          "check": true,
+          "at": 1850,
+          "expect": {
+            "append": "branch",
+            "position": "correct4",
+            "revision": 11,
+            "timer": "zero",
+            "undoTarget": 10
+          }
+        },
+        {
+          "op": "undo",
+          "at": 2000,
+          "expect": {
+            "append": "undo-branch",
+            "position": "wrong5",
+            "revision": 12,
+            "timer": "zero",
+            "undoTarget": 5
+          }
+        },
+        {
+          "op": "undo",
+          "at": 2100,
+          "expect": {
+            "append": "undo-wrong",
+            "position": "n2",
+            "revision": 13,
+            "timer": "zero",
+            "undoTarget": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "overlap-completion-lock",
+      "board": "almost",
+      "initial": { "id": "finishing", "puzzleId": "almost", "startedAt": 1000, "activeMs": 0 },
+      "moves": {
+        "wrong": {
+          "cell": 0,
+          "kind": "entry",
+          "value": 1,
+          "at": 90000,
+          "elapsedMs": 1500,
+          "position": "full-conflict"
+        },
+        "finish": {
+          "cell": 0,
+          "kind": "entry",
+          "value": 5,
+          "at": 90001,
+          "elapsedMs": 1500,
+          "position": "complete"
+        }
+      },
+      "commands": [
+        {
+          "op": "interval",
+          "start": 1000,
+          "end": 2000,
+          "expect": {
+            "position": "almost",
+            "revision": 0,
+            "timer": "one-second",
+            "undoTarget": null
+          }
+        },
+        {
+          "op": "interval",
+          "start": 1500,
+          "end": 2500,
+          "expect": { "position": "almost", "revision": 0, "timer": "overlap", "undoTarget": null }
+        },
+        {
+          "op": "interval",
+          "start": 1000,
+          "end": 2000,
+          "expect": { "position": "almost", "revision": 0, "timer": "overlap", "undoTarget": null }
+        },
+        {
+          "op": "interval",
+          "start": 2500,
+          "end": 2500,
+          "expect": { "position": "almost", "revision": 0, "timer": "overlap", "undoTarget": null }
+        },
+        { "op": "interval", "start": 2500, "end": 2400, "error": "invalid-interval" },
+        {
+          "op": "move",
+          "cell": 0,
+          "value": 1,
+          "note": false,
+          "check": true,
+          "at": 90000,
+          "expect": {
+            "append": "wrong",
+            "position": "full-conflict",
+            "revision": 1,
+            "timer": "overlap",
+            "undoTarget": 0
+          }
+        },
+        {
+          "op": "move",
+          "cell": 0,
+          "value": 5,
+          "note": false,
+          "check": true,
+          "at": 90001,
+          "expect": {
+            "append": "finish",
+            "position": "complete",
+            "revision": 2,
+            "timer": "overlap",
+            "undoTarget": 1,
+            "completedAt": 90001,
+            "durationMs": 1500
+          }
+        },
+        {
+          "op": "move",
+          "cell": 0,
+          "value": 0,
+          "note": false,
+          "check": false,
+          "at": 90002,
+          "error": "locked-move"
+        },
+        { "op": "undo", "at": 90003, "error": "locked-undo" },
+        {
+          "op": "interval",
+          "start": 90000,
+          "end": 91000,
+          "expect": {
+            "position": "complete",
+            "revision": 2,
+            "timer": "overlap",
+            "undoTarget": 1,
+            "completedAt": 90001,
+            "durationMs": 1500
+          }
+        }
+      ]
+    },
+    {
+      "id": "legacy-timer-resumes-without-closed-gap",
+      "board": "easy",
+      "persistedAttempt": "legacy-attempt",
+      "moves": {
+        "undo": {
+          "cell": 2,
+          "kind": "undo",
+          "undoOf": 0,
+          "value": 0,
+          "at": 102000,
+          "elapsedMs": 6000,
+          "position": "initial"
+        }
+      },
+      "commands": [
+        {
+          "op": "inspect",
+          "expect": { "position": "wrong5", "revision": 1, "timer": "legacy", "undoTarget": 0 }
+        },
+        {
+          "op": "interval",
+          "start": 100000,
+          "end": 101000,
+          "expect": {
+            "position": "wrong5",
+            "revision": 1,
+            "timer": "legacy-resumed",
+            "undoTarget": 0
+          }
+        },
+        {
+          "op": "undo",
+          "at": 102000,
+          "expect": {
+            "append": "undo",
+            "position": "initial",
+            "revision": 2,
+            "timer": "legacy-resumed",
+            "undoTarget": null
+          }
+        },
+        {
+          "op": "undo",
+          "at": 103000,
+          "expect": {
+            "position": "initial",
+            "revision": 2,
+            "timer": "legacy-resumed",
+            "undoTarget": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "low-level-legacy-wall-clock-fallback",
+      "board": "almost",
+      "initial": { "id": "legacy-new", "puzzleId": "almost", "startedAt": 1000 },
+      "moves": {
+        "note": {
+          "cell": 0,
+          "kind": "note",
+          "value": 1,
+          "at": 1000,
+          "elapsedMs": 0,
+          "position": "almost-note"
+        },
+        "undo": {
+          "cell": 0,
+          "kind": "undo",
+          "undoOf": 0,
+          "value": 0,
+          "at": 60000,
+          "elapsedMs": 0,
+          "position": "almost"
+        },
+        "finish": {
+          "cell": 0,
+          "kind": "entry",
+          "value": 5,
+          "at": 65000,
+          "elapsedMs": 64000,
+          "position": "complete-clean"
+        }
+      },
+      "commands": [
+        {
+          "op": "inspect",
+          "expect": {
+            "position": "almost",
+            "revision": 0,
+            "timer": "legacy-zero",
+            "undoTarget": null
+          }
+        },
+        {
+          "op": "move",
+          "cell": 0,
+          "value": 1,
+          "note": true,
+          "check": true,
+          "at": 500,
+          "expect": {
+            "append": "note",
+            "position": "almost-note",
+            "revision": 1,
+            "timer": "legacy-zero",
+            "undoTarget": 0
+          }
+        },
+        {
+          "op": "undo",
+          "at": 60000,
+          "expect": {
+            "append": "undo",
+            "position": "almost",
+            "revision": 2,
+            "timer": "legacy-zero",
+            "undoTarget": null
+          }
+        },
+        {
+          "op": "move",
+          "cell": 0,
+          "value": 5,
+          "note": false,
+          "check": true,
+          "at": 65000,
+          "expect": {
+            "append": "finish",
+            "position": "complete-clean",
+            "revision": 3,
+            "timer": "legacy-wall",
+            "undoTarget": 2,
+            "completedAt": 65000,
+            "durationMs": 64000
+          }
+        },
+        {
+          "op": "interval",
+          "start": 100000,
+          "end": 101000,
+          "expect": {
+            "position": "complete-clean",
+            "revision": 3,
+            "timer": "legacy-wall",
+            "undoTarget": 2,
+            "completedAt": 65000,
+            "durationMs": 64000
+          }
+        }
+      ]
+    }
+  ],
+  "invalidHistorySteps": [-1, 0.5, 999],
+  "durationLabels": [
+    { "ms": -1, "label": "00:00:00" },
+    { "ms": 999, "label": "00:00:00" },
+    { "ms": 1000, "label": "00:00:01" },
+    { "ms": 59999, "label": "00:00:59" },
+    { "ms": 60000, "label": "00:01:00" },
+    { "ms": 3661000, "label": "01:01:01" },
+    { "ms": 360000000, "label": "100:00:00" }
+  ],
+  "focusClock": [
+    { "op": "checkpoint", "at": 1000, "interval": null },
+    { "op": "focus", "focused": true, "at": 2000, "interval": null },
+    { "op": "checkpoint", "at": 1900, "interval": null },
+    { "op": "checkpoint", "at": 3000, "interval": { "start": 2000, "end": 3000 } },
+    { "op": "focus", "focused": false, "at": 3500, "interval": { "start": 3000, "end": 3500 } },
+    { "op": "checkpoint", "at": 90000, "interval": null },
+    { "op": "focus", "focused": false, "at": 100000, "interval": null },
+    { "op": "focus", "focused": true, "at": 110000, "interval": null },
+    {
+      "op": "focus",
+      "focused": true,
+      "at": 111000,
+      "interval": { "start": 110000, "end": 111000 }
+    },
+    {
+      "op": "focus",
+      "focused": false,
+      "at": 111500,
+      "interval": { "start": 111000, "end": 111500 }
+    }
+  ]
+}

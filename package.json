@@ -9,6 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
+    "benchmark:core": "tsx benchmarks/core.ts",
+    "benchmark:browser": "tsx benchmarks/browser.ts",
+    "benchmark:compare": "tsx benchmarks/compare.ts",
     "postinstall": "node scripts/copy-assets.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

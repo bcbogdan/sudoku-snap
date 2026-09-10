@@ -4,7 +4,11 @@ export default defineConfig({
   testMatch: '*.spec.ts',
   timeout: 180000,
   workers: 1,
-  use: { baseURL: 'http://127.0.0.1:3187', channel: 'chrome', headless: true },
+  use: {
+    baseURL: 'http://127.0.0.1:3187',
+    channel: process.env.PLAYWRIGHT_CHANNEL,
+    headless: true,
+  },
   webServer: {
     command: 'npm start -- --hostname 127.0.0.1 --port 3187',
     url: 'http://127.0.0.1:3187',
