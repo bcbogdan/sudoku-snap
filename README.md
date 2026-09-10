@@ -46,6 +46,40 @@ themes. Neither suite starts Next or loads OCR/storage. See
 [Storybook testing](docs/storybook.md) for setup and deliberate baseline review
 with `npm run test:visual:update`.
 
+## Rust core development (Phase 3)
+
+[`sudoku-core`](crates/sudoku-core/README.md) is a pure **native Rust library**,
+not yet a Wasm package or an app dependency. The app still uses TypeScript and
+IndexedDB schema 1. Node-only development does not require Rust. See
+[refactor progress](docs/refactor-progress.md) for completed milestones, review
+evidence and the stop point before Wasm packaging.
+
+With [rustup](https://rustup.rs/) installed, run from the repository root:
+
+```sh
+rustup toolchain install 1.97.1 --profile minimal --component clippy --component rustfmt
+cargo +1.97.1 test --workspace --locked
+cargo +1.97.1 fmt --all -- --check
+cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings
+cargo +1.97.1 doc --workspace --no-deps --locked
+```
+
+The workspace uses edition 2024, pins Rust 1.97.1 in `rust-toolchain.toml`, and
+locks dependency resolution in `Cargo.lock`. Keep the explicit `+1.97.1`:
+`RUSTUP_TOOLCHAIN=stable` overrides the toolchain file. `cargo test` includes the
+crate README's doctest; generated API docs start at
+`target/doc/sudoku_core/index.html`. The crate README includes an optional native
+loader benchmark, its measurement limits and the future host transaction contract.
+
+Learning Rust? Read validated types in
+[`board.rs`](crates/sudoku-core/src/board.rs), then
+[`solver.rs`](crates/sudoku-core/src/solver.rs) →
+[`puzzle.rs`](crates/sudoku-core/src/puzzle.rs) →
+[`attempt.rs`](crates/sudoku-core/src/attempt.rs) →
+[`record.rs`](crates/sudoku-core/src/record.rs) and
+[`tests`](crates/sudoku-core/tests). Follow with `time.rs` and `sharing.rs` for
+host-driven timing and compatibility boundaries.
+
 ## Vercel
 
 The repository includes `vercel.json` with the Next.js framework preset, `npm ci` for reproducible installs, and `npm run build`. `package.json` pins the deployment runtime to Node.js 22.x. Leave the output directory on the Next.js default; do not set it to `public`.
