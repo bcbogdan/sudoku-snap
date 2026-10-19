@@ -10,7 +10,6 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     IPHONEOS_DEPLOYMENT_TARGET: '17.0'
     TARGETED_DEVICE_FAMILY: '1,2'
-    SWIFT_INCLUDE_PATHS: '$(inherited) $(SRCROOT)/../../target/ios-core/Headers'
     CODE_SIGN_STYLE: Automatic
 targets:
   SudokuCoreBindings:
