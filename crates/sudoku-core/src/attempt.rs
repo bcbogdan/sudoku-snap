@@ -19,8 +19,9 @@ pub struct Edit {
 #[must_use = "transitions return a new attempt; persist it before publishing"]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Attempt {
-    record: AttemptRecord,
-    puzzle: FinalizedPuzzle,
+    pub(crate) record: AttemptRecord,
+    pub(crate) puzzle: FinalizedPuzzle,
+    pub(crate) active: Vec<usize>,
 }
 impl Attempt {
     pub fn new(id: String, puzzle: &FinalizedPuzzle, at: u64) -> Result<Self> {
@@ -42,6 +43,7 @@ impl Attempt {
                 revision: 0,
             },
             puzzle: puzzle.clone(),
+            active: vec![],
         })
     }
     pub fn record(&self) -> &AttemptRecord {
@@ -74,15 +76,7 @@ impl Attempt {
     }
     /// Returns a zero-based move index in the active branch, not a history step.
     pub fn undo_target(&self) -> Option<usize> {
-        let mut stack = vec![];
-        for (i, m) in self.record.moves.iter().enumerate() {
-            if m.kind == MoveKind::Undo {
-                stack.pop();
-            } else {
-                stack.push(i);
-            }
-        }
-        stack.last().copied()
+        self.active.last().copied()
     }
     /// Freezes legacy recorded time before resumed play, excluding the closed gap.
     pub fn normalize_legacy_time(&self) -> Self {
@@ -127,13 +121,17 @@ impl Attempt {
         let Some((position, kind)) = transition(self.current(), &self.puzzle, edit)? else {
             return Ok(self.clone());
         };
-        let elapsed_ms = self.record.active_ms.unwrap_or(at - self.record.started_at);
+        // Legacy elapsed time may exceed wall time; preserve monotone history on resume.
+        let elapsed_ms = self.record.active_ms.unwrap_or_else(|| {
+            (at - self.record.started_at).max(self.record.moves.last().map_or(0, |m| m.elapsed_ms))
+        });
         let mut next = self.clone();
         next.record.revision = time::add(next.record.revision, 1)?;
         if position.board.complete() {
             next.record.completed_at = Some(at);
             next.record.duration_ms = Some(elapsed_ms);
         }
+        next.active.push(next.record.moves.len());
         next.record.moves.push(MoveRecord {
             cell: edit.cell,
             kind,
@@ -168,6 +166,7 @@ impl Attempt {
         let cell = self.record.moves[target].cell;
         let mut next = self.clone();
         next.record.revision = time::add(next.record.revision, 1)?;
+        next.active.pop();
         next.record.moves.push(MoveRecord {
             cell,
             kind: MoveKind::Undo,
@@ -279,13 +278,14 @@ impl Attempt {
         Ok(Self {
             record,
             puzzle: puzzle.clone(),
+            active,
         })
     }
 }
 
 // Shared by candidate computation and borrowed-history validation. Only one fixed-size
 // position is copied; history is never involved in this transition.
-fn transition(
+pub(crate) fn transition(
     old: &PositionRecord,
     puzzle: &FinalizedPuzzle,
     edit: Edit,

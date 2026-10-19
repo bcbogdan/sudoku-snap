@@ -12,6 +12,7 @@ pub enum Error {
     InvalidInterval,
     Overflow,
     Locked,
+    StaleCandidate,
     TooFewClues,
     NoEmptyCells,
     NoSolution,
@@ -34,6 +35,7 @@ impl fmt::Display for Error {
             Self::InvalidInterval => "Active interval end must not precede its start.",
             Self::Overflow => "This update would exceed the JavaScript-safe integer limit.",
             Self::Locked => "Completed attempts are read-only. Start a new attempt to play again.",
+            Self::StaleCandidate => "This attempt changed. Reload before trying again.",
             Self::TooFewClues => "Add at least 17 clues before starting.",
             Self::NoEmptyCells => "Leave at least one cell empty so there is a puzzle to play.",
             Self::NoSolution => {

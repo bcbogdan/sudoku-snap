@@ -1,4 +1,4 @@
-# sudoku-core
+# Sudoku Snap — sudoku-core
 
 Pure Rust domain library, edition 2024, toolchain **1.97.1**. IDs and integer
 millisecond timestamps come from the host. No clock, randomness, browser, UI or
@@ -10,6 +10,34 @@ Modules: `board` (validated 81 cells, indices, digits, nine-bit notes), `solver`
 (MRV, solution count capped at two), `puzzle` (draft/finalized), `attempt`
 (immutable candidate transitions and append-only snapshots), `sharing` (v1 and
 legacy codecs), `time`, `record` (explicit schema-v1 JSON DTOs).
+
+`session` owns validated history once and retains the active undo stack. Use
+`Session::prepare(Command, CommandContext)` for bounded candidate computation,
+persist `Candidate::header()` plus `appended_move()` atomically, then call
+`Session::accept(candidate)` before publishing `current()`. Dropping a candidate
+aborts. Candidates are immutable and non-clonable; session identity and generation
+reject stale/cross-session acceptance. Even accepted no-ops advance generation.
+Timer changes do not advance history revision. Generation is process-local, not a
+storage CAS token. If commit succeeds but acceptance fails, reload durable state.
+
+`record()` borrows history; `export_record()` explicitly copies it. Preparation
+copies only headers and at most two 81-cell positions, never history or the undo
+stack, and uses the finalized puzzle's cached solution. Acceptance may reallocate
+history/stack vectors. The original immutable `Attempt` API remains available.
+
+Legacy records without active-time metadata can contain elapsed time ahead of
+wall time. Both command APIs deliberately floor the wall-time fallback at the
+last recorded elapsed time, preserving monotone history and reload validity
+without rewriting old snapshots or adding absent timer fields.
+
+Measure native command work with
+`cargo +1.97.1 run -p sudoku-core --release --example command_benchmark`.
+CSV reports separate prepare/accept means over 100 samples at 0/100/1k/10k moves.
+Restoration and fixture construction are outside timing; each sample starts from
+the same history. A zero-history undo is intentionally a no-op. Vec growth is
+included in accept. Run on an idle machine and retain toolchain/CPU/build metadata;
+these native timings exclude storage, bridge, startup and full-record export and
+do not establish a production speedup. No correctness timing thresholds apply.
 
 Structural board validity is separate from conflicts and uniqueness. Drafts and
 player entries may conflict. Finalization requires 17–80 clues and exactly one

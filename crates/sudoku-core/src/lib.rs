@@ -6,6 +6,7 @@ pub mod board;
 pub mod error;
 pub mod puzzle;
 pub mod record;
+pub mod session;
 pub mod sharing;
 pub mod solver;
 pub mod time;
