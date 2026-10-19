@@ -153,12 +153,17 @@ alone. Import/decoding errors offer another photo or manual entry through the UI
 2. Detect candidate rectangles and choose the largest near-square rectangle.
 3. Perspective-correct to 900×900 grayscale; invert when the median background is
    dark. Apply a 31-pixel Gaussian adaptive threshold with a 12-level offset.
-4. Inset each cell by 10%; isolate the largest centered, digit-sized connected
-   component, rejecting boundary/grid fragments. These extraction rules mirror
-   the web implementation. Enlarge each glyph on a padded 224×224 white canvas.
+4. Refine cell boundaries using ten long grid-line bands on each axis, with
+   spacing/support checks and a uniform-grid fallback if evidence is incomplete.
+   Inset measured cells by 10%; isolate the largest centered, digit-sized connected
+   component, rejecting boundary/grid fragments. Component thresholds scale with
+   cell size. Enlarge each glyph on a padded 224×224 white canvas.
 5. Run accurate Vision recognition on binary and locally contrast-stretched
    grayscale glyphs, plus fast recognition on the binary glyph. Choose the
-   majority single digit 1–9 (confidence breaks ties). Do not map letters into
+   majority single digit 1–9, then confidence. An exact tie prefers the
+   character-oriented fast pass, not the digit's numeric value; this remains an
+   uncertain, uncalibrated fallback. Grayscale glyphs retain antialiased edges but
+   discard the surrounding paper/highlight rectangle. Do not map letters into
    digits or use a Sudoku solution to supply clues. Mark missing, disagreeing,
    low-confidence, and blank results uncertain; agreement is not proof of accuracy.
 6. Retain an orientation-corrected, downsampled source JPEG for visual correction.
@@ -186,7 +191,7 @@ xcodebuild -project apps/ios/SudokuSnap.xcodeproj -scheme SudokuSnapOCR \
 
 The XCTest evaluation logs every cell's expected/recognized digit, uncertainty,
 candidate strings/confidences and boxes, crop/glyph bounds, selected rectangle
-corners, mismatches, and elapsed time (including diagnostic image encoding).
+corners, refined row/column boundaries, mismatches, and elapsed time (including diagnostic image encoding).
 It retains rectified/thresholded boards, every cell crop, and both normalized
 glyph images as PNG attachments in the `.xcresult`, even on success. Evidence
 collection is opt-in; production imports do not encode or retain diagnostic images.
@@ -196,11 +201,19 @@ Fixtures remain `original.jpeg`/`expected.json` and
 `dark-highlighted.jpeg`/`dark-highlighted.json`; exact equality and no unflagged
 errors are required. Before these preprocessing changes, macOS CI run
 `39295056266` recorded 4 original errors (3 unflagged, 50 uncertain, 38.4s) and
-9 dark-highlighted errors (2 unflagged, 66 uncertain, 39.2s). These measurements
-do not establish production accuracy. Linux OpenCV inspection of the new
-component rules found all 32/22 fixture glyphs with no extra components using
-OpenCV-detected corners, **not Vision's corners or OCR**. The changed native
-pipeline still requires macOS evaluation; no improved Vision score is claimed.
+9 dark-highlighted errors (2 unflagged, 66 uncertain, 39.2s). After glyph isolation,
+run `39299842009` recorded 3 original errors (all flagged, 73 uncertain, 38.9s)
+and 1 dark error (flagged, 71 uncertain, 35.1s). Its actual PNG attachments show
+paper glyphs clipped by uniform cell crops and correctly oriented grayscale
+glyphs with residual rectangular backgrounds. The dark error was an equal-vote,
+equal-confidence 6/9 tie resolved by numeric order.
+
+The subsequent boundary-refinement implementation was checked on these actual
+CI normalized PNGs with Linux OpenCV: all 32/22 glyph components, no missing or
+extra components. Synthetic Swift regressions cover padded rectangles and missing
+grid bands. These checks do **not** establish Vision accuracy; the updated native
+code and regression tests still require macOS execution. No post-fix OCR score
+or production-accuracy claim is made.
 
 ## Test inventory and remaining gates
 

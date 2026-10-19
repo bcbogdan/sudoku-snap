@@ -18,6 +18,57 @@ struct RecognitionEvidence: Sendable {
     var images: [String: Data] = [:]
 }
 
+struct RecognitionGrid {
+    var columns: [Int]
+    var rows: [Int]
+
+    static func boundaries(in projection: [Int]) -> [Int]? {
+        let side = projection.count
+        guard side >= 90 else { return nil }
+        let step = side / 9
+        let radius = step / 4
+        var lines: [Int] = []
+        for index in 0...9 {
+            let lower = max(0, index * step - radius)
+            let upper = min(side - 1, index * step + radius)
+            guard let peak = (lower...upper).max(by: { projection[$0] < projection[$1] }),
+                  projection[peak] >= side / 3 else { return nil }
+            let threshold = max(side / 3, projection[peak] / 2)
+            var first = peak, last = peak
+            while first > lower && projection[first - 1] >= threshold { first -= 1 }
+            while last < upper && projection[last + 1] >= threshold { last += 1 }
+            guard last - first <= step / 5 else { return nil }
+            lines.append((first + last) / 2)
+        }
+        guard zip(lines, lines.dropFirst()).allSatisfy({ pair in
+            (step * 3 / 4...step * 5 / 4).contains(pair.1 - pair.0)
+        }) else { return nil }
+        return lines
+    }
+
+    init(ink: [Bool], side: Int) {
+        var horizontal = [Int](repeating: 0, count: side)
+        var vertical = horizontal
+        for y in 0..<side {
+            for x in 0..<side where ink[y * side + x] {
+                horizontal[y] += 1
+                vertical[x] += 1
+            }
+        }
+        let uniform = (0...9).map { $0 * side / 9 }
+        columns = Self.boundaries(in: vertical) ?? uniform
+        rows = Self.boundaries(in: horizontal) ?? uniform
+    }
+
+    func cell(at index: Int) -> CGRect {
+        let row = index / 9, column = index % 9
+        let width = columns[column + 1] - columns[column]
+        let height = rows[row + 1] - rows[row]
+        return CGRect(x: columns[column], y: rows[row], width: width, height: height)
+            .insetBy(dx: CGFloat(width) * 0.1, dy: CGFloat(height) * 0.1).integral
+    }
+}
+
 actor PhotoRecognizer {
     func recognize(_ data: Data, collectEvidence: Bool = false) throws -> Recognition {
         try Task.checkCancellation()
@@ -63,9 +114,11 @@ actor PhotoRecognizer {
         let dark = gray.lazy.filter { $0 < 128 }.count > gray.count / 2
         if dark { gray = gray.map { 255 - $0 } }
         let ink = try adaptiveInk(gray, side: 900)
+        let grid = RecognitionGrid(ink: ink, side: 900)
         var evidence: RecognitionEvidence? = collectEvidence ? RecognitionEvidence(
             geometry: "source=\(image.width)x\(image.height) candidates=\(rectangles.results?.map(\.boundingBox) ?? []) rectangle=\(rectangle.boundingBox) TL=\(rectangle.topLeft) TR=\(rectangle.topRight) BL=\(rectangle.bottomLeft) BR=\(rectangle.bottomRight) corrected=\(corrected.extent) inverted=\(dark)"
         ) : nil
+        evidence?.geometry += " rows=\(grid.rows) columns=\(grid.columns)"
         if collectEvidence {
             evidence?.images["rectified.png"] = try png(flat)
             evidence?.images["normalized.png"] = try png(grayImage(gray, width: 900, height: 900))
@@ -76,31 +129,34 @@ actor PhotoRecognizer {
         for index in 0..<81 {
             try Task.checkCancellation()
             try autoreleasepool {
-                let x = index % 9 * 100 + 10
-                let y = index / 9 * 100 + 10
-                let cell = CGRect(x: x, y: y, width: 80, height: 80)
+                let cell = grid.cell(at: index)
+                let x = Int(cell.minX), y = Int(cell.minY)
+                let cellWidth = Int(cell.width), cellHeight = Int(cell.height)
                 if collectEvidence {
-                    let pixels = cropPixels(gray, x: x, y: y, width: 80, height: 80)
-                    evidence?.images["cell-\(index)-crop.png"] = try png(grayImage(pixels, width: 80, height: 80))
+                    let pixels = cropPixels(gray, x: x, y: y, width: cellWidth, height: cellHeight)
+                    evidence?.images["cell-\(index)-crop.png"] = try png(grayImage(pixels, width: cellWidth, height: cellHeight))
                 }
-                guard let glyph = component(in: ink, x: x, y: y) else {
+                guard let glyph = component(in: ink, x: x, y: y, cellWidth: cellWidth, cellHeight: cellHeight) else {
                     // Absence of a component is not proof that a photographed cell is blank.
                     uncertain.append(UInt8(index))
                     evidence?.cells.append("cell=\(index) rect(top-left)=\(cell) glyph=none recognized=0 confidence=none")
                     return
                 }
-                let mask = try glyphImage(glyph, gray: gray, x: x, y: y, binary: true)
-                let tone = try glyphImage(glyph, gray: gray, x: x, y: y, binary: false)
+                let mask = try glyphImage(glyph, gray: gray, x: x, y: y, cellWidth: cellWidth, binary: true)
+                let tone = try glyphImage(glyph, gray: gray, x: x, y: y, cellWidth: cellWidth, binary: false)
                 // Different recognition levels provide a second check on correlated accurate-pass errors.
                 let readings = [try readDigit(mask, label: "mask", level: .accurate),
                                 try readDigit(tone, label: "tone", level: .accurate),
                                 try readDigit(mask, label: "mask", level: .fast)]
                 let votes = Dictionary(grouping: readings.compactMap { $0.digit }, by: { $0 })
                 let winner = votes.keys.sorted { left, right in
+                    guard left != right else { return false }
                     if votes[left]!.count != votes[right]!.count { return votes[left]!.count > votes[right]!.count }
                     let leftConfidence = readings.filter { $0.digit == left }.map(\.confidence).max() ?? 0
                     let rightConfidence = readings.filter { $0.digit == right }.map(\.confidence).max() ?? 0
-                    return leftConfidence == rightConfidence ? left < right : leftConfidence > rightConfidence
+                    if leftConfidence != rightConfidence { return leftConfidence > rightConfidence }
+                    // With no consensus, prefer the character-oriented fast pass, never the digit's numeric value.
+                    return readings.last(where: { $0.digit == left || $0.digit == right })?.digit == left
                 }.first
                 clues[index] = winner ?? 0
                 let agreeing = readings.filter { $0.digit == winner && winner != nil }
@@ -217,24 +273,24 @@ actor PhotoRecognizer {
         var pixels: [Int]
     }
 
-    private func component(in ink: [Bool], x: Int, y: Int) -> Glyph? {
-        var visited = [Bool](repeating: false, count: 80 * 80)
+    private func component(in ink: [Bool], x: Int, y: Int, cellWidth: Int, cellHeight: Int) -> Glyph? {
+        var visited = [Bool](repeating: false, count: cellWidth * cellHeight)
         var best: Glyph?
         for seed in 0..<visited.count {
-            guard !visited[seed], ink[(y + seed / 80) * 900 + x + seed % 80] else { continue }
+            guard !visited[seed], ink[(y + seed / cellWidth) * 900 + x + seed % cellWidth] else { continue }
             visited[seed] = true
             var pixels = [seed]
             var cursor = 0
-            var minX = seed % 80, maxX = minX, minY = seed / 80, maxY = minY
+            var minX = seed % cellWidth, maxX = minX, minY = seed / cellWidth, maxY = minY
             while cursor < pixels.count {
                 let point = pixels[cursor]
                 cursor += 1
-                let px = point % 80, py = point / 80
+                let px = point % cellWidth, py = point / cellWidth
                 minX = min(minX, px); maxX = max(maxX, px)
                 minY = min(minY, py); maxY = max(maxY, py)
-                for ny in max(0, py - 1)...min(79, py + 1) {
-                    for nx in max(0, px - 1)...min(79, px + 1) {
-                        let next = ny * 80 + nx
+                for ny in max(0, py - 1)...min(cellHeight - 1, py + 1) {
+                    for nx in max(0, px - 1)...min(cellWidth - 1, px + 1) {
+                        let next = ny * cellWidth + nx
                         if !visited[next], ink[(y + ny) * 900 + x + nx] {
                             visited[next] = true
                             pixels.append(next)
@@ -243,10 +299,11 @@ actor PhotoRecognizer {
                 }
             }
             let width = maxX - minX + 1, height = maxY - minY + 1
-            guard minX > 1, minY > 1, maxX < 78, maxY < 78,
-                  height >= 22, width >= 5, pixels.count >= 65,
-                  abs(Double(minX) + Double(width) / 2 - 40) <= 22,
-                  abs(Double(minY) + Double(height) / 2 - 40) <= 22,
+            guard minX > 1, minY > 1, maxX < cellWidth - 2, maxY < cellHeight - 2,
+                  height * 80 >= 22 * cellHeight, width * 80 >= 5 * cellWidth,
+                  pixels.count * 6400 >= 65 * cellWidth * cellHeight,
+                  abs(Double(minX) + Double(width) / 2 - Double(cellWidth) / 2) <= Double(cellWidth) * 0.275,
+                  abs(Double(minY) + Double(height) / 2 - Double(cellHeight) / 2) <= Double(cellHeight) * 0.275,
                   pixels.count > (best?.pixels.count ?? 0) else { continue }
             best = Glyph(bounds: CGRect(x: minX, y: minY, width: width, height: height), pixels: pixels)
         }
@@ -264,21 +321,29 @@ actor PhotoRecognizer {
         return pixels
     }
 
-    private func glyphImage(_ glyph: Glyph, gray: [UInt8], x: Int, y: Int, binary: Bool) throws -> CGImage {
+    private func glyphImage(_ glyph: Glyph, gray: [UInt8], x: Int, y: Int, cellWidth: Int, binary: Bool) throws -> CGImage {
         let width = Int(glyph.bounds.width), height = Int(glyph.bounds.height)
         let minX = Int(glyph.bounds.minX), minY = Int(glyph.bounds.minY)
         var pixels = [UInt8](repeating: 255, count: width * height)
         if binary {
-            for point in glyph.pixels { pixels[(point / 80 - minY) * width + point % 80 - minX] = 0 }
+            for point in glyph.pixels { pixels[(point / cellWidth - minY) * width + point % cellWidth - minX] = 0 }
         } else {
             // Stretch each glyph locally; colored selection backgrounds no longer reduce contrast.
             let values = cropPixels(gray, x: x + minX, y: y + minY, width: width, height: height)
-            let low: Int = Int(values.min() ?? 0)
-            let high: Int = Int(values.max() ?? 255)
+            let sorted = values.sorted()
+            let low = Int(sorted[sorted.count / 20])
+            let high = Int(sorted[sorted.count * 9 / 10])
             let range: Int = max(1, high - low)
-            for (index, value) in values.enumerated() {
-                let scaled: Int = (Int(value) - low) * 255 / range
-                pixels[index] = UInt8(scaled)
+            // Retain antialiased edges but remove the rectangular paper/highlight background.
+            for point in glyph.pixels {
+                let px = point % cellWidth - minX, py = point / cellWidth - minY
+                for row in max(0, py - 1)...min(height - 1, py + 1) {
+                    for column in max(0, px - 1)...min(width - 1, px + 1) {
+                        let index = row * width + column
+                        let scaled: Int = (Int(values[index]) - low) * 255 / range
+                        pixels[index] = UInt8(clamping: scaled)
+                    }
+                }
             }
         }
         let image = try grayImage(pixels, width: width, height: height)

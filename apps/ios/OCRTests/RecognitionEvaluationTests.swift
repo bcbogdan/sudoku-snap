@@ -5,6 +5,37 @@ import XCTest
 
 // XCTest attachments work on the Xcode 16.4 baseline as well as the current CI SDK.
 final class RecognitionEvaluationTests: XCTestCase {
+    func testGridBandsCorrectPaddedRectangleWithoutClippingLastRow() throws {
+        let side = 900
+        let lines = (0...9).map { 12 + $0 * 97 }
+        var ink = [Bool](repeating: false, count: side * side)
+        for line in lines {
+            for offset in -1...1 {
+                for coordinate in 0..<side {
+                    ink[(line + offset) * side + coordinate] = true
+                    ink[coordinate * side + line + offset] = true
+                }
+            }
+        }
+        let grid = RecognitionGrid(ink: ink, side: side)
+        XCTAssertEqual(grid.rows, lines)
+        XCTAssertEqual(grid.columns, lines)
+        let glyph = CGRect(x: 635, y: 806, width: 16, height: 40)
+        XCTAssertTrue(grid.cell(at: 78).contains(glyph))
+        XCTAssertFalse(CGRect(x: 610, y: 810, width: 80, height: 80).contains(glyph))
+        for index in 0..<81 {
+            XCTAssertTrue(CGRect(x: 0, y: 0, width: side, height: side).contains(grid.cell(at: index)))
+        }
+    }
+
+    func testIncompleteGridEvidenceFallsBackToUniformCells() {
+        var projection = [Int](repeating: 0, count: 900)
+        for line in stride(from: 10, through: 786, by: 97) { projection[line] = 900 }
+        XCTAssertNil(RecognitionGrid.boundaries(in: projection))
+        let grid = RecognitionGrid(ink: [Bool](repeating: false, count: 900 * 900), side: 900)
+        XCTAssertEqual(grid.cell(at: 80), CGRect(x: 810, y: 810, width: 80, height: 80))
+    }
+
     @MainActor
     func testOriginal() async throws {
         try await evaluate(photoName: "original", expectedName: "expected")
