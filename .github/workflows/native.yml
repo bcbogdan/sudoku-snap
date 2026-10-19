@@ -51,7 +51,7 @@ jobs:
     name: Swift 6 and iOS simulator
     needs: rust
     runs-on: macos-26
-    timeout-minutes: 45
+    timeout-minutes: 90
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       XCODE_VERSION: '26.6'
@@ -72,6 +72,29 @@ jobs:
           test "$(uname -m)" = arm64
           test "$(xcodebuild -version | head -n 1)" = "Xcode $XCODE_VERSION"
           rustup toolchain install 1.97.1 --profile minimal 2>&1 | tee native-ci-logs/rust-toolchain.log
+      - name: Install checksum-pinned XcodeGen 2.46.0
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip \
+            -o "$RUNNER_TEMP/xcodegen.zip"
+          echo "4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806  $RUNNER_TEMP/xcodegen.zip" \
+            | shasum -a 256 -c -
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP/xcodegen-2.46.0"
+          XCODEGEN_BIN="$RUNNER_TEMP/xcodegen-2.46.0/xcodegen/bin"
+          echo "$XCODEGEN_BIN" >> "$GITHUB_PATH"
+          "$XCODEGEN_BIN/xcodegen" --version | tee native-ci-logs/xcodegen.log
+      - name: Select available iPhone 17 for the selected SDK
+        run: |
+          xcrun simctl list devices available --json > native-ci-logs/simulators.json
+          SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version)"
+          RUNTIME="com.apple.CoreSimulator.SimRuntime.iOS-${SDK_VERSION//./-}"
+          IOS_SIMULATOR_ID="$(jq -er --arg runtime "$RUNTIME" '
+            [.devices[$runtime][]? | select(.isAvailable == true and .name == "iPhone 17")]
+            | sort_by(.udid) | first | .udid // error("No available iPhone 17 for selected SDK")
+          ' native-ci-logs/simulators.json)"
+          echo "IOS_SIMULATOR_ID=$IOS_SIMULATOR_ID" >> "$GITHUB_ENV"
+          printf 'SDK=%s runtime=%s simulator=%s\n' "$SDK_VERSION" "$RUNTIME" "$IOS_SIMULATOR_ID" \
+            | tee native-ci-logs/simulator-selection.log
       - name: Generate real UniFFI bindings and XCFramework
         run: bash scripts/build-ios-core.sh 2>&1 | tee native-ci-logs/ios-core-build.log
       - name: Typecheck generated bindings in strict Swift 6
@@ -82,6 +105,43 @@ jobs:
             -I target/ios-core/Headers \
             apps/ios/Sources/SudokuCoreBindings/SudokuCoreBindings.swift \
             2>&1 | tee native-ci-logs/swift-typecheck.log
+      - name: App unit and UI tests, then unsigned Release archive
+        id: app
+        timeout-minutes: 45
+        run: bash apps/ios/scripts/check-macos.sh 2>&1 | tee native-ci-logs/app-validation.log
+      - name: OCR accuracy evaluation (separate release gate)
+        id: ocr
+        timeout-minutes: 20
+        run: |
+          xcodebuild -project apps/ios/SudokuSnap.xcodeproj -scheme SudokuSnapOCR \
+            -destination "platform=iOS Simulator,id=$IOS_SIMULATOR_ID" \
+            -derivedDataPath target/ios-app-derived \
+            -resultBundlePath target/ios-ocr-evaluation.xcresult \
+            SWIFT_VERSION=6 SWIFT_STRICT_CONCURRENCY=complete \
+            CODE_SIGNING_ALLOWED=NO test 2>&1 | tee native-ci-logs/ocr-evaluation.log
+      - name: Report independent app and OCR outcomes
+        if: always()
+        env:
+          APP_OUTCOME: ${{ steps.app.outcome }}
+          OCR_OUTCOME: ${{ steps.ocr.outcome }}
+        run: |
+          {
+            echo '## Native app and OCR gates'
+            echo "- App unit/UI tests and unsigned archive: $APP_OUTCOME"
+            echo "- OCR exact-match fixture evaluation: $OCR_OUTCOME"
+            echo '- OCR is a separate accuracy gate; its failure does not erase app/core results.'
+            echo '- Skipped OCR means not evaluated, never a passing accuracy result.'
+            echo '- Fixtures: original and dark-highlighted; mismatches, unflagged errors, uncertainty and timing are recorded in test diagnostics.'
+            if [[ -f native-ci-logs/ocr-evaluation.log ]]; then
+              echo '```text'
+              grep -E 'errors=|unflaggedErrors=|Test.*(passed|failed)|Executed ' native-ci-logs/ocr-evaluation.log | tail -n 60 || true
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ -d target/ios-ocr-evaluation.xcresult ]]; then
+            xcrun xcresulttool get test-results tests --path target/ios-ocr-evaluation.xcresult \
+              > native-ci-logs/ocr-test-results.json 2> native-ci-logs/ocr-result-extraction.log
+          fi
       - name: Upload diagnostic logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -89,6 +149,18 @@ jobs:
           name: native-ios-logs
           path: |
             native-ci-logs/*.log
+            native-ci-logs/*.json
             target/ios-core/build-manifest.txt
           retention-days: 7
+          if-no-files-found: warn
+      - name: Upload app and OCR test result bundles
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-ios-test-results
+          path: |
+            target/ios-app-tests-*.xcresult
+            target/ios-ocr-evaluation.xcresult
+          compression-level: 6
+          retention-days: 3
           if-no-files-found: warn

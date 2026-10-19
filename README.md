@@ -96,6 +96,8 @@ than the web UI. Apple-platform builds require macOS/Xcode; Rust bridge tests
 alone do not establish Swift compilation or OCR parity. See
 [Swift binding setup](docs/swift-binding.md) and
 [native CI](docs/native-ci.md) for reproducible tooling and validation gates.
+[Native app setup](docs/ios-app.md) covers project generation, simulator tests,
+the separate Vision OCR evaluation and supported import flows.
 
 Learning Rust? Read validated types in
 [`board.rs`](crates/sudoku-core/src/board.rs), then

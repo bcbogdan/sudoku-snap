@@ -76,6 +76,11 @@ BENCH_MODE=full BENCH_FILTER='^(entry|undo|timer-idle)$' BENCH_HISTORY=10000 \
 
 ## Apple-platform gate
 
+[Native validation run 39292769032](https://github.com/bcbogdan/sudoku-snap/actions/runs/39292769032)
+passed on commit `e515a7e`: Rust workspace gates, real arm64 iOS device/simulator
+XCFramework packaging, and strict Swift 6 typechecking of generated bindings on
+the macOS/Xcode 26.6 runner. This first run did not include app or runtime tests.
+
 Native Rust bridge tests do not prove Swift 6 concurrency compatibility, generated
 linkage, app compilation, simulator behavior or Vision OCR accuracy. The native
 workflow and app-specific verification must establish those separately. Physical
