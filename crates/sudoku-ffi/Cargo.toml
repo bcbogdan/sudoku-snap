@@ -1,0 +1,22 @@
+[package]
+name = "sudoku-ffi"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97.1"
+
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[dependencies]
+sudoku-core = { path = "../sudoku-core" }
+uniffi = { version = "=0.32.2" }
+serde_json = "1"
+thiserror = "2"
+
+[features]
+bindgen = ["uniffi/cli"]
+
+[[bin]]
+name = "sudoku-bindgen"
+path = "src/bin/bindgen.rs"
+required-features = ["bindgen"]

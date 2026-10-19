@@ -1,0 +1,4 @@
+[bindings.swift]
+module_name = "SudokuCoreBindings"
+ffi_module_name = "SudokuCoreFFI"
+generate_module_map = true

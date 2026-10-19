@@ -1,6 +1,6 @@
 # Refactor progress
 
-Scope: commit each phase separately and **stop after the pure Rust core**.
+Historical scope: commit each phase separately and **stop after the pure Rust core**.
 The three implementation milestones below have passed their reviews and checks.
 Counts record each milestone's validation; browser suites were verified during
 the UI phase and Rust checks during the core phase.
@@ -19,7 +19,25 @@ specified in the [Rust/iOS implementation plan](rust-ios-implementation-plan.md)
 See [web implementation verification](react-implementation-verification.md) for
 test evidence and the visual-baseline environment blocker.
 
-## Milestones
+## Sudoku Snap continuation
+
+The follow-up implementation is authorized beyond the original stop point.
+Web improvements are committed as `8a9bcb0`; app branding and the repository rename
+to [Sudoku Snap](https://github.com/bcbogdan/sudoku-snap) followed in `06f4eaf`.
+
+- Resident core sessions retain undo state and prepare bounded candidates without
+  cloning history. The immutable compatibility API remains available. See the
+  [session contract](session-api.md).
+- Core review hardened legacy elapsed-time monotonicity so accepted candidates
+  remain restorable even when restored elapsed time exceeds wall-clock duration.
+  All shared fixtures remain unchanged; 49 core tests including the doctest pass.
+- Wasm, UniFFI, native-host and gated web-host implementation proceed against that
+  contract. Their platform validation gates remain separate from core tests.
+
+The sections below record the original milestones, not the current binding or
+browser-storage status.
+
+## Original milestones
 
 - [x] **Phase 1 — behavior and baselines**, commit `1e99939`.
       Added 46 behavioral tests; 76 total Node tests and 9 app E2E tests passed,

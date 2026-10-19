@@ -1,6 +1,6 @@
-import { activeDuration, applyUndo } from './attempts';
+import { getGameEngine } from './game-engine';
 import { decodeSharedPuzzle } from './sharing';
-import { applyMove, initialPosition, randomName, type Puzzle, type Attempt } from './attempts';
+import { randomName, type Puzzle, type Attempt } from './attempts';
 import { emptyBoard, type Board } from './sudoku';
 import { solveCached } from './solver-client';
 import {
@@ -128,7 +128,18 @@ function transactionCallback(fail: (error: Error) => void, operation: () => void
 // Resolve writes only after transaction completion; never present unsaved moves as saved.
 async function write<T>(
   stores: string[],
-  operation: (tx: IDBTransaction, done: (value: T) => void, fail: (error: Error) => void) => void,
+  operation: (
+    tx: IDBTransaction,
+    done: (
+      value: T,
+      hooks?: {
+        commit(): void;
+        discard(): void;
+        recover(): Promise<T>;
+      },
+    ) => void,
+    fail: (error: Error) => void,
+  ) => void,
 ): Promise<T> {
   const db = await database();
   return new Promise((resolve, reject) => {
@@ -141,11 +152,27 @@ async function write<T>(
     const tx = db.transaction([...scope], 'readwrite');
     let value: T;
     let error: Error | undefined;
-    tx.oncomplete = () => resolve(value);
-    tx.onabort = () =>
+    let hooks: { commit(): void; discard(): void; recover(): Promise<T> } | undefined;
+    tx.oncomplete = () => {
+      try {
+        hooks?.commit();
+        resolve(value);
+      } catch (error) {
+        console.error(
+          'Engine acceptance failed after persistence; reloading committed state.',
+          error,
+        );
+        // Persistence already won. Never retry the command or substitute another engine.
+        if (hooks) hooks.recover().then(resolve, reject);
+        else reject(error);
+      }
+    };
+    tx.onabort = () => {
+      hooks?.discard();
       reject(
         error ?? tx.error ?? new Error('Could not save. Local storage may be full or unavailable.'),
       );
+    };
     tx.onerror = () => {};
     const fail = (e: Error) => {
       error = e;
@@ -154,8 +181,9 @@ async function write<T>(
     try {
       operation(
         tx,
-        (v) => {
+        (v, lifecycle) => {
           value = v;
+          hooks = lifecycle;
         },
         fail,
       );
@@ -228,6 +256,7 @@ export async function saveDraft(
   });
 }
 export async function startAttempt(puzzle: Puzzle): Promise<{ puzzle: Puzzle; attempt: Attempt }> {
+  const engine = await getGameEngine();
   if (puzzle.clues.filter(Boolean).length < 17)
     throw new Error('Add at least 17 clues before starting.');
   if (puzzle.clues.every(Boolean))
@@ -248,24 +277,7 @@ export async function startAttempt(puzzle: Puzzle): Promise<{ puzzle: Puzzle; at
         fail(new Error('This puzzle changed in another tab. Reload to continue.'));
         return;
       }
-      const now = Date.now(),
-        ready: Puzzle = {
-          ...current,
-          status: 'ready',
-          updatedAt: now,
-          revision: current.revision + 1,
-        };
-      const attempt: Attempt = {
-        id: crypto.randomUUID(),
-        puzzleId: current.id,
-        startedAt: now,
-        completedAt: null,
-        durationMs: null,
-        activeMs: 0,
-        initial: initialPosition(current.clues),
-        moves: [],
-        revision: 0,
-      };
+      const { puzzle: ready, attempt } = engine.start(current, crypto.randomUUID(), Date.now());
       putPuzzle(tx, ready);
       putAttempt(tx, attempt);
       done({ puzzle: ready, attempt });
@@ -280,6 +292,7 @@ export async function recordMove(
   check: boolean,
   undo = false,
 ): Promise<Attempt> {
+  const engine = await getGameEngine();
   const precomputedPuzzle = undo
     ? undefined
     : await readById<PuzzleSummary>('puzzleSummaries', attempt.puzzleId);
@@ -313,15 +326,32 @@ export async function recordMove(
           timer.onsuccess = () => {
             try {
               const merged = mergeTimer(current, timer.result as TimerRecord | undefined);
-              const timed =
-                merged.activeMs === undefined
-                  ? { ...merged, activeMs: activeDuration(merged) }
-                  : merged;
-              const updated = undo
-                ? applyUndo(timed)
-                : applyMove(timed, puzzle.clues, solution!, cell, value, note, check);
-              if (updated !== merged) putAttempt(tx, updated);
-              done(updated);
+              const prepared = engine.prepare(puzzle, merged, solution, {
+                cell,
+                value,
+                note,
+                check,
+                undo,
+                at: Date.now(),
+              });
+              // Register disposal before issuing writes, which can throw synchronously.
+              done(prepared.attempt, {
+                commit: prepared.commit,
+                discard: prepared.discard,
+                async recover() {
+                  try {
+                    const committed = await getAttempt(current.id);
+                    if (!committed) throw new Error('Saved attempt is unavailable.');
+                    return committed;
+                  } catch (cause) {
+                    throw new Error(
+                      'The move was saved, but its state could not be reloaded. Reload before continuing.',
+                      { cause },
+                    );
+                  }
+                },
+              });
+              if (prepared.attempt !== merged) putAttempt(tx, prepared.attempt);
             } catch (error) {
               fail(error instanceof Error ? error : new Error('Could not save move.'));
             }

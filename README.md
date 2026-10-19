@@ -48,11 +48,12 @@ with `npm run test:visual:update`.
 
 ## Rust core development (Phase 3)
 
-[`sudoku-core`](crates/sudoku-core/README.md) is a pure **native Rust library**,
-not yet a Wasm package or an app dependency. The app still uses TypeScript and
-IndexedDB schema 2. Node-only development does not require Rust. See
-[refactor progress](docs/refactor-progress.md) for completed milestones, review
-evidence and the stop point before Wasm packaging.
+[`sudoku-core`](crates/sudoku-core/README.md) is the pure Rust domain library.
+Resident sessions prepare bounded candidates; hosts persist them before accepting
+them. `sudoku-wasm` and `sudoku-ffi` expose platform bindings. The web app defaults
+to TypeScript and IndexedDB schema 2; Node-only development does not require Rust.
+See [refactor progress](docs/refactor-progress.md), the
+[session contract](docs/session-api.md) and [implementation plan](docs/rust-ios-implementation-plan.md).
 
 With [rustup](https://rustup.rs/) installed, run from the repository root:
 
@@ -70,6 +71,31 @@ locks dependency resolution in `Cargo.lock`. Keep the explicit `+1.97.1`:
 crate README's doctest; generated API docs start at
 `target/doc/sudoku_core/index.html`. The crate README includes an optional native
 loader benchmark, its measurement limits and the future host transaction contract.
+
+### Opt-in Wasm web engine
+
+```sh
+rustup target add --toolchain 1.97.1 wasm32-unknown-unknown
+cargo +1.97.1 install wasm-bindgen-cli --version 0.2.104 --locked
+npm run build:wasm
+npm run test:wasm
+NEXT_PUBLIC_SUDOKU_ENGINE=wasm npm run build
+NEXT_PUBLIC_SUDOKU_ENGINE=wasm npm run test:e2e
+```
+
+Generated assets in `public/core-wasm` must accompany the opt-in deployment.
+Missing assets produce an initialization error; the selected engine never silently
+changes during a game. Rebuild without the flag to use TypeScript. See
+[web rollout](docs/web-core-rollout.md) for transaction and rollback details and
+[Wasm bindings](docs/wasm-binding.md) for the boundary contract.
+
+### Native iOS host
+
+The separate SwiftUI host lives in `apps/ios`. It uses the UniFFI bridge rather
+than the web UI. Apple-platform builds require macOS/Xcode; Rust bridge tests
+alone do not establish Swift compilation or OCR parity. See
+[Swift binding setup](docs/swift-binding.md) and
+[native CI](docs/native-ci.md) for reproducible tooling and validation gates.
 
 Learning Rust? Read validated types in
 [`board.rs`](crates/sudoku-core/src/board.rs), then

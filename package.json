@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
+    "build:wasm": "node scripts/build-wasm.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:wasm": "tsx --test tests/wasm/*.test.ts",
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006 --host 127.0.0.1 --no-open",
     "build-storybook": "storybook build --disable-telemetry",

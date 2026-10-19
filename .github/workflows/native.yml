@@ -1,0 +1,94 @@
+name: Native validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: never
+  RUST_BACKTRACE: '1'
+
+jobs:
+  rust:
+    name: Rust workspace gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust
+        run: |
+          mkdir -p native-ci-logs
+          rustup toolchain install 1.97.1 --profile minimal --component rustfmt --component clippy 2>&1 | tee native-ci-logs/toolchain.log
+          rustc +1.97.1 --version | tee -a native-ci-logs/toolchain.log
+      - name: Format
+        run: cargo +1.97.1 fmt --all -- --check 2>&1 | tee native-ci-logs/fmt.log
+      - name: Clippy
+        run: cargo +1.97.1 clippy --locked --workspace --all-targets --all-features -- -D warnings 2>&1 | tee native-ci-logs/clippy.log
+      - name: Tests and doctests
+        run: cargo +1.97.1 test --locked --workspace --all-features 2>&1 | tee native-ci-logs/tests.log
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-rust-logs
+          path: native-ci-logs/*.log
+          retention-days: 7
+          if-no-files-found: warn
+
+  ios:
+    name: Swift 6 and iOS simulator
+    needs: rust
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      XCODE_VERSION: '26.6'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify selected tools and simulator
+        run: |
+          mkdir -p native-ci-logs
+          {
+            uname -m
+            xcodebuild -version
+            xcrun swift --version
+            xcodebuild -showsdks
+            xcrun simctl list devices available
+          } 2>&1 | tee native-ci-logs/apple-tools.log
+          test "$(uname -m)" = arm64
+          test "$(xcodebuild -version | head -n 1)" = "Xcode $XCODE_VERSION"
+          rustup toolchain install 1.97.1 --profile minimal 2>&1 | tee native-ci-logs/rust-toolchain.log
+      - name: Generate real UniFFI bindings and XCFramework
+        run: bash scripts/build-ios-core.sh 2>&1 | tee native-ci-logs/ios-core-build.log
+      - name: Typecheck generated bindings in strict Swift 6
+        run: |
+          xcrun swiftc -typecheck -swift-version 6 -strict-concurrency=complete \
+            -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)" \
+            -target arm64-apple-ios17.0-simulator \
+            -I target/ios-core/Headers \
+            apps/ios/Sources/SudokuCoreBindings/SudokuCoreBindings.swift \
+            2>&1 | tee native-ci-logs/swift-typecheck.log
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-ios-logs
+          path: |
+            native-ci-logs/*.log
+            target/ios-core/build-manifest.txt
+          retention-days: 7
+          if-no-files-found: warn

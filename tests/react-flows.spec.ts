@@ -5,7 +5,7 @@ import clues from './fixtures/expected.json';
 async function openGame(page: Page) {
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'React flows'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.locator('#cell-0')).toBeVisible();
+  await expect(page.getByLabel('Attempt history')).toBeVisible();
 }
 
 test('delayed IndexedDB commits preserve ordered digits and evaluate toggles at commit time', async ({

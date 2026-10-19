@@ -1,6 +1,7 @@
 node_modules/
 .next/
 public/vendor/
+public/core-wasm/
 test-results/
 playwright-report/
 *.tsbuildinfo
