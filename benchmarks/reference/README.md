@@ -9,6 +9,11 @@ A later, separately scoped host-refactor run is archived as `react-host-10k.json
 See [its methodology and verification](../../docs/react-implementation-verification.md#long-history-verification);
 it is not part of the four Phase 1 reference runs described below.
 
+`wasm-host-10k.json` and `ts-host-session-baseline-10k.json` record the later
+opt-in engine evaluation. See [native implementation verification](../../docs/native-implementation-verification.md)
+for engine selection, instrumentation, provenance limitations and descriptive
+results. These are separate from the original Phase 1 evidence.
+
 ## Environment and provenance
 
 - Node **v22.23.2**, Linux **7.0.0-29-generic**, x64; AMD EPYC-Rome Processor,
