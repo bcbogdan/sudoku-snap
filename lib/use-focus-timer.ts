@@ -1,17 +1,39 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { activeDuration, type Attempt } from './attempts';
 import { FocusClock, type ActiveInterval } from './focus-clock';
 import { saveActiveInterval } from './storage';
 
+export interface TimerStore {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => number;
+  set: (elapsed: number) => void;
+}
+function createTimerStore(): TimerStore {
+  let elapsed = 0;
+  const listeners = new Set<() => void>();
+  return {
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    getSnapshot: () => elapsed,
+    set: (value) => {
+      elapsed = value;
+      listeners.forEach((listener) => listener());
+    },
+  };
+}
 export function useFocusTimer(attempt: Attempt | null, onError: (message: string) => void) {
-  const [elapsed, setElapsed] = useState(0);
+  const store = useRef(createTimerStore()).current;
   const flushRef = useRef<() => Promise<void>>(async () => {});
   const errorRef = useRef(onError);
   errorRef.current = onError;
   useEffect(() => {
     if (!attempt) return;
-    setElapsed(activeDuration(attempt));
+    store.set(activeDuration(attempt));
     if (attempt.completedAt !== null) {
       flushRef.current = async () => {};
       return;
@@ -29,9 +51,10 @@ export function useFocusTimer(attempt: Attempt | null, onError: (message: string
             const next = pending[0];
             const saved = await saveActiveInterval(attempt.id, next.start, next.end);
             pending.shift();
-            if (saved && !disposed) setElapsed(activeDuration(saved));
+            if (saved && !disposed) store.set(saved.durationMs ?? saved.activeMs ?? 0);
           }
           lastError = undefined;
+          if (!disposed) errorRef.current('');
         })
         .catch((error) => {
           lastError = error;
@@ -72,5 +95,5 @@ export function useFocusTimer(attempt: Attempt | null, onError: (message: string
       flushRef.current = async () => {};
     };
   }, [attempt?.id, attempt?.completedAt]);
-  return { elapsed, flush: () => flushRef.current() };
+  return { store, flush: () => flushRef.current() };
 }

@@ -349,10 +349,15 @@ test('compatibility elapsed labels floor seconds and do not wrap after 24 hours'
 });
 
 async function seedPersistedRecords() {
-  // Let the real storage module establish schema/indexes, then simulate existing on-disk records.
-  await listPuzzles();
+  // Seed the released schema before the application opens and upgrades it.
   await new Promise<void>((resolve, reject) => {
     const request = indexedDB.open(persistence.database.name, persistence.database.version);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore('puzzles', { keyPath: 'id' });
+      request.result
+        .createObjectStore('attempts', { keyPath: 'id' })
+        .createIndex('puzzleId', 'puzzleId');
+    };
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
@@ -416,7 +421,10 @@ test('schema-v1 records reload losslessly, deduplicate both share keys, and pres
 
   await assert.rejects(recordMove(completed, 0, 0, false, true), /read-only/);
   await assert.rejects(undoLastMove(completed), /read-only/);
-  assert.deepEqual(await saveActiveInterval(completed.id, 100000, 101000), completed);
+  const frozenTimer = await saveActiveInterval(completed.id, 100000, 101000);
+  assert.equal(frozenTimer!.completedAt, completed.completedAt);
+  assert.equal(frozenTimer!.durationMs, completed.durationMs);
+  assert.equal(frozenTimer!.activeMs, activeDuration(completed));
   assert.deepEqual((await listAttempts(completed.puzzleId))[0], completed);
 
   // A no-op entry through storage upgrades a legacy timer without charging the closed-page gap.

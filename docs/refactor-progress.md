@@ -5,6 +5,20 @@ The three implementation milestones below have passed their reviews and checks.
 Counts record each milestone's validation; browser suites were verified during
 the UI phase and Rust checks during the core phase.
 
+Next-stage assessment: [shared Rust core and native iOS plan](shared-core-ios-plan.md).
+This extends the roadmap; the completed milestones below retain their original scope.
+See also the [animation opportunity report](animation-opportunities.md).
+The [React performance/UX audit](react-performance-ux-audit.md) prioritizes the
+existing web fixes before integration and motion polish.
+
+The follow-up web implementation now uses browser schema 2 with separate timers
+and summaries, worker-backed solving/OCR, ordered inputs and local save feedback.
+The milestone notes below describe the earlier phase-3 stop point. Rust remains
+unintegrated; its metadata DTOs retain schema-v1 compatibility. Next core work is
+specified in the [Rust/iOS implementation plan](rust-ios-implementation-plan.md).
+See [web implementation verification](react-implementation-verification.md) for
+test evidence and the visual-baseline environment blocker.
+
 ## Milestones
 
 - [x] **Phase 1 — behavior and baselines**, commit `1e99939`.

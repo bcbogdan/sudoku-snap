@@ -1,0 +1,24 @@
+.original-photo {
+  margin-block: 1rem;
+}
+.original-photo summary {
+  cursor: pointer;
+  padding-block: 0.75rem;
+}
+.original-photo label {
+  display: block;
+}
+.original-photo input {
+  width: min(100%, 20rem);
+}
+.original-photo-viewport {
+  max-height: 40dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid currentColor;
+}
+.original-photo-viewport img {
+  display: block;
+  max-width: none;
+  height: auto;
+}

@@ -13,7 +13,7 @@ npm run dev
 
 Open http://localhost:3000. The home screen lists saved puzzles. Selecting a puzzle opens its most recently started attempt directly, including completed attempts in read-only mode. Puzzles without attempts open for review or on their details screen. Use “All attempts” from the board to view older attempts or start a new one. Choose **New puzzle** to upload or paste a clear, upright photo, or enter clues by hand. Paste a copied image with your device’s Paste command (Cmd+V / Ctrl+V on desktop), or choose **Paste image** and allow clipboard access if prompted. Pasted photos follow the same local recognition, 20 MB limit, review and saving flow as uploads. Each creation receives a random name and timestamp, and is immediately stored as an editable draft. The photo and recognized clues stay in IndexedDB on this browser/device.
 
-Review the clues in the full-width board view, then confirm to start an attempt. A puzzle must have exactly one solution and at least one empty cell. Confirmed original clues are immutable. The puzzle detail screen lists every attempt and lets you resume one or start another independently.
+Review the clues in the full-width board view, then confirm to start an attempt. For photo drafts, expand **Compare original photo** and zoom to inspect the saved source while correcting clues. **Cancel reading** stops photo processing without saving an unfinished draft. A puzzle must have exactly one solution and at least one empty cell. Confirmed original clues are immutable. The puzzle detail screen lists every attempt and lets you resume one or start another independently.
 
 Use the number pad or keyboard (1–9, Delete/Backspace, arrows). Press an entered number again to clear it. Hold an editable square for a circular number picker; release and tap a number, or cancel with Escape, Cancel, or the backdrop. **Undo move** restores the previous position, including notes and mistakes, and saves the reversal as another history entry. Repeated undo walks back through the applied moves; completed attempts remain locked. Toggle pencil notes with N. Mistake check compares final entries with the unique solution; notes do not count as mistakes. Each entry, erase or note change is saved before it is confirmed in the UI. Reloading an attempt URL restores its latest saved position.
 
@@ -21,7 +21,7 @@ The history controls and slider replay the original state and every move, includ
 
 Timing counts only while the attempt page is visible and focused. Switching tabs, minimizing, leaving the page or closing the app pauses it. Focused time is saved every second and before moves; completion freezes the duration. Move records store timestamps and focused durations. Existing unfinished attempts retain the duration at their last recorded move as their baseline; completed durations stay unchanged. An abrupt browser/process termination can lose the final unsaved second.
 
-Storage is origin-specific: use the same hostname and port to access your collection. There is no account or cloud synchronization. Clearing browser/site data removes saved puzzles. Failed saves show an error without applying an unsaved move; revision checks reject concurrent stale writes from another tab.
+Storage is origin-specific: use the same hostname and port to access your collection. There is no account or cloud synchronization. Clearing browser/site data removes saved puzzles. Rapid board inputs are queued in order and published only after each save. Failed saves show an error beside the board without applying an unsaved move; remaining unsaved queued input is discarded. Choose **Resume editing** and re-enter it, or reload if another tab changed the puzzle. Revision checks reject concurrent stale writes from another tab.
 
 ## Verification
 
@@ -50,7 +50,7 @@ with `npm run test:visual:update`.
 
 [`sudoku-core`](crates/sudoku-core/README.md) is a pure **native Rust library**,
 not yet a Wasm package or an app dependency. The app still uses TypeScript and
-IndexedDB schema 1. Node-only development does not require Rust. See
+IndexedDB schema 2. Node-only development does not require Rust. See
 [refactor progress](docs/refactor-progress.md) for completed milestones, review
 evidence and the stop point before Wasm packaging.
 
@@ -100,13 +100,15 @@ This task configures deployment but does not create, link, or publish a Vercel p
 
 This is a reconstruction from the referenced conversation's feature requirements; the previous `/home/oai/src` source and Git history were not accessible. No existing app source was copied or committed. The original uploaded image is included only as a test fixture, outside `public`.
 
-The reader detects predominantly dark backgrounds and reverses their contrast before grid detection and OCR. Regression fixtures include the original paper photo (32 clues) and `tests/fixtures/dark-highlighted.jpeg`, a white-on-dark screenshot with colored highlights (22 clues). Its expected board is in `dark-highlighted.json`; `tests/dark-image.spec.ts` checks all 81 cells through the actual upload flow.
+The reader detects predominantly dark backgrounds and reverses their contrast before grid detection and OCR. OpenCV preprocessing and Tesseract recognition run in dedicated workers, requiring Worker, OffscreenCanvas and createImageBitmap support. Assets remain local and lazy-loaded. Workers are terminated on completion, failure or cancellation. Regression fixtures include the original paper photo (32 clues) and `tests/fixtures/dark-highlighted.jpeg`, a white-on-dark screenshot with colored highlights (22 clues). Its expected board is in `dark-highlighted.json`; `tests/dark-image.spec.ts` checks all 81 cells through the actual upload flow.
 
 OCR can miss or misread digits in rotated, blurry, shadowed or unusual-font photos. Always review clues. A successful original-image regression is not a guarantee for other photos. Persistence is device-local; accounts, synchronization and full-library export are not implemented.
 
 ## Storage and tests
 
-IndexedDB database `sudoku-local`, schema version 1, has `puzzles` and `attempts` stores. Attempts are indexed by puzzle ID. Each move includes a position snapshot; this preserves every historical board and note set without rewriting earlier moves. Writes resolve on transaction completion. Completed attempts and finalized clues are protected in the storage API.
+IndexedDB database `sudoku-local`, schema version 2, retains `puzzles` and `attempts` and adds `puzzleSummaries`, `attemptSummaries` and `timers`. Upgrading from schema 1 atomically derives summaries/timers without replacing original photos or move histories. Attempts and attempt summaries are indexed by puzzle ID. Library views read summaries; individual routes load only their records. Timer checkpoints read/write only small timing records; full attempt reads merge the latest timing. Each move still includes a position snapshot. Writes resolve on transaction completion, and completion/removal update dependent stores atomically. Completed attempts and finalized clues remain protected in the storage API.
+
+Immutable-clue solutions are cached by content; uncached solving runs in a browser worker before opening a write transaction. The transaction rechecks revisions and merges fresh timing before publishing a move. Undo does not solve. The pure Rust core's schema-v1 DTOs and compatibility fixture versions are separate from this browser database version.
 
 `npm test` includes real transaction API tests using fake-indexeddb as well as pure Sudoku/history tests. See `PHASE2-VERIFICATION.md` for browser checks.
 
@@ -122,7 +124,7 @@ Prettier is installed as an exact development dependency with shared settings in
 
 ## Sharing and removal
 
-Choose **Share puzzle** on a draft, puzzle details or attempt screen. The link is copied immediately and a brief confirmation appears. If clipboard access is denied, an error asks you to allow access and retry. Its format is `/?p=<encodedPuzzle>&n=<name>`: `p` uses a versioned compact base-64 integer encoding of the 81 row-major digits (`0` means empty), capped at 47 characters instead of the original 108. New payloads start with `1.` to identify encoding version 1; the original unversioned format is retained as legacy version 0. Unknown versions are rejected. Leading empty cells are restored when decoding. Previously issued 108-character links and previously imported copies remain supported; `n` is the URL-encoded name. Only original clues and the name are included, never the photo, solution or attempt history.
+Choose **Share puzzle** on a draft, puzzle details or attempt screen. The link is copied immediately and a brief confirmation appears. If clipboard access is denied, a selectable link is shown for manual copying. Its format is `/?p=<encodedPuzzle>&n=<name>`: `p` uses a versioned compact base-64 integer encoding of the 81 row-major digits (`0` means empty), capped at 47 characters instead of the original 108. New payloads start with `1.` to identify encoding version 1; the original unversioned format is retained as legacy version 0. Unknown versions are rejected. Leading empty cells are restored when decoding. Previously issued 108-character links and previously imported copies remain supported; `n` is the URL-encoded name. Only original clues and the name are included, never the photo, solution or attempt history.
 
 Share links include server-rendered Open Graph and Twitter metadata. `/api/puzzle-preview?p=<encodedPuzzle>` generates a 630×630 PNG showing only the original clues. This works for both supported encoding versions, without browser storage or JavaScript. Vercel supplies the public image origin automatically; set `NEXT_PUBLIC_SITE_URL` to your full production URL when using a custom domain or another host. Preview cards become available after deployment, and sharing platforms may cache cards for previously shared URLs.
 

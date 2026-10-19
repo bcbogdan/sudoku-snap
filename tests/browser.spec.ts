@@ -28,6 +28,14 @@ test('photo → saved draft → persistent attempts, history and independent rep
   expect(uploads).toEqual([]);
   expect(external).toEqual([]);
   expect(errors).toEqual([]);
+  await page.getByText('Compare original photo', { exact: true }).click();
+  const originalPhoto = page.getByRole('img', {
+    name: 'Original Sudoku photo for comparing recognized clues',
+  });
+  await expect(originalPhoto).toBeVisible();
+  await page.getByRole('slider', { name: /Photo zoom/ }).press('ArrowRight');
+  await expect(originalPhoto).toHaveAttribute('style', 'width: 150%;');
+  await page.getByText('Compare original photo', { exact: true }).click();
   const puzzleUrl = page.url(),
     name = await page.getByRole('heading', { level: 1 }).textContent();
   await page.reload();
@@ -86,7 +94,9 @@ test('manual creation saves each draft edit and completed attempts stay locked a
   await page.getByRole('button', { name: 'Enter clues by hand' }).click();
   await expect(page.getByRole('button', { name: 'Confirm clues & play' })).toBeVisible();
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.getByRole('status')).toContainText('17 clues');
+  await expect(page.getByRole('region', { name: 'Sudoku game' }).getByRole('alert')).toContainText(
+    '17 clues',
+  );
   for (let i = 1; i < 81; i++) {
     await page.locator(`#cell-${i}`).click();
     await page.keyboard.press(String(solution[i]));

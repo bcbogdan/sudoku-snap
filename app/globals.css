@@ -1,6 +1,7 @@
 /* Semantic colors keep the board, controls and all views in sync with the OS. */
 :root {
   color-scheme: light dark;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --paper: #faf8f2;
   --ink: #273e36;
   --muted: #607065;
@@ -47,6 +48,7 @@
 }
 body {
   margin: 0;
+  padding-top: env(safe-area-inset-top, 0px);
   background: var(--paper);
   color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
@@ -182,8 +184,10 @@ h2 {
   text-decoration: none;
   background: var(--surface);
 }
-.puzzle-card:hover {
-  border-color: var(--focus);
+@media (hover: hover) and (pointer: fine) {
+  .puzzle-card:hover {
+    border-color: var(--focus);
+  }
 }
 .puzzle-card h2 {
   font:
@@ -364,6 +368,41 @@ h2 {
 .save-state {
   font-size: 12px;
   color: var(--muted);
+}
+.board-save-error {
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  background: var(--error-bg);
+  color: var(--error);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.board-save-error button {
+  display: flex;
+  margin-top: 8px;
+}
+.share-link {
+  max-width: 660px;
+  margin: 16px auto;
+  display: grid;
+  gap: 8px;
+}
+.share-link input {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 8px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.share-link button {
+  justify-self: start;
 }
 .mistakes {
   margin: 0 4px;
@@ -928,7 +967,11 @@ nav a {
   position: fixed;
   bottom: max(24px, env(safe-area-inset-bottom));
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 0);
+  opacity: 1;
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
   padding: 12px 18px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -938,4 +981,27 @@ nav a {
   z-index: 20;
   max-width: calc(100vw - 32px);
   text-align: center;
+}
+.copy-notice[data-closing] {
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition-duration: 140ms;
+}
+@starting-style {
+  .copy-notice {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .copy-notice,
+  .copy-notice[data-closing] {
+    transform: translate(-50%, 0);
+    transition-duration: 100ms;
+  }
+  @starting-style {
+    .copy-notice {
+      transform: translate(-50%, 0);
+    }
+  }
 }

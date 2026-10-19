@@ -47,7 +47,6 @@ export default function GameToolbar(props: GameToolbarProps) {
         Mistake check {props.check ? 'On' : 'Off'}
       </button>
       <span className="mistakes">Mistakes {props.mistakes}</span>
-      <span className="save-state">{props.busy ? 'Saving…' : 'Saved'}</span>
     </div>
   );
 }

@@ -5,6 +5,10 @@ Completed Phase 1 runs from 2026-09-10, reference commit
 canonical reports, not smoke runs. All four retain `complete: true`; browser
 reports also retain `workloadsComplete: true`.
 
+A later, separately scoped host-refactor run is archived as `react-host-10k.json`.
+See [its methodology and verification](../../docs/react-implementation-verification.md#long-history-verification);
+it is not part of the four Phase 1 reference runs described below.
+
 ## Environment and provenance
 
 - Node **v22.23.2**, Linux **7.0.0-29-generic**, x64; AMD EPYC-Rome Processor,

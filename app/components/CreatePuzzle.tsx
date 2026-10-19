@@ -3,6 +3,7 @@ export interface CreatePuzzleProps {
   onUpload: (file: File) => void;
   onPasteImage: () => void;
   onCreateManual: () => void;
+  onCancel?: () => void;
 }
 
 export default function CreatePuzzle({
@@ -10,6 +11,7 @@ export default function CreatePuzzle({
   onUpload,
   onPasteImage,
   onCreateManual,
+  onCancel,
 }: CreatePuzzleProps) {
   return (
     <section className="create-screen">
@@ -22,7 +24,7 @@ export default function CreatePuzzle({
         onDrop={(event) => {
           event.preventDefault();
           const file = event.dataTransfer.files[0];
-          if (file) onUpload(file);
+          if (file && !busy) onUpload(file);
         }}
       >
         <span aria-hidden="true">＋</span>
@@ -41,6 +43,11 @@ export default function CreatePuzzle({
         />
       </label>
       <div className="create-actions">
+        {busy && onCancel && (
+          <button className="secondary" onClick={onCancel}>
+            Cancel reading
+          </button>
+        )}
         <button disabled={busy} className="secondary" onClick={onPasteImage}>
           Paste image
         </button>

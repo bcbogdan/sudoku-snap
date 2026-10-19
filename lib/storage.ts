@@ -1,23 +1,41 @@
-import { activeDuration, addActiveInterval, applyUndo } from './attempts';
+import { activeDuration, applyUndo } from './attempts';
 import { decodeSharedPuzzle } from './sharing';
 import { applyMove, initialPosition, randomName, type Puzzle, type Attempt } from './attempts';
-import { emptyBoard, solve, type Board } from './sudoku';
+import { emptyBoard, type Board } from './sudoku';
+import { solveCached } from './solver-client';
+import {
+  mergeTimer,
+  putAttempt,
+  putPuzzle,
+  upgradeStorage,
+  type ActiveTimer as StoredActiveTimer,
+  type AttemptSummary as StoredAttemptSummary,
+  type PuzzleSummary as StoredPuzzleSummary,
+  type TimerRecord,
+} from './storage-records';
+export type ActiveTimer = StoredActiveTimer;
+export type AttemptSummary = StoredAttemptSummary;
+export type PuzzleSummary = StoredPuzzleSummary;
 let connection: Promise<IDBDatabase> | undefined;
 function database() {
   if (connection) return connection;
   connection = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open('sudoku-local', 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      db.createObjectStore('puzzles', { keyPath: 'id' });
-      const attempts = db.createObjectStore('attempts', { keyPath: 'id' });
-      attempts.createIndex('puzzleId', 'puzzleId');
+    const request = indexedDB.open('sudoku-local', 2);
+    let blocked = false;
+    request.onupgradeneeded = (event) => {
+      upgradeStorage(request.result, request.transaction!, event.oldVersion);
     };
     request.onerror = () => reject(request.error ?? new Error('Could not open local storage.'));
-    request.onblocked = () =>
+    request.onblocked = () => {
+      blocked = true;
       reject(new Error('Close other Sudoku tabs, then reload to open storage.'));
+    };
     request.onsuccess = () => {
       const db = request.result;
+      if (blocked) {
+        db.close();
+        return;
+      }
       db.onversionchange = () => {
         db.close();
         connection = undefined;
@@ -30,11 +48,12 @@ function database() {
   });
   return connection;
 }
-async function readAll<T>(name: string): Promise<T[]> {
+async function readAll<T>(name: string, puzzleId?: string): Promise<T[]> {
   const db = await database();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(name, 'readonly'),
-      request = tx.objectStore(name).getAll();
+      store = tx.objectStore(name),
+      request = puzzleId === undefined ? store.getAll() : store.index('puzzleId').getAll(puzzleId);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -43,9 +62,68 @@ export async function listPuzzles() {
   return (await readAll<Puzzle>('puzzles')).sort((a, b) => b.createdAt - a.createdAt);
 }
 export async function listAttempts(puzzleId?: string) {
-  return (await readAll<Attempt>('attempts'))
-    .filter((a) => !puzzleId || a.puzzleId === puzzleId)
-    .sort((a, b) => b.startedAt - a.startedAt);
+  const db = await database();
+  return new Promise<Attempt[]>((resolve, reject) => {
+    const tx = db.transaction(['attempts', 'timers'], 'readonly');
+    const store = tx.objectStore('attempts');
+    const request =
+      puzzleId === undefined ? store.getAll() : store.index('puzzleId').getAll(puzzleId);
+    const results: Attempt[] = [];
+    request.onsuccess = () => {
+      for (const attempt of request.result as Attempt[]) {
+        const timer = tx.objectStore('timers').get(attempt.id);
+        timer.onsuccess = () =>
+          results.push(mergeTimer(attempt, timer.result as TimerRecord | undefined));
+      }
+    };
+    tx.oncomplete = () => resolve(results.sort((a, b) => b.startedAt - a.startedAt));
+    tx.onabort = () => reject(tx.error);
+  });
+}
+async function readById<T>(store: string, id: string): Promise<T | undefined> {
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(store).objectStore(store).get(id);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+export function getPuzzle(id: string): Promise<Puzzle | undefined> {
+  return readById<Puzzle>('puzzles', id);
+}
+export async function getAttempt(id: string): Promise<Attempt | undefined> {
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['attempts', 'timers']);
+    const attempt = tx.objectStore('attempts').get(id);
+    const timer = tx.objectStore('timers').get(id);
+    tx.oncomplete = () =>
+      resolve(
+        attempt.result
+          ? mergeTimer(attempt.result as Attempt, timer.result as TimerRecord | undefined)
+          : undefined,
+      );
+    tx.onabort = () => reject(tx.error);
+  });
+}
+export async function listPuzzleSummaries(): Promise<PuzzleSummary[]> {
+  return (await readAll<PuzzleSummary>('puzzleSummaries')).sort(
+    (a, b) => b.createdAt - a.createdAt,
+  );
+}
+export async function listAttemptSummaries(puzzleId?: string): Promise<AttemptSummary[]> {
+  return (await readAll<AttemptSummary>('attemptSummaries', puzzleId)).sort(
+    (a, b) => b.startedAt - a.startedAt,
+  );
+}
+function transactionCallback(fail: (error: Error) => void, operation: () => void) {
+  return () => {
+    try {
+      operation();
+    } catch (error) {
+      fail(error instanceof Error ? error : new Error('Could not save. Please try again.'));
+    }
+  };
 }
 // Resolve writes only after transaction completion; never present unsaved moves as saved.
 async function write<T>(
@@ -54,7 +132,13 @@ async function write<T>(
 ): Promise<T> {
   const db = await database();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(stores, 'readwrite');
+    const scope = new Set(stores);
+    if (scope.has('puzzles')) scope.add('puzzleSummaries');
+    if (scope.has('attempts')) {
+      scope.add('attemptSummaries');
+      scope.add('timers');
+    }
+    const tx = db.transaction([...scope], 'readwrite');
     let value: T;
     let error: Error | undefined;
     tx.oncomplete = () => resolve(value);
@@ -84,6 +168,7 @@ export async function createPuzzle(
   clues: Board = emptyBoard(),
   image?: Blob,
   uncertain: number[] = [],
+  options: { signal?: AbortSignal } = {},
 ): Promise<Puzzle> {
   const now = Date.now(),
     puzzle: Puzzle = {
@@ -97,8 +182,22 @@ export async function createPuzzle(
       uncertain,
       revision: 0,
     };
-  return write(['puzzles'], (tx, done) => {
-    tx.objectStore('puzzles').add(puzzle);
+  return write(['puzzles'], (tx, done, fail) => {
+    const { signal } = options;
+    signal?.throwIfAborted();
+    const cancel = () => {
+      try {
+        fail(new DOMException('Photo processing cancelled.', 'AbortError'));
+      } catch (error) {
+        // A completed transaction wins a cancellation arriving before its callback.
+        if (!(error instanceof DOMException && error.name === 'InvalidStateError')) throw error;
+      }
+    };
+    signal?.addEventListener('abort', cancel, { once: true });
+    const cleanup = () => signal?.removeEventListener('abort', cancel);
+    tx.addEventListener('complete', cleanup, { once: true });
+    tx.addEventListener('abort', cleanup, { once: true });
+    putPuzzle(tx, puzzle);
     done(puzzle);
   });
 }
@@ -110,7 +209,7 @@ export async function saveDraft(
   return write(['puzzles'], (tx, done, fail) => {
     const store = tx.objectStore('puzzles'),
       request = store.get(puzzle.id);
-    request.onsuccess = () => {
+    request.onsuccess = transactionCallback(fail, () => {
       const current = request.result as Puzzle | undefined;
       if (!current || current.status !== 'draft' || current.revision !== puzzle.revision) {
         fail(new Error('This puzzle changed in another tab. Reload to see its latest state.'));
@@ -123,9 +222,9 @@ export async function saveDraft(
         updatedAt: Date.now(),
         revision: current.revision + 1,
       };
-      store.put(updated);
+      putPuzzle(tx, updated);
       done(updated);
-    };
+    });
   });
 }
 export async function startAttempt(puzzle: Puzzle): Promise<{ puzzle: Puzzle; attempt: Attempt }> {
@@ -133,7 +232,7 @@ export async function startAttempt(puzzle: Puzzle): Promise<{ puzzle: Puzzle; at
     throw new Error('Add at least 17 clues before starting.');
   if (puzzle.clues.every(Boolean))
     throw new Error('Leave the unprinted cells empty so there is a puzzle to play.');
-  const result = solve(puzzle.clues);
+  const result = await solveCached(puzzle.clues);
   if (result.count !== 1)
     throw new Error(
       result.count === 0
@@ -143,7 +242,7 @@ export async function startAttempt(puzzle: Puzzle): Promise<{ puzzle: Puzzle; at
   return write(['puzzles', 'attempts'], (tx, done, fail) => {
     const store = tx.objectStore('puzzles'),
       request = store.get(puzzle.id);
-    request.onsuccess = () => {
+    request.onsuccess = transactionCallback(fail, () => {
       const current = request.result as Puzzle | undefined;
       if (!current || current.revision !== puzzle.revision) {
         fail(new Error('This puzzle changed in another tab. Reload to continue.'));
@@ -167,10 +266,10 @@ export async function startAttempt(puzzle: Puzzle): Promise<{ puzzle: Puzzle; at
         moves: [],
         revision: 0,
       };
-      store.put(ready);
-      tx.objectStore('attempts').add(attempt);
+      putPuzzle(tx, ready);
+      putAttempt(tx, attempt);
       done({ puzzle: ready, attempt });
-    };
+    });
   });
 }
 export async function recordMove(
@@ -181,7 +280,11 @@ export async function recordMove(
   check: boolean,
   undo = false,
 ): Promise<Attempt> {
-  return write(['puzzles', 'attempts'], (tx, done, fail) => {
+  const precomputedPuzzle = undo
+    ? undefined
+    : await readById<PuzzleSummary>('puzzleSummaries', attempt.puzzleId);
+  const solution = precomputedPuzzle ? (await solveCached(precomputedPuzzle.clues)).solution : null;
+  return write(['puzzleSummaries', 'attempts'], (tx, done, fail) => {
     const store = tx.objectStore('attempts'),
       request = store.get(attempt.id);
     request.onsuccess = () => {
@@ -198,22 +301,31 @@ export async function recordMove(
         fail(new Error('Completed attempts are read-only.'));
         return;
       }
-      const getPuzzle = tx.objectStore('puzzles').get(current.puzzleId);
+      const getPuzzle = tx.objectStore('puzzleSummaries').get(current.puzzleId);
       getPuzzle.onsuccess = () => {
         try {
           const puzzle = getPuzzle.result as Puzzle | undefined;
           if (!puzzle || puzzle.status !== 'ready') throw new Error('Puzzle is unavailable.');
-          const solution = solve(puzzle.clues).solution;
-          if (!solution) throw new Error('Invalid puzzle.');
-          const timed =
-            current.activeMs === undefined
-              ? { ...current, activeMs: activeDuration(current) }
-              : current;
-          const updated = undo
-            ? applyUndo(timed)
-            : applyMove(timed, puzzle.clues, solution, cell, value, note, check);
-          if (updated !== current) store.put(updated);
-          done(updated);
+          if (!undo && (!precomputedPuzzle || puzzle.revision !== precomputedPuzzle.revision))
+            throw new Error('This puzzle changed in another tab. Reload to continue.');
+          if (!undo && !solution) throw new Error('Invalid puzzle.');
+          const timer = tx.objectStore('timers').get(current.id);
+          timer.onsuccess = () => {
+            try {
+              const merged = mergeTimer(current, timer.result as TimerRecord | undefined);
+              const timed =
+                merged.activeMs === undefined
+                  ? { ...merged, activeMs: activeDuration(merged) }
+                  : merged;
+              const updated = undo
+                ? applyUndo(timed)
+                : applyMove(timed, puzzle.clues, solution!, cell, value, note, check);
+              if (updated !== merged) putAttempt(tx, updated);
+              done(updated);
+            } catch (error) {
+              fail(error instanceof Error ? error : new Error('Could not save move.'));
+            }
+          };
         } catch (error) {
           fail(error instanceof Error ? error : new Error('Could not save move.'));
         }
@@ -228,32 +340,33 @@ export async function renamePuzzle(puzzle: Puzzle, input: string): Promise<Puzzl
   return write(['puzzles'], (tx, done, fail) => {
     const store = tx.objectStore('puzzles'),
       request = store.get(puzzle.id);
-    request.onsuccess = () => {
+    request.onsuccess = transactionCallback(fail, () => {
       const current = request.result as Puzzle | undefined;
       if (!current || current.revision !== puzzle.revision) {
         fail(new Error('This puzzle changed in another tab. Reload before renaming it.'));
         return;
       }
       const updated = { ...current, name, updatedAt: Date.now(), revision: current.revision + 1 };
-      store.put(updated);
+      putPuzzle(tx, updated);
       done(updated);
-    };
+    });
   });
 }
 
 // Serialized read/write transactions make repeated imports idempotent, including
-// React Strict Mode remounts and concurrent tabs. No schema migration is needed.
+// React Strict Mode remounts and concurrent tabs.
 export async function importSharedPuzzle(encoded: string, name: string | null): Promise<Puzzle> {
   const shared = decodeSharedPuzzle(encoded, name);
-  return write(['puzzles'], (tx, done) => {
+  return write(['puzzles'], (tx, done, fail) => {
     const store = tx.objectStore('puzzles');
-    const request = store.getAll();
-    request.onsuccess = () => {
+    const request = tx.objectStore('puzzleSummaries').getAll();
+    request.onsuccess = transactionCallback(fail, () => {
       const existing = (request.result as Puzzle[]).find(
         (p) => p.shareKey === shared.shareKey || p.shareKey === shared.legacyShareKey,
       );
       if (existing) {
-        done(existing);
+        const full = store.get(existing.id);
+        full.onsuccess = () => done(full.result as Puzzle);
         return;
       }
       const now = Date.now();
@@ -268,9 +381,9 @@ export async function importSharedPuzzle(encoded: string, name: string | null): 
         revision: 0,
         shareKey: shared.shareKey,
       };
-      store.add(puzzle);
+      putPuzzle(tx, puzzle);
       done(puzzle);
-    };
+    });
   });
 }
 
@@ -278,25 +391,28 @@ export async function removePuzzle(puzzle: Puzzle): Promise<void> {
   return write(['puzzles', 'attempts'], (tx, done, fail) => {
     const store = tx.objectStore('puzzles');
     const request = store.get(puzzle.id);
-    request.onsuccess = () => {
+    request.onsuccess = transactionCallback(fail, () => {
       const current = request.result as Puzzle | undefined;
       if (current && current.revision !== puzzle.revision) {
         fail(new Error('This puzzle changed in another tab. Reload before removing it.'));
         return;
       }
       store.delete(puzzle.id);
+      tx.objectStore('puzzleSummaries').delete(puzzle.id);
       const cursorRequest = tx
         .objectStore('attempts')
         .index('puzzleId')
         .openCursor(IDBKeyRange.only(puzzle.id));
-      cursorRequest.onsuccess = () => {
+      cursorRequest.onsuccess = transactionCallback(fail, () => {
         const cursor = cursorRequest.result;
         if (cursor) {
+          tx.objectStore('timers').delete(cursor.primaryKey);
+          tx.objectStore('attemptSummaries').delete(cursor.primaryKey);
           cursor.delete();
           cursor.continue();
         } else done(undefined);
-      };
-    };
+      });
+    });
   });
 }
 
@@ -304,20 +420,39 @@ export async function saveActiveInterval(
   id: string,
   start: number,
   end: number,
-): Promise<Attempt | null> {
-  return write(['attempts'], (tx, done, fail) => {
-    const store = tx.objectStore('attempts'),
+): Promise<ActiveTimer | null> {
+  return write(['timers'], (tx, done, fail) => {
+    const store = tx.objectStore('timers'),
       request = store.get(id);
     request.onsuccess = () => {
-      const current = request.result as Attempt | undefined;
+      const current = request.result as TimerRecord | undefined;
       if (!current) {
         done(null);
         return;
       }
       try {
-        const updated = addActiveInterval(current, start, end);
+        if (
+          current.completedAt === null &&
+          (!Number.isFinite(start) || !Number.isFinite(end) || end < start)
+        )
+          throw new Error('Invalid active interval.');
+        const updated =
+          current.completedAt !== null
+            ? current
+            : {
+                ...current,
+                activeMs:
+                  (current.activeMs ?? current.fallbackMs) +
+                  Math.max(0, end - Math.max(start, current.lastActiveEnd ?? start)),
+                lastActiveEnd: Math.max(end, current.lastActiveEnd ?? end),
+              };
         if (updated !== current) store.put(updated);
-        done(updated);
+        done({
+          completedAt: updated.completedAt,
+          durationMs: updated.durationMs,
+          activeMs: updated.activeMs ?? updated.fallbackMs,
+          ...(updated.lastActiveEnd === undefined ? {} : { lastActiveEnd: updated.lastActiveEnd }),
+        });
       } catch (error) {
         fail(error instanceof Error ? error : new Error('Could not save timer.'));
       }

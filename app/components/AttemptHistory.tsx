@@ -1,3 +1,7 @@
+'use client';
+
+import { useLayoutEffect, useRef } from 'react';
+
 export interface AttemptHistoryProps {
   step: number;
   moveCount: number;
@@ -25,6 +29,26 @@ export default function AttemptHistory({
   onUndo,
   onBegin,
 }: AttemptHistoryProps) {
+  const completion = useRef<HTMLDivElement>(null);
+  const wasComplete = useRef(complete);
+  useLayoutEffect(() => {
+    const newlyComplete = complete && !wasComplete.current;
+    wasComplete.current = complete;
+    const element = completion.current;
+    if (!newlyComplete || !element) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const animation = element.animate(
+      [
+        { opacity: 0, transform: reduced ? 'none' : 'translateY(4px)' },
+        { opacity: 1, transform: reduced ? 'none' : 'translateY(0)' },
+      ],
+      {
+        duration: reduced ? 100 : 220,
+        easing: getComputedStyle(element).getPropertyValue('--ease-out').trim(),
+      },
+    );
+    return () => animation.cancel();
+  }, [complete]);
   return (
     <div className="history">
       {!complete ? (
@@ -83,7 +107,7 @@ export default function AttemptHistory({
         {step < moveCount ? ' · History is read-only. Return to the latest move to continue.' : ''}
       </p>
       {complete ? (
-        <div className="completion">
+        <div ref={completion} className="completion">
           <strong>Completed in {completionDuration}. This attempt is locked.</strong>
           <button className="primary" disabled={busy} onClick={onBegin}>
             Start a new attempt

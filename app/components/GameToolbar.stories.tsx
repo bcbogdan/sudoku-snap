@@ -131,7 +131,7 @@ export const Saving: Story = {
     if (args.mode !== 'play') throw new Error('Expected play toolbar');
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('button', { name: /Pencil notes/ })).toBeDisabled();
-    await expect(canvas.getByText('Saving…')).toBeVisible();
+    await expect(canvas.queryByText('Saved')).not.toBeInTheDocument();
     await userEvent.click(canvas.getByRole('button', { name: /Mistake check/ }));
     await expect(args.onToggleCheck).toHaveBeenCalledOnce();
   },

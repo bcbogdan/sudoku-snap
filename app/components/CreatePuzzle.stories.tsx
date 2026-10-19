@@ -51,3 +51,12 @@ export const Mobile: Story = {
   parameters: { frameWidth: 320 },
   globals: { viewport: { value: 'mobile1', isRotated: false } },
 };
+
+export const Reading: Story = {
+  args: { busy: true, onCancel: fn() },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Cancel reading' }));
+    await expect(args.onCancel).toHaveBeenCalledOnce();
+  },
+};

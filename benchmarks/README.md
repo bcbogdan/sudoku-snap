@@ -22,6 +22,16 @@ the config starts `next start` on port 3197 and refuses an existing server.
 No development server is measured. Close other CPU-heavy tasks, use stable power
 settings, and run suites sequentially on the same machine.
 
+The browser harness seeds released schema-1 records in a fresh database, then
+opens the app to finish migration before measuring. It reads current timing from
+the separate timer store when present. Per-request marks include the object-store
+name, so timer-only I/O can be distinguished from full-history reads/writes.
+Large attempt fixtures and post-measurement correctness reads cross Playwright's
+process boundary as JSON strings. This avoids recursive protocol serialization
+of every snapshot array; it does not change the IndexedDB records or measured
+application work. Reports publish a workload only after its warmup and all
+samples finish, so an externally interrupted run can still have empty results.
+
 Outputs: `benchmarks/results/core.json` and `browser.json` (ignored by Git).
 `BENCH_OUTPUT=/absolute/path` changes the directory. Files are overwritten;
 use separate directories per revision/run. Both entrypoints immediately replace

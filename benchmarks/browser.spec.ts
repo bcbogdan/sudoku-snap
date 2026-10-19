@@ -43,7 +43,14 @@ async function seed(context: BrowserContext, count: number, history: number, url
   );
   await page.goto('/__benchmark_seed');
   await page.evaluate(
-    async ({ count, template, puzzle, image }) => {
+    async ({ count, serializedTemplate, puzzle, image }) => {
+      const template = JSON.parse(serializedTemplate);
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase('sudoku-local');
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error('Close active app pages before seeding.'));
+      });
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
         const request = indexedDB.open('sudoku-local', 1);
         request.onupgradeneeded = () => {
@@ -87,10 +94,23 @@ async function seed(context: BrowserContext, count: number, history: number, url
       db.close();
       performance.clearMarks();
     },
-    { count, template: makeAttempt(history), puzzle: makePuzzle(0), image },
+    // Transport snapshots as JSON rather than Playwright's recursive argument
+    // encoding: 10k moves contain hundreds of thousands of nested arrays.
+    {
+      count,
+      serializedTemplate: JSON.stringify(makeAttempt(history)),
+      puzzle: makePuzzle(0),
+      image,
+    },
   );
   await page.close();
   // Measured pages never use request routing (which disables HTTP caching).
+  // Upgrade legacy fixtures outside the measurement, including derived summaries.
+  const prepared = await context.newPage();
+  await prepared.goto('/');
+  await expect(prepared.locator('.library')).toBeVisible();
+  await expect(prepared.locator('.puzzle-card')).toHaveCount(count);
+  await prepared.close();
   // The create screen has no active attempt/timer; replacing its URL lets a
   // real reload restore a pristine attempt without a pre-reload timer write.
   const measured = await context.newPage();
@@ -180,20 +200,28 @@ async function action(page: Page, selector: string, expectedStep: number, total:
   return collect(page);
 }
 async function stored(page: Page) {
-  return page.evaluate(async () => {
+  const serialized = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const r = indexedDB.open('sudoku-local', 1);
+      const r = indexedDB.open('sudoku-local');
       r.onsuccess = () => resolve(r.result);
       r.onerror = () => reject(r.error);
     });
     const result = await new Promise<unknown>((resolve, reject) => {
-      const r = db.transaction('attempts').objectStore('attempts').get('attempt-0');
-      r.onsuccess = () => resolve(r.result);
-      r.onerror = () => reject(r.error);
+      const hasTimers = db.objectStoreNames.contains('timers');
+      const tx = db.transaction(hasTimers ? ['attempts', 'timers'] : ['attempts']);
+      const attempt = tx.objectStore('attempts').get('attempt-0');
+      const timer = hasTimers ? tx.objectStore('timers').get('attempt-0') : undefined;
+      tx.oncomplete = () => {
+        if (!timer?.result) return resolve(attempt.result);
+        const { id: _id, fallbackMs: _fallback, ...timing } = timer.result;
+        resolve({ ...attempt.result, ...timing });
+      };
+      tx.onabort = () => reject(tx.error);
     });
     db.close();
-    return result;
-  }) as Promise<ReturnType<typeof makeAttempt>>;
+    return JSON.stringify(result);
+  });
+  return JSON.parse(serialized) as ReturnType<typeof makeAttempt>;
 }
 function validateIO(sample: Sample, writes = false) {
   assert(Number.isFinite(sample.durationMs) && sample.durationMs > 0, 'Invalid measured duration');

@@ -108,10 +108,15 @@ export const Editing: Story = {
     await userEvent.type(input, 'Sunday puzzle{Enter}');
     await expect(args.onSave).toHaveBeenCalledOnce();
     await expect(canvas.getByRole('heading', { level: 1 })).toHaveTextContent('Sunday puzzle');
+    await expect(canvas.getByRole('button', { name: 'Rename puzzle' })).toHaveFocus();
     await userEvent.click(canvas.getByRole('button', { name: 'Rename puzzle' }));
     await userEvent.type(canvas.getByRole('textbox'), ' discarded{Escape}');
     await expect(args.onCancel).toHaveBeenCalledOnce();
     await expect(canvas.getByRole('heading', { level: 1 })).toHaveTextContent('Sunday puzzle');
+    await expect(canvas.getByRole('button', { name: 'Rename puzzle' })).toHaveFocus();
+    await userEvent.click(canvas.getByRole('button', { name: 'Rename puzzle' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Cancel' }));
+    await expect(canvas.getByRole('button', { name: 'Rename puzzle' })).toHaveFocus();
   },
 };
 export const Saving: Story = {

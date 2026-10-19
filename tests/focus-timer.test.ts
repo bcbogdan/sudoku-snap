@@ -5,6 +5,7 @@ import { FocusClock } from '../lib/focus-clock';
 import { activeDuration, addActiveInterval, initialPosition, type Attempt } from '../lib/attempts';
 import {
   createPuzzle,
+  getAttempt,
   startAttempt,
   saveActiveInterval,
   listAttempts,
@@ -87,8 +88,14 @@ test('completion freezes focused duration and late checkpoints cannot recreate r
   assert.equal(completed.moves[0].elapsedMs, 2500);
   assert.deepEqual(
     await saveActiveInterval(attempt.id, attempt.startedAt + 2500, attempt.startedAt + 5000),
-    completed,
+    {
+      completedAt: completed.completedAt,
+      durationMs: completed.durationMs,
+      activeMs: completed.activeMs,
+      lastActiveEnd: completed.lastActiveEnd,
+    },
   );
+  assert.deepEqual(await getAttempt(attempt.id), completed);
   await removePuzzle(ready);
   assert.equal(await saveActiveInterval(attempt.id, 100000, 101000), null);
   assert.deepEqual(await listAttempts(puzzle.id), []);

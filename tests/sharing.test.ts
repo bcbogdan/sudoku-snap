@@ -93,11 +93,14 @@ test('old and compact links identify the same local import', async () => {
   assert.equal((await importSharedPuzzle(encodePuzzle(clues), 'Legacy')).id, old.id);
   // Simulate a record saved by the released legacy decoder, before this update.
   await new Promise<void>((resolve, reject) => {
-    const request = indexedDB.open('sudoku-local', 1);
+    const request = indexedDB.open('sudoku-local');
     request.onsuccess = () => {
       const db = request.result;
-      const tx = db.transaction('puzzles', 'readwrite');
-      tx.objectStore('puzzles').put({ ...old, shareKey: JSON.stringify([legacy, 'Legacy']) });
+      const tx = db.transaction(['puzzles', 'puzzleSummaries'], 'readwrite');
+      const record = { ...old, shareKey: JSON.stringify([legacy, 'Legacy']) };
+      tx.objectStore('puzzles').put(record);
+      const { image: _image, ...summary } = record;
+      tx.objectStore('puzzleSummaries').put(summary);
       tx.oncomplete = () => {
         db.close();
         resolve();

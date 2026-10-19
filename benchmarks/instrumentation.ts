@@ -44,12 +44,16 @@ export function instrument(options: { io: boolean; sizes: boolean }) {
         if (!original) continue;
         target[method] = function (...args: unknown[]) {
           const write = ['put', 'add', 'delete', 'clear'].includes(method);
+          const source = this as unknown as IDBObjectStore | IDBIndex;
+          const store = source instanceof IDBIndex ? source.objectStore.name : source.name;
           const request = original.apply(this, args);
-          mark(write ? 'write-request' : 'read-request', { method });
-          if (write && options.sizes) mark('write-size', { method, bytes: estimate(args[0]) });
+          mark(write ? 'write-request' : 'read-request', { method, store });
+          if (write && options.sizes)
+            mark('write-size', { method, store, bytes: estimate(args[0]) });
           request.addEventListener('success', () =>
             mark(write ? 'write-success' : 'read-success', {
               method,
+              store,
               bytes: !write && options.sizes ? estimate(request.result) : null,
             }),
           );
