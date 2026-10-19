@@ -1,4 +1,4 @@
-# Sudoku photo game
+# Sudoku Snap
 
 A Next.js app that turns a Sudoku photo into an editable board and playable game. OpenCV detects and straightens the grid; Tesseract reads isolated digits in the browser. All recognition assets are served from this app. The image is never uploaded to a server.
 

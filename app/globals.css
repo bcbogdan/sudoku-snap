@@ -858,7 +858,8 @@ nav a {
     gap: 12px;
   }
   .brand {
-    font-size: 19px;
+    font-size: 17px;
+    gap: 8px;
   }
   .brand span {
     font-size: 26px;

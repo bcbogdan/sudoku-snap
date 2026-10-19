@@ -6,7 +6,7 @@ export default function AppHeader({ screen }: AppHeaderProps) {
   return (
     <header>
       <a href="/" className="brand">
-        <span aria-hidden="true">▦</span> Sudoku
+        <span aria-hidden="true">▦</span> Sudoku Snap
       </a>
       <nav>
         <a href="/" aria-current={screen === 'library' ? 'page' : undefined}>
