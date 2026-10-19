@@ -80,7 +80,7 @@ actor PhotoRecognizer {
                 let y = index / 9 * 100 + 10
                 let cell = CGRect(x: x, y: y, width: 80, height: 80)
                 if collectEvidence {
-                    let pixels = (0..<80).flatMap { row in Array(gray[((y + row) * 900 + x)..<((y + row) * 900 + x + 80)]) }
+                    let pixels = cropPixels(gray, x: x, y: y, width: 80, height: 80)
                     evidence?.images["cell-\(index)-crop.png"] = try png(grayImage(pixels, width: 80, height: 80))
                 }
                 guard let glyph = component(in: ink, x: x, y: y) else {
@@ -253,6 +253,17 @@ actor PhotoRecognizer {
         return best
     }
 
+    private func cropPixels(_ gray: [UInt8], x: Int, y: Int, width: Int, height: Int) -> [UInt8] {
+        var pixels: [UInt8] = []
+        pixels.reserveCapacity(width * height)
+        for row in 0..<height {
+            let start: Int = (y + row) * 900 + x
+            let end: Int = start + width
+            pixels.append(contentsOf: gray[start..<end])
+        }
+        return pixels
+    }
+
     private func glyphImage(_ glyph: Glyph, gray: [UInt8], x: Int, y: Int, binary: Bool) throws -> CGImage {
         let width = Int(glyph.bounds.width), height = Int(glyph.bounds.height)
         let minX = Int(glyph.bounds.minX), minY = Int(glyph.bounds.minY)
@@ -261,11 +272,14 @@ actor PhotoRecognizer {
             for point in glyph.pixels { pixels[(point / 80 - minY) * width + point % 80 - minX] = 0 }
         } else {
             // Stretch each glyph locally; colored selection backgrounds no longer reduce contrast.
-            let values = (0..<height).flatMap { row in
-                Array(gray[((y + minY + row) * 900 + x + minX)..<((y + minY + row) * 900 + x + minX + width)])
+            let values = cropPixels(gray, x: x + minX, y: y + minY, width: width, height: height)
+            let low: Int = Int(values.min() ?? 0)
+            let high: Int = Int(values.max() ?? 255)
+            let range: Int = max(1, high - low)
+            for (index, value) in values.enumerated() {
+                let scaled: Int = (Int(value) - low) * 255 / range
+                pixels[index] = UInt8(scaled)
             }
-            let low = Int(values.min() ?? 0), high = Int(values.max() ?? 255)
-            pixels = values.map { UInt8((Int($0) - low) * 255 / max(1, high - low)) }
         }
         let image = try grayImage(pixels, width: width, height: height)
         guard let canvas = CGContext(data: nil, width: 224, height: 224, bitsPerComponent: 8, bytesPerRow: 224,
