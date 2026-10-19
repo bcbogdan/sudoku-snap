@@ -1,9 +1,11 @@
 # Sudoku Snap native iOS source
 
-**Status: implemented source, unverified Apple-platform build.** The implementation
-was authored on Linux without `swift`, `xcodebuild`, or `xcodegen` in PATH. No Swift
-compilation, simulator test, device test, signing, accessibility audit, or Vision
-accuracy result is claimed. Do not treat phases 5/6 as release-gate complete.
+**Status: app compiled and simulator-tested; OCR accuracy gate failing.** The
+implementation was authored on Linux, then validated on macOS CI with Xcode 26.6:
+16 Swift tests, one UI smoke test and an unsigned device Release archive passed
+in [run 39295056266](https://github.com/bcbogdan/sudoku-snap/actions/runs/39295056266).
+Physical device behavior, distribution signing and accessibility remain unverified.
+Vision exact-match evaluation failed both fixtures; phase 6 is not release-ready.
 
 ## Baseline and build gates
 
@@ -45,10 +47,10 @@ xcodebuild -project apps/ios/SudokuSnap.xcodeproj -scheme SudokuSnap \
   CODE_SIGNING_ALLOWED=NO test
 ```
 
-Linux checks performed for this source: `bash -n` on the two app-owned scripts;
-the macOS script's explicit unsupported-platform failure. XcodeGen validation remains
-part of the macOS gate. No Linux Swift installation was attempted: Foundation-only
-checks would not validate SwiftUI, Vision, or the iOS binary linkage.
+Linux checks include `bash -n` on the two app-owned scripts and the macOS script's
+explicit unsupported-platform failure. The subsequent macOS run validated
+XcodeGen, Swift compilation and binary linkage with the actual app. No Linux Swift
+installation was attempted.
 
 ## Supported source flows
 
@@ -149,10 +151,16 @@ alone. Import/decoding errors offer another photo or manual entry through the UI
 
 1. Reject inputs over 40 MB; orientation-correct and downsample to 2,048 pixels.
 2. Detect candidate rectangles and choose the largest near-square rectangle.
-3. Perspective-correct; heuristically invert dark backgrounds and reduce saturation.
-4. Crop each of 81 cells with a grid-line inset and run Vision text recognition.
-5. Accept single digits 1–9; mark low-confidence digits and all unrecognized/blank
-   cells uncertain. This intentionally does not assert that OCR can verify blanks.
+3. Perspective-correct to 900×900 grayscale; invert when the median background is
+   dark. Apply a 31-pixel Gaussian adaptive threshold with a 12-level offset.
+4. Inset each cell by 10%; isolate the largest centered, digit-sized connected
+   component, rejecting boundary/grid fragments. These extraction rules mirror
+   the web implementation. Enlarge each glyph on a padded 224×224 white canvas.
+5. Run accurate Vision recognition on binary and locally contrast-stretched
+   grayscale glyphs, plus fast recognition on the binary glyph. Choose the
+   majority single digit 1–9 (confidence breaks ties). Do not map letters into
+   digits or use a Sudoku solution to supply clues. Mark missing, disagreeing,
+   low-confidence, and blank results uncertain; agreement is not proof of accuracy.
 6. Retain an orientation-corrected, downsampled source JPEG for visual correction.
 
 Cancellation is cooperative between Vision requests; an in-flight synchronous
@@ -176,11 +184,23 @@ xcodebuild -project apps/ios/SudokuSnap.xcodeproj -scheme SudokuSnapOCR \
   CODE_SIGNING_ALLOWED=NO test
 ```
 
-It logs per-cell mismatches, unflagged mismatches, uncertain-cell count, and elapsed
-time for `original.jpeg`/`expected.json` and
-`dark-highlighted.jpeg`/`dark-highlighted.json`. Exact equality is a diagnostic gate,
-not an evidence-based production threshold. It may fail. OCR evaluation is
-separate from manual-product tests; no measurements have yet been collected.
+The XCTest evaluation logs every cell's expected/recognized digit, uncertainty,
+candidate strings/confidences and boxes, crop/glyph bounds, selected rectangle
+corners, mismatches, and elapsed time (including diagnostic image encoding).
+It retains rectified/thresholded boards, every cell crop, and both normalized
+glyph images as PNG attachments in the `.xcresult`, even on success. Evidence
+collection is opt-in; production imports do not encode or retain diagnostic images.
+XCTest attachments avoid depending on newer Swift Testing attachment APIs.
+
+Fixtures remain `original.jpeg`/`expected.json` and
+`dark-highlighted.jpeg`/`dark-highlighted.json`; exact equality and no unflagged
+errors are required. Before these preprocessing changes, macOS CI run
+`39295056266` recorded 4 original errors (3 unflagged, 50 uncertain, 38.4s) and
+9 dark-highlighted errors (2 unflagged, 66 uncertain, 39.2s). These measurements
+do not establish production accuracy. Linux OpenCV inspection of the new
+component rules found all 32/22 fixture glyphs with no extra components using
+OpenCV-detected corners, **not Vision's corners or OCR**. The changed native
+pipeline still requires macOS evaluation; no improved Vision score is claimed.
 
 ## Test inventory and remaining gates
 

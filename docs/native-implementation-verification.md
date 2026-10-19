@@ -81,6 +81,18 @@ passed on commit `e515a7e`: Rust workspace gates, real arm64 iOS device/simulato
 XCFramework packaging, and strict Swift 6 typechecking of generated bindings on
 the macOS/Xcode 26.6 runner. This first run did not include app or runtime tests.
 
+[Run 39295056266](https://github.com/bcbogdan/sudoku-snap/actions/runs/39295056266)
+on `94219a4` also passed **16 native Swift tests**, **one UI smoke test**, and an
+**unsigned device Release archive**. It includes the regression fixes for failed
+focus flush/navigation, draft-save input locking and history-to-latest display.
+The preceding run exposed a duplicate module search path; removing the manual
+path lets Xcode use the XCFramework's processed module correctly.
+
+The separate Vision OCR gate failed: four wrong cells in the original fixture
+and nine in the dark fixture; three and two respectively were not marked
+uncertain. No fixture expectations were weakened. Native photo recognition
+remains experimental until exact-match evaluation passes.
+
 Native Rust bridge tests do not prove Swift 6 concurrency compatibility, generated
 linkage, app compilation, simulator behavior or Vision OCR accuracy. The native
 workflow and app-specific verification must establish those separately. Physical
