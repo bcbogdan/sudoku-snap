@@ -1,3 +1,0 @@
-[workspace]
-members = ["crates/sudoku-core", "crates/sudoku-wasm", "crates/sudoku-ffi"]
-resolver = "3"

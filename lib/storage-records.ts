@@ -1,4 +1,5 @@
 import { activeDuration, type Attempt, type Puzzle } from './attempts';
+import { attemptHeader, type AttemptHeader, type StoredMove } from './storage-history';
 
 export type PuzzleSummary = Omit<Puzzle, 'image'>;
 export type AttemptSummary = Pick<
@@ -41,10 +42,17 @@ export function putPuzzle(tx: IDBTransaction, puzzle: Puzzle) {
   tx.objectStore('puzzles').put(puzzle);
   tx.objectStore('puzzleSummaries').put(puzzleSummary(puzzle));
 }
-export function putAttempt(tx: IDBTransaction, attempt: Attempt) {
-  tx.objectStore('attempts').put(attempt);
+export function putAttemptMetadata(tx: IDBTransaction, attempt: Attempt, header: AttemptHeader) {
+  tx.objectStore('attempts').put(header);
   tx.objectStore('attemptSummaries').put(attemptSummary(attempt));
   tx.objectStore('timers').put(timerRecord(attempt));
+}
+export function putAttempt(tx: IDBTransaction, attempt: Attempt) {
+  const header = attemptHeader(attempt);
+  attempt.moves.forEach((move, index) =>
+    tx.objectStore('attemptMoves').add({ attemptId: attempt.id, index, move } satisfies StoredMove),
+  );
+  putAttemptMetadata(tx, attempt, header);
 }
 
 export function upgradeStorage(db: IDBDatabase, tx: IDBTransaction, oldVersion: number) {
@@ -52,14 +60,18 @@ export function upgradeStorage(db: IDBDatabase, tx: IDBTransaction, oldVersion: 
     db.createObjectStore('puzzles', { keyPath: 'id' });
     db.createObjectStore('attempts', { keyPath: 'id' }).createIndex('puzzleId', 'puzzleId');
   }
-  db.createObjectStore('puzzleSummaries', { keyPath: 'id' });
-  db.createObjectStore('attemptSummaries', { keyPath: 'id' }).createIndex('puzzleId', 'puzzleId');
-  db.createObjectStore('timers', { keyPath: 'id' });
+  if (oldVersion < 2) {
+    db.createObjectStore('puzzleSummaries', { keyPath: 'id' });
+    db.createObjectStore('attemptSummaries', { keyPath: 'id' }).createIndex('puzzleId', 'puzzleId');
+    db.createObjectStore('timers', { keyPath: 'id' });
+  }
+  db.createObjectStore('attemptMoves', { keyPath: ['attemptId', 'index'] });
   const puzzles = tx.objectStore('puzzles').openCursor();
   puzzles.onsuccess = () => {
     const cursor = puzzles.result;
     if (!cursor) return;
-    tx.objectStore('puzzleSummaries').put(puzzleSummary(cursor.value as Puzzle));
+    if (oldVersion < 2)
+      tx.objectStore('puzzleSummaries').put(puzzleSummary(cursor.value as Puzzle));
     cursor.continue();
   };
   const attempts = tx.objectStore('attempts').openCursor();
@@ -67,8 +79,16 @@ export function upgradeStorage(db: IDBDatabase, tx: IDBTransaction, oldVersion: 
     const cursor = attempts.result;
     if (!cursor) return;
     const attempt = cursor.value as Attempt;
-    tx.objectStore('attemptSummaries').put(attemptSummary(attempt));
-    tx.objectStore('timers').put(timerRecord(attempt));
+    if (oldVersion < 2) {
+      tx.objectStore('attemptSummaries').put(attemptSummary(attempt));
+      tx.objectStore('timers').put(timerRecord(attempt));
+    }
+    attempt.moves.forEach((move, index) =>
+      tx
+        .objectStore('attemptMoves')
+        .add({ attemptId: attempt.id, index, move } satisfies StoredMove),
+    );
+    cursor.update(attemptHeader(attempt));
     cursor.continue();
   };
 }

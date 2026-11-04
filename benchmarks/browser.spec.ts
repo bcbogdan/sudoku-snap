@@ -208,13 +208,35 @@ async function stored(page: Page) {
     });
     const result = await new Promise<unknown>((resolve, reject) => {
       const hasTimers = db.objectStoreNames.contains('timers');
-      const tx = db.transaction(hasTimers ? ['attempts', 'timers'] : ['attempts']);
+      const hasMoves = db.objectStoreNames.contains('attemptMoves');
+      const stores = ['attempts'];
+      if (hasTimers) stores.push('timers');
+      if (hasMoves) stores.push('attemptMoves');
+      const tx = db.transaction(stores);
       const attempt = tx.objectStore('attempts').get('attempt-0');
       const timer = hasTimers ? tx.objectStore('timers').get('attempt-0') : undefined;
+      const moves = hasMoves
+        ? tx
+            .objectStore('attemptMoves')
+            .getAll(IDBKeyRange.bound(['attempt-0', 0], ['attempt-0', Number.MAX_SAFE_INTEGER]))
+        : undefined;
       tx.oncomplete = () => {
-        if (!timer?.result) return resolve(attempt.result);
+        let record = attempt.result;
+        if (moves) {
+          const { moveCount, historyId: _historyId, ...header } = record;
+          const history = moves.result as { attemptId: string; index: number; move: unknown }[];
+          if (
+            history.length !== moveCount ||
+            history.some((entry, index) => entry.attemptId !== header.id || entry.index !== index)
+          ) {
+            reject(new Error('Stored benchmark history is incomplete or out of order.'));
+            return;
+          }
+          record = { ...header, moves: history.map((entry) => entry.move) };
+        }
+        if (!timer?.result) return resolve(record);
         const { id: _id, fallbackMs: _fallback, ...timing } = timer.result;
-        resolve({ ...attempt.result, ...timing });
+        resolve({ ...record, ...timing });
       };
       tx.onabort = () => reject(tx.error);
     });
@@ -301,7 +323,11 @@ test('production performance baselines', async ({ browser }) => {
         historyPerAttempt: history,
         inputHistory:
           history +
-          (['erase', 'undo'].includes(name) || (!history && name.startsWith('history')) ? 1 : 0),
+          (['resident-entry', 'timer-entry'].includes(name)
+            ? 2
+            : ['erase', 'undo'].includes(name) || (!history && name.startsWith('history'))
+              ? 1
+              : 0),
         imageBytesPerPuzzle: image ? Buffer.from(image, 'base64').length : 0,
       },
       cacheState,
@@ -348,6 +374,8 @@ test('production performance baselines', async ({ browser }) => {
       });
       for (const kind of [
         'entry',
+        'resident-entry',
+        'timer-entry',
         'note',
         'erase',
         'undo',
@@ -363,6 +391,32 @@ test('production performance baselines', async ({ browser }) => {
           await page.bringToFront();
           await page.locator(`#cell-${cell}`).click();
           let total = history;
+          const residentEntry = ['resident-entry', 'timer-entry'].includes(kind);
+          if (residentEntry) {
+            await action(page, `[aria-label="Enter ${solution[cell]}"]`, ++total, total);
+            await action(page, '[aria-label="Erase cell"]', ++total, total);
+            if (kind === 'timer-entry')
+              await page.evaluate(async () => {
+                const db = await new Promise<IDBDatabase>((resolve, reject) => {
+                  const open = indexedDB.open('sudoku-local');
+                  open.onsuccess = () => resolve(open.result);
+                  open.onerror = () => reject(open.error);
+                });
+                try {
+                  await new Promise<void>((resolve, reject) => {
+                    const tx = db.transaction('timers', 'readwrite');
+                    const store = tx.objectStore('timers');
+                    const request = store.get('attempt-0');
+                    request.onsuccess = () =>
+                      store.put({ ...request.result, activeMs: request.result.activeMs + 1000 });
+                    tx.oncomplete = () => resolve();
+                    tx.onabort = () => reject(tx.error);
+                  });
+                } finally {
+                  db.close();
+                }
+              });
+          }
           if (['erase', 'undo'].includes(kind) || (!history && kind.startsWith('history'))) {
             total++;
             await action(page, `[aria-label="Enter ${solution[cell]}"]`, total, total);
@@ -433,7 +487,10 @@ test('production performance baselines', async ({ browser }) => {
           assert.equal(saved.moves.length, nextTotal);
           const position = saved.moves.at(-1)?.position ?? saved.initial;
           if (!navigation) {
-            assert.equal(position.board[cell], kind === 'entry' ? solution[cell] : 0);
+            assert.equal(
+              position.board[cell],
+              kind === 'entry' || residentEntry ? solution[cell] : 0,
+            );
             assert.deepEqual(position.notes[cell], kind === 'note' ? [solution[cell]] : []);
             validateIO(sample, true);
           }

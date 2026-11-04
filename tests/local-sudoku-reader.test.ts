@@ -97,6 +97,164 @@ test('photo reader owns workers throughout initialization, recognition and cance
     assert.ok(workers.every((worker) => worker.terminated));
   });
 
+  await t.test(
+    'initializes OCR before preprocessing finishes without changing uncertain clues',
+    async () => {
+      const controller = new AbortController();
+      let preprocessing: FakeWorker | undefined;
+      let loadedBeforeExtraction = false;
+      respond = (worker, payload) => {
+        if (payload.file) {
+          preprocessing = worker;
+          worker.reply({ type: 'progress', message: 'Finding grid', stage: 'processing' });
+        } else {
+          if (payload.action === 'load') {
+            loadedBeforeExtraction = true;
+            preprocessing!.reply({ type: 'result', cells });
+          }
+          worker.reply({
+            jobId: payload.jobId,
+            status: 'resolve',
+            data: { text: '7\n', confidence: 60 },
+          });
+        }
+      };
+      const pending = readSudoku(file, noop, { signal: controller.signal });
+      void pending.catch(() => {});
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      if (!loadedBeforeExtraction) controller.abort();
+      assert.ok(loadedBeforeExtraction);
+      const result = await pending;
+      assert.equal(result.board[3], 7);
+      assert.deepEqual(result.uncertain, [3]);
+      assert.ok(workers.every((worker) => worker.terminated));
+    },
+  );
+
+  await t.test('abort rejects both concurrent worker requests immediately', async () => {
+    const controller = new AbortController();
+    respond = (worker, payload) => {
+      if (payload.file)
+        worker.reply({ type: 'progress', message: 'Finding grid', stage: 'processing' });
+      else if (payload.action === 'load') controller.abort();
+    };
+    await assert.rejects(readSudoku(file, noop, { signal: controller.signal }), {
+      name: 'AbortError',
+    });
+    assert.ok(workers.every((worker) => worker.terminated));
+  });
+
+  await t.test('preprocessing failure releases a pending OCR initialization', async () => {
+    let preprocessing: FakeWorker;
+    respond = (worker, payload) => {
+      if (payload.file) {
+        preprocessing = worker;
+        worker.reply({ type: 'progress', message: 'Finding grid', stage: 'processing' });
+      } else preprocessing.reply({ type: 'error', message: 'No grid' });
+    };
+    await assert.rejects(readSudoku(file, noop), /No grid/);
+    assert.ok(workers.every((worker) => worker.terminated));
+  });
+
+  for (const failure of ['error', 'messageerror', 'reject']) {
+    await t.test(`OCR ${failure} rejects promptly while preprocessing is pending`, async () => {
+      const controller = new AbortController();
+      let settled = false;
+      respond = (worker, payload) => {
+        if (payload.file)
+          worker.reply({ type: 'progress', message: 'Finding grid', stage: 'processing' });
+        else if (failure === 'error')
+          worker.onerror?.({ message: 'broken runtime', preventDefault() {} });
+        else if (failure === 'messageerror') worker.onmessageerror?.();
+        else worker.reply({ jobId: payload.jobId, status: 'reject', data: 'broken language' });
+      };
+      const pending = readSudoku(file, noop, { signal: controller.signal });
+      const rejected = pending.catch((error: unknown) => {
+        settled = true;
+        return error;
+      });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      const prompt = settled;
+      if (!prompt) controller.abort();
+      const error = await rejected;
+      assert.ok(prompt, 'OCR failure must not wait for the preprocessing timeout');
+      assert.match(String(error), /reader|language/);
+      assert.ok(workers.every((worker) => worker.terminated));
+    });
+  }
+
+  for (const phase of ['preprocess', 'load', 'loadLanguage', 'initialize', 'setParameters']) {
+    await t.test(`abort after successful ${phase} does not start another stage`, async () => {
+      const controller = new AbortController();
+      const start = workers.length;
+      const actions: string[] = [];
+      respond = (worker, payload) => {
+        const action = payload.file ? 'preprocess' : payload.action;
+        actions.push(action);
+        if (payload.file) worker.reply({ type: 'result', cells });
+        else worker.reply({ jobId: payload.jobId, status: 'resolve', data: {} });
+        if (action === phase) controller.abort();
+      };
+      await assert.rejects(readSudoku(file, noop, { signal: controller.signal }), {
+        name: 'AbortError',
+      });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      assert.equal(actions.at(-1), phase);
+      assert.equal(workers.length - start, phase === 'preprocess' ? 1 : 2);
+      assert.ok(workers.every((worker) => worker.terminated));
+    });
+  }
+
+  for (const overlap of [false, true]) {
+    await t.test(
+      `no extracted cells rejects without recognition (overlap=${overlap})`,
+      async () => {
+        const start = workers.length;
+        let preprocessing: FakeWorker;
+        const actions: string[] = [];
+        respond = (worker, payload) => {
+          if (payload.file) {
+            preprocessing = worker;
+            if (overlap)
+              worker.reply({ type: 'progress', message: 'Finding grid', stage: 'processing' });
+            else worker.reply({ type: 'result', cells: [] });
+          } else {
+            actions.push(payload.action);
+            preprocessing.reply({ type: 'result', cells: [] });
+            worker.reply({ jobId: payload.jobId, status: 'resolve', data: {} });
+          }
+        };
+        await assert.rejects(readSudoku(file, noop), /No digits were recognized/);
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        assert.deepEqual(actions, overlap ? ['load'] : []);
+        assert.equal(workers.length - start, overlap ? 2 : 1);
+        assert.ok(workers.every((worker) => worker.terminated));
+      },
+    );
+  }
+
+  await t.test(
+    'a completed startup stage cannot restart a worker after preprocessing fails',
+    async () => {
+      let preprocessing: FakeWorker;
+      const actions: string[] = [];
+      respond = (worker, payload) => {
+        if (payload.file) {
+          preprocessing = worker;
+          worker.reply({ type: 'progress', message: 'Finding grid', stage: 'processing' });
+        } else {
+          actions.push(payload.action);
+          preprocessing.reply({ type: 'error', message: 'No grid' });
+          worker.reply({ jobId: payload.jobId, status: 'resolve', data: {} });
+        }
+      };
+      await assert.rejects(readSudoku(file, noop), /No grid/);
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      assert.deepEqual(actions, ['load']);
+      assert.ok(workers.every((worker) => worker.terminated));
+    },
+  );
+
   await t.test('an unresponsive worker times out and is terminated', async (t) => {
     t.mock.timers.enable({ apis: ['setTimeout'] });
     respond = () => {};

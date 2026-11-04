@@ -46,67 +46,18 @@ themes. Neither suite starts Next or loads OCR/storage. See
 [Storybook testing](docs/storybook.md) for setup and deliberate baseline review
 with `npm run test:visual:update`.
 
-## Rust core development (Phase 3)
+## TypeScript architecture
 
-[`sudoku-core`](crates/sudoku-core/README.md) is the pure Rust domain library.
-Resident sessions prepare bounded candidates; hosts persist them before accepting
-them. `sudoku-wasm` and `sudoku-ffi` expose platform bindings. The web app defaults
-to TypeScript and IndexedDB schema 2; Node-only development does not require Rust.
-See [refactor progress](docs/refactor-progress.md), the
-[session contract](docs/session-api.md) and [implementation plan](docs/rust-ios-implementation-plan.md).
+Game rules, history and solving use TypeScript only. No Rust toolchain, generated
+game bindings or engine-selection environment variable is needed. OpenCV and
+Tesseract still use their third-party Wasm runtimes for local OCR; these are not
+game engines and remain served from `public/vendor`.
 
-With [rustup](https://rustup.rs/) installed, run from the repository root:
+See [the engine/storage contract](docs/web-core-rollout.md) and
+[validation and performance](docs/core-correctness-performance.md).
 
-```sh
-rustup toolchain install 1.97.1 --profile minimal --component clippy --component rustfmt
-cargo +1.97.1 test --workspace --locked
-cargo +1.97.1 fmt --all -- --check
-cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings
-cargo +1.97.1 doc --workspace --no-deps --locked
-```
-
-The workspace uses edition 2024, pins Rust 1.97.1 in `rust-toolchain.toml`, and
-locks dependency resolution in `Cargo.lock`. Keep the explicit `+1.97.1`:
-`RUSTUP_TOOLCHAIN=stable` overrides the toolchain file. `cargo test` includes the
-crate README's doctest; generated API docs start at
-`target/doc/sudoku_core/index.html`. The crate README includes an optional native
-loader benchmark, its measurement limits and the future host transaction contract.
-
-### Opt-in Wasm web engine
-
-```sh
-rustup target add --toolchain 1.97.1 wasm32-unknown-unknown
-cargo +1.97.1 install wasm-bindgen-cli --version 0.2.104 --locked
-npm run build:wasm
-npm run test:wasm
-NEXT_PUBLIC_SUDOKU_ENGINE=wasm npm run build
-NEXT_PUBLIC_SUDOKU_ENGINE=wasm npm run test:e2e
-```
-
-Generated assets in `public/core-wasm` must accompany the opt-in deployment.
-Missing assets produce an initialization error; the selected engine never silently
-changes during a game. Rebuild without the flag to use TypeScript. See
-[web rollout](docs/web-core-rollout.md) for transaction and rollback details and
-[Wasm bindings](docs/wasm-binding.md) for the boundary contract.
-
-### Native iOS host
-
-The separate SwiftUI host lives in `apps/ios`. It uses the UniFFI bridge rather
-than the web UI. Apple-platform builds require macOS/Xcode; Rust bridge tests
-alone do not establish Swift compilation or OCR parity. See
-[Swift binding setup](docs/swift-binding.md) and
-[native CI](docs/native-ci.md) for reproducible tooling and validation gates.
-[Native app setup](docs/ios-app.md) covers project generation, simulator tests,
-the separate Vision OCR evaluation and supported import flows.
-
-Learning Rust? Read validated types in
-[`board.rs`](crates/sudoku-core/src/board.rs), then
-[`solver.rs`](crates/sudoku-core/src/solver.rs) →
-[`puzzle.rs`](crates/sudoku-core/src/puzzle.rs) →
-[`attempt.rs`](crates/sudoku-core/src/attempt.rs) →
-[`record.rs`](crates/sudoku-core/src/record.rs) and
-[`tests`](crates/sudoku-core/tests). Follow with `time.rs` and `sharing.rs` for
-host-driven timing and compatibility boundaries.
+Development focuses on the web app. The native iOS app and Rust implementation
+have been removed; see [retirement scope](docs/rust-retirement.md).
 
 ## Vercel
 
@@ -134,9 +85,17 @@ OCR can miss or misread digits in rotated, blurry, shadowed or unusual-font phot
 
 ## Storage and tests
 
-IndexedDB database `sudoku-local`, schema version 2, retains `puzzles` and `attempts` and adds `puzzleSummaries`, `attemptSummaries` and `timers`. Upgrading from schema 1 atomically derives summaries/timers without replacing original photos or move histories. Attempts and attempt summaries are indexed by puzzle ID. Library views read summaries; individual routes load only their records. Timer checkpoints read/write only small timing records; full attempt reads merge the latest timing. Each move still includes a position snapshot. Writes resolve on transaction completion, and completion/removal update dependent stores atomically. Completed attempts and finalized clues remain protected in the storage API.
+IndexedDB database `sudoku-local`, schema version 3, stores bounded attempt headers
+separately from immutable indexed `attemptMoves`. Upgrades from schemas 1 and 2
+atomically preserve photos, sharing keys, histories and authoritative timers.
+Library views read summaries; timer checkpoints touch only small timing records.
+Warm moves append one move and update bounded metadata after checking fresh
+transactional revisions and history identity. Cold reconstruction, migration and
+listing full attempts remain O(N); each move retains its position snapshot.
+Writes resolve on transaction completion, and completion/removal update dependent
+stores atomically. Completed attempts and finalized clues remain protected.
 
-Immutable-clue solutions are cached by content; uncached solving runs in a browser worker before opening a write transaction. The transaction rechecks revisions and merges fresh timing before publishing a move. Undo does not solve. The pure Rust core's schema-v1 DTOs and compatibility fixture versions are separate from this browser database version.
+Immutable-clue solutions are cached by content; uncached solving runs in a browser worker before opening a write transaction. The transaction rechecks revisions and merges fresh timing before publishing a move. Undo does not solve. Compatibility fixture versions are separate from this browser database version.
 
 `npm test` includes real transaction API tests using fake-indexeddb as well as pure Sudoku/history tests. See `PHASE2-VERIFICATION.md` for browser checks.
 

@@ -130,7 +130,7 @@ export async function metadata(suite: Suite) {
     cpu: { model: os.cpus()[0]?.model, logicalCount: os.cpus().length },
     browser: null,
     generatedAt: new Date().toISOString(),
-    adapter: process.env.BENCH_ADAPTER ?? 'typescript',
+    adapter: 'typescript',
   };
 }
 function reportPath(name: string) {

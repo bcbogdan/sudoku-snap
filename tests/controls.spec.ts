@@ -6,6 +6,7 @@ test('every number dial exit returns focus to its originating board cell', async
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'Dial focus'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
+  await expect(page.getByRole('slider', { name: 'Attempt history' })).toBeVisible();
   const cell = page.locator('#cell-0');
   const dialog = page.getByRole('dialog', { name: 'Choose a number' });
   for (const exit of ['choose', 'clear', 'Cancel', 'Escape', 'backdrop']) {
@@ -44,6 +45,7 @@ test('entry toggle, persistent undo, unhighlighted notes and long-press dial', a
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'Controls test'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
+  await expect(page.getByRole('slider', { name: 'Attempt history' })).toBeVisible();
   const cell = page.locator('#cell-0');
   await cell.click();
   await page.getByRole('button', { name: 'Enter 8', exact: true }).click();

@@ -1,7 +1,7 @@
 # Phase 1 behavioral compatibility fixtures
 
 These hand-reviewed, deterministic JSON vectors are the contract for the TypeScript
-domain today and a future Rust core. No TypeScript evaluation, random IDs, system
+domain. No TypeScript evaluation, random IDs, system
 clock, solver-generated expectations, or browser globals are needed to interpret
 them. `tests/compatibility.test.ts` is the current adapter (`npm test`).
 
@@ -18,11 +18,8 @@ them. `tests/compatibility.test.ts` is the current adapter (`npm test`).
   an error. Optional fields are omitted, not serialized as `undefined`.
 - `{ "repeat": "🧩", "count": 40 }` expands to 40 copies of that exact string.
   It is only used in sharing text fields, to keep boundary cases reviewable.
-- Rust can deserialize document structs with `serde`/`serde_json`. Use a tagged
-  enum for commands (`op`), an untagged string/repeat enum for text, and
-  `serde_json::Value` for deliberately malformed cell values. Rejecting malformed
-  boards at the Rust input boundary is equivalent to returning invalid/count 0;
-  it must not silently coerce strings, nulls, or fractional values into digits.
+- Malformed inputs must not silently coerce strings, nulls or fractional values
+  into digits.
 
 ## `boards.json`
 
@@ -54,7 +51,7 @@ Whitespace normalization follows the released JavaScript trim/`\s+` behavior,
 including NBSP, ideographic space, and BOM. U+200B is not whitespace. Names are
 not Unicode-normalized: composed/decomposed accents remain distinct share keys.
 The released length limit is **80 UTF-16 code units**, not UTF-8 bytes, Unicode
-scalar values, or grapheme clusters (`encode_utf16().count()` in Rust). Thus 40
+scalar values, or grapheme clusters. Thus 40
 astral puzzle symbols pass, 41 fail. This is an explicit compatibility constraint,
 not a recommendation for a new name policy.
 

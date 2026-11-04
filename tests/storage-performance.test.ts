@@ -91,7 +91,7 @@ test('aborted schema upgrade leaves version 1 intact and can retry', async () =>
   (await seed(name)).close();
   await assert.rejects(
     new Promise((resolve, reject) => {
-      const request = indexedDB.open(name, 2);
+      const request = indexedDB.open(name, 3);
       request.onupgradeneeded = (event) => {
         upgradeStorage(request.result, request.transaction!, event.oldVersion);
         request.transaction!.abort();
@@ -104,13 +104,14 @@ test('aborted schema upgrade leaves version 1 intact and can retry', async () =>
   assert.deepEqual([...old.objectStoreNames], ['attempts', 'puzzles']);
   old.close();
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(name, 2);
+    const request = indexedDB.open(name, 3);
     request.onupgradeneeded = (event) =>
       upgradeStorage(request.result, request.transaction!, event.oldVersion);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
   assert.equal(db.objectStoreNames.contains('timers'), true);
+  assert.equal(db.objectStoreNames.contains('attemptMoves'), true);
   db.close();
 });
 

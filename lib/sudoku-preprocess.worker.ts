@@ -44,7 +44,7 @@ function canvas(width: number, height: number) {
 }
 async function preprocess(
   file: File,
-  progress: (message: string) => void,
+  progress: (message: string, stage?: 'processing') => void,
 ): Promise<{ cells: { index: number; image: Uint8Array }[] }> {
   progress('Loading the local image reader…');
   if (typeof OffscreenCanvas === 'undefined' || typeof createImageBitmap === 'undefined')
@@ -66,7 +66,7 @@ async function preprocess(
     return m;
   };
   try {
-    progress('Finding the Sudoku grid…');
+    progress('Finding the Sudoku grid…', 'processing');
     const src = own(
         cv.matFromImageData(
           source.getContext('2d')!.getImageData(0, 0, source.width, source.height),
@@ -225,7 +225,9 @@ self.onmessage = async ({ data }: MessageEvent<PreprocessRequest>) => {
   const send = (message: PreprocessResponse, transfer: Transferable[] = []) =>
     self.postMessage(message, transfer);
   try {
-    const result = await preprocess(data.file, (message) => send({ type: 'progress', message }));
+    const result = await preprocess(data.file, (message, stage) =>
+      send({ type: 'progress', message, stage }),
+    );
     send(
       { type: 'result', ...result },
       result.cells.map(({ image }) => image.buffer as ArrayBuffer),

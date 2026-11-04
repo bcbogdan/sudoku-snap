@@ -3,7 +3,7 @@ export interface PreprocessRequest {
 }
 
 export type PreprocessResponse =
-  | { type: 'progress'; message: string }
+  | { type: 'progress'; message: string; stage?: 'processing' }
   | { type: 'result'; cells: { index: number; image: Uint8Array }[] }
   | { type: 'error'; message: string };
 

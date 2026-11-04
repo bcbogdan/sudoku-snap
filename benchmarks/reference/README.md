@@ -1,5 +1,9 @@
 # Canonical TypeScript reference evidence
 
+All reports here are historical measurements, not the current checkout. Rust/Wasm
+evaluation archives remain evidence only: that implementation and its runners
+are retired. See [current architecture and final comparison](../../docs/core-correctness-performance.md).
+
 Completed Phase 1 runs from 2026-09-10, reference commit
 `60d1b13d17de789815f3381661b529cf71920faf`. These are archives of successful
 canonical reports, not smoke runs. All four retain `complete: true`; browser

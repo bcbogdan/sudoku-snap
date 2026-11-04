@@ -1,7 +1,6 @@
 node_modules/
 .next/
 public/vendor/
-public/core-wasm/
 test-results/
 playwright-report/
 *.tsbuildinfo
@@ -11,4 +10,3 @@ playwright-report/
 storybook-static/
 storybook-test-results/
 storybook-report/
-/target/

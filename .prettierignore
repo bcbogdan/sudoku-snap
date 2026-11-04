@@ -12,4 +12,3 @@ benchmarks/reference/*.json
 storybook-static/
 storybook-test-results/
 storybook-report/
-/target/

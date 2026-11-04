@@ -1,8 +1,8 @@
 # React improvements and motion: implementation notes
 
 Implemented 2026-10-19 with separate storage/solver, React UX and OCR agents,
-followed by integration review. Architecture planning was delegated separately:
-[Rust/iOS implementation plan](rust-ios-implementation-plan.md).
+followed by integration review. This is historical schema-2 milestone evidence;
+see [current TypeScript-only/schema-3 validation](core-correctness-performance.md).
 
 ## Delivered
 

@@ -18,10 +18,12 @@ export async function readSudoku(
     );
 
   const workers: Worker[] = [];
-  let pendingReject: ((error: unknown) => void) | undefined;
+  const pendingRejects = new Set<(error: unknown) => void>();
+  let stopped = false;
   const abort = () => {
     for (const worker of workers) worker.terminate();
-    pendingReject?.(signal?.reason ?? new DOMException('Photo reading cancelled.', 'AbortError'));
+    for (const reject of pendingRejects)
+      reject(signal?.reason ?? new DOMException('Photo reading cancelled.', 'AbortError'));
   };
   signal?.addEventListener('abort', abort, { once: true });
 
@@ -31,10 +33,14 @@ export async function readSudoku(
     receive: (data: unknown, resolve: (value: T) => void, reject: (error: unknown) => void) => void,
   ): Promise<T> {
     signal?.throwIfAborted();
+    if (stopped) throw new Error('Photo reading stopped.');
     return new Promise<T>((resolve, reject) => {
+      let settled = false;
       const finish = (error?: unknown, result?: T) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timeout);
-        pendingReject = undefined;
+        pendingRejects.delete(cancel);
         worker.onmessage = null;
         worker.onerror = null;
         worker.onmessageerror = null;
@@ -45,7 +51,8 @@ export async function readSudoku(
         () => finish(new Error('Photo reading took too long. Please retry with a smaller photo.')),
         60000,
       );
-      pendingReject = (error) => finish(error);
+      const cancel = (error: unknown) => finish(error);
+      pendingRejects.add(cancel);
       worker.onerror = (event) => {
         event.preventDefault();
         finish(
@@ -76,25 +83,7 @@ export async function readSudoku(
   }
 
   try {
-    progress('Loading the local image reader…');
-    const preprocessing = new Worker(new URL('./sudoku-preprocess.worker.ts', import.meta.url));
-    workers.push(preprocessing);
-    const { cells } = await request<Extract<PreprocessResponse, { type: 'result' }>>(
-      preprocessing,
-      { file },
-      (value, resolve, reject) => {
-        const data = value as PreprocessResponse;
-        if (data.type === 'progress') progress(data.message);
-        else if (data.type === 'error') reject(new Error(data.message));
-        else if (data.type === 'result') resolve(data);
-      },
-    );
-    preprocessing.terminate();
-    // Own the Tesseract worker before initialization so cancellation can terminate it
-    // even while createWorker would still be awaiting its startup handshake.
-    // This job protocol is covered by the real OCR fixtures; recheck it on upgrades.
-    const ocr = new Worker('/vendor/worker.min.js');
-    workers.push(ocr);
+    let ocr: Worker;
     let nextJob = 0;
     const run = (action: string, payload: unknown) => {
       const jobId = String(nextJob++);
@@ -110,16 +99,46 @@ export async function readSudoku(
         },
       );
     };
+    let initializing: Promise<void> | undefined;
+    const initialize = () => {
+      if (initializing) return initializing;
+      initializing = (async () => {
+        signal?.throwIfAborted();
+        // Own the worker before its startup handshake so abort can always terminate it.
+        ocr = new Worker('/vendor/worker.min.js');
+        workers.push(ocr);
+        await run('load', { options: { lstmOnly: true, corePath: '/vendor', logging: false } });
+        await run('loadLanguage', {
+          langs: 'eng',
+          options: { langPath: '/vendor', gzip: true, lstmOnly: true },
+        });
+        await run('initialize', { langs: 'eng', oem: 1, config: {} });
+        await run('setParameters', {
+          params: { tessedit_char_whitelist: '123456789', tessedit_pageseg_mode: '8' },
+        });
+      })();
+      return initializing;
+    };
+    progress('Loading the local image reader…');
+    const preprocessing = new Worker(new URL('./sudoku-preprocess.worker.ts', import.meta.url));
+    workers.push(preprocessing);
+    const { cells } = await request<Extract<PreprocessResponse, { type: 'result' }>>(
+      preprocessing,
+      { file },
+      (value, resolve, reject) => {
+        const data = value as PreprocessResponse;
+        if (data.type === 'progress') {
+          if (data.stage === 'processing') void initialize().catch(reject);
+          progress(data.message);
+        } else if (data.type === 'error') reject(new Error(data.message));
+        else if (data.type === 'result') resolve(data);
+      },
+    );
+    preprocessing.terminate();
+    signal?.throwIfAborted();
+    if (!cells.length) throw new Error('No digits were recognized. Try a sharper photo.');
     progress('Loading local digit recognition…');
-    await run('load', { options: { lstmOnly: true, corePath: '/vendor', logging: false } });
-    await run('loadLanguage', {
-      langs: 'eng',
-      options: { langPath: '/vendor', gzip: true, lstmOnly: true },
-    });
-    await run('initialize', { langs: 'eng', oem: 1, config: {} });
-    await run('setParameters', {
-      params: { tessedit_char_whitelist: '123456789', tessedit_pageseg_mode: '8' },
-    });
+    await initialize();
     const board: Board = Array(81).fill(0);
     const uncertain: number[] = [];
     for (const { index, image } of cells) {
@@ -135,7 +154,9 @@ export async function readSudoku(
     signal?.throwIfAborted();
     return { board, uncertain };
   } finally {
+    stopped = true;
     signal?.removeEventListener('abort', abort);
+    for (const reject of pendingRejects) reject(new Error('Photo reading stopped.'));
     for (const worker of workers) worker.terminate();
   }
 }

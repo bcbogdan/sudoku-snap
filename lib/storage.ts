@@ -6,6 +6,7 @@ import { solveCached } from './solver-client';
 import {
   mergeTimer,
   putAttempt,
+  putAttemptMetadata,
   putPuzzle,
   upgradeStorage,
   type ActiveTimer as StoredActiveTimer,
@@ -13,6 +14,15 @@ import {
   type PuzzleSummary as StoredPuzzleSummary,
   type TimerRecord,
 } from './storage-records';
+import {
+  appendAttempt,
+  forgetAttempt,
+  forgetHistory,
+  moveRange,
+  readAttemptHistory,
+  rememberAttempt,
+  type AttemptHeader,
+} from './storage-history';
 export type ActiveTimer = StoredActiveTimer;
 export type AttemptSummary = StoredAttemptSummary;
 export type PuzzleSummary = StoredPuzzleSummary;
@@ -20,7 +30,7 @@ let connection: Promise<IDBDatabase> | undefined;
 function database() {
   if (connection) return connection;
   connection = new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open('sudoku-local', 2);
+    const request = indexedDB.open('sudoku-local', 3);
     let blocked = false;
     request.onupgradeneeded = (event) => {
       upgradeStorage(request.result, request.transaction!, event.oldVersion);
@@ -39,6 +49,7 @@ function database() {
       db.onversionchange = () => {
         db.close();
         connection = undefined;
+        forgetHistory();
       };
       resolve(db);
     };
@@ -64,20 +75,34 @@ export async function listPuzzles() {
 export async function listAttempts(puzzleId?: string) {
   const db = await database();
   return new Promise<Attempt[]>((resolve, reject) => {
-    const tx = db.transaction(['attempts', 'timers'], 'readonly');
+    const tx = db.transaction(['attempts', 'attemptMoves', 'timers'], 'readonly');
     const store = tx.objectStore('attempts');
     const request =
       puzzleId === undefined ? store.getAll() : store.index('puzzleId').getAll(puzzleId);
     const results: Attempt[] = [];
+    let error: Error | undefined;
     request.onsuccess = () => {
-      for (const attempt of request.result as Attempt[]) {
-        const timer = tx.objectStore('timers').get(attempt.id);
-        timer.onsuccess = () =>
-          results.push(mergeTimer(attempt, timer.result as TimerRecord | undefined));
+      for (const header of request.result as AttemptHeader[]) {
+        readAttemptHistory(
+          tx,
+          header,
+          (attempt) => {
+            const timer = tx.objectStore('timers').get(attempt.id);
+            timer.onsuccess = () => {
+              results.push(
+                publicAttempt(mergeTimer(attempt, timer.result as TimerRecord | undefined)),
+              );
+            };
+          },
+          (cause) => {
+            error = cause;
+            tx.abort();
+          },
+        );
       }
     };
     tx.oncomplete = () => resolve(results.sort((a, b) => b.startedAt - a.startedAt));
-    tx.onabort = () => reject(tx.error);
+    tx.onabort = () => reject(error ?? tx.error);
   });
 }
 async function readById<T>(store: string, id: string): Promise<T | undefined> {
@@ -91,19 +116,40 @@ async function readById<T>(store: string, id: string): Promise<T | undefined> {
 export function getPuzzle(id: string): Promise<Puzzle | undefined> {
   return readById<Puzzle>('puzzles', id);
 }
+function publicAttempt(attempt: Attempt): Attempt {
+  return { ...attempt, moves: attempt.moves.slice() };
+}
 export async function getAttempt(id: string): Promise<Attempt | undefined> {
   const db = await database();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(['attempts', 'timers']);
-    const attempt = tx.objectStore('attempts').get(id);
+    const tx = db.transaction(['attempts', 'attemptMoves', 'timers']);
+    const header = tx.objectStore('attempts').get(id);
     const timer = tx.objectStore('timers').get(id);
-    tx.oncomplete = () =>
+    let attempt: Attempt | undefined;
+    let error: Error | undefined;
+    header.onsuccess = () => {
+      if (!header.result) return;
+      readAttemptHistory(
+        tx,
+        header.result as AttemptHeader,
+        (value) => {
+          attempt = value;
+        },
+        (cause) => {
+          error = cause;
+          tx.abort();
+        },
+      );
+    };
+    tx.oncomplete = () => {
+      if (attempt) rememberAttempt(header.result as AttemptHeader, attempt);
       resolve(
-        attempt.result
-          ? mergeTimer(attempt.result as Attempt, timer.result as TimerRecord | undefined)
+        attempt
+          ? publicAttempt(mergeTimer(attempt, timer.result as TimerRecord | undefined))
           : undefined,
       );
-    tx.onabort = () => reject(tx.error);
+    };
+    tx.onabort = () => reject(error ?? tx.error);
   });
 }
 export async function listPuzzleSummaries(): Promise<PuzzleSummary[]> {
@@ -146,6 +192,7 @@ async function write<T>(
     const scope = new Set(stores);
     if (scope.has('puzzles')) scope.add('puzzleSummaries');
     if (scope.has('attempts')) {
+      scope.add('attemptMoves');
       scope.add('attemptSummaries');
       scope.add('timers');
     }
@@ -301,8 +348,8 @@ export async function recordMove(
     const store = tx.objectStore('attempts'),
       request = store.get(attempt.id);
     request.onsuccess = () => {
-      const current = request.result as Attempt | undefined;
-      if (!current || current.revision !== attempt.revision) {
+      const header = request.result as AttemptHeader | undefined;
+      if (!header || header.revision !== attempt.revision) {
         fail(
           new Error(
             'This attempt changed in another tab. Reload to continue without overwriting it.',
@@ -310,56 +357,84 @@ export async function recordMove(
         );
         return;
       }
-      if (current.completedAt !== null) {
+      if (header.completedAt !== null) {
         fail(new Error('Completed attempts are read-only.'));
         return;
       }
-      const getPuzzle = tx.objectStore('puzzleSummaries').get(current.puzzleId);
-      getPuzzle.onsuccess = () => {
-        try {
-          const puzzle = getPuzzle.result as Puzzle | undefined;
-          if (!puzzle || puzzle.status !== 'ready') throw new Error('Puzzle is unavailable.');
-          if (!undo && (!precomputedPuzzle || puzzle.revision !== precomputedPuzzle.revision))
-            throw new Error('This puzzle changed in another tab. Reload to continue.');
-          if (!undo && !solution) throw new Error('Invalid puzzle.');
-          const timer = tx.objectStore('timers').get(current.id);
-          timer.onsuccess = () => {
+      readAttemptHistory(
+        tx,
+        header,
+        (current) => {
+          const getPuzzle = tx.objectStore('puzzleSummaries').get(current.puzzleId);
+          getPuzzle.onsuccess = () => {
             try {
-              const merged = mergeTimer(current, timer.result as TimerRecord | undefined);
-              const prepared = engine.prepare(puzzle, merged, solution, {
-                cell,
-                value,
-                note,
-                check,
-                undo,
-                at: Date.now(),
-              });
-              // Register disposal before issuing writes, which can throw synchronously.
-              done(prepared.attempt, {
-                commit: prepared.commit,
-                discard: prepared.discard,
-                async recover() {
-                  try {
-                    const committed = await getAttempt(current.id);
-                    if (!committed) throw new Error('Saved attempt is unavailable.');
-                    return committed;
-                  } catch (cause) {
-                    throw new Error(
-                      'The move was saved, but its state could not be reloaded. Reload before continuing.',
-                      { cause },
-                    );
+              const puzzle = getPuzzle.result as Puzzle | undefined;
+              if (!puzzle || puzzle.status !== 'ready') throw new Error('Puzzle is unavailable.');
+              if (
+                !undo &&
+                (!precomputedPuzzle ||
+                  puzzle.id !== precomputedPuzzle.id ||
+                  puzzle.revision !== precomputedPuzzle.revision)
+              )
+                throw new Error('This puzzle changed in another tab. Reload to continue.');
+              if (!undo && !solution) throw new Error('Invalid puzzle.');
+              const timer = tx.objectStore('timers').get(current.id);
+              timer.onsuccess = () => {
+                try {
+                  const merged = mergeTimer(current, timer.result as TimerRecord | undefined);
+                  const prepared = engine.prepare(puzzle, merged, solution, {
+                    cell,
+                    value,
+                    note,
+                    check,
+                    undo,
+                    at: Date.now(),
+                  });
+                  // Register disposal before issuing writes, which can throw synchronously.
+                  let saved: { header: AttemptHeader; attempt: Attempt } | undefined;
+                  const lifecycle = {
+                    commit() {
+                      try {
+                        prepared.commit();
+                        rememberAttempt(saved?.header ?? header, saved?.attempt ?? current);
+                      } catch (error) {
+                        forgetAttempt(current.id);
+                        throw error;
+                      }
+                    },
+                    discard() {
+                      prepared.discard();
+                    },
+                    async recover() {
+                      try {
+                        const committed = await getAttempt(current.id);
+                        if (!committed) throw new Error('Saved attempt is unavailable.');
+                        return committed;
+                      } catch (cause) {
+                        throw new Error(
+                          'The move was saved, but its state could not be reloaded. Reload before continuing.',
+                          { cause },
+                        );
+                      }
+                    },
+                  };
+                  done(prepared.attempt, lifecycle);
+                  if (prepared.attempt !== merged) {
+                    saved = appendAttempt(tx, merged, prepared.attempt);
+                    putAttemptMetadata(tx, saved.attempt, saved.header);
                   }
-                },
-              });
-              if (prepared.attempt !== merged) putAttempt(tx, prepared.attempt);
+                  done(publicAttempt(saved?.attempt ?? prepared.attempt), lifecycle);
+                } catch (error) {
+                  fail(error instanceof Error ? error : new Error('Could not save move.'));
+                }
+              };
             } catch (error) {
               fail(error instanceof Error ? error : new Error('Could not save move.'));
             }
           };
-        } catch (error) {
-          fail(error instanceof Error ? error : new Error('Could not save move.'));
-        }
-      };
+        },
+        fail,
+      );
     };
   });
 }
@@ -438,6 +513,9 @@ export async function removePuzzle(puzzle: Puzzle): Promise<void> {
         if (cursor) {
           tx.objectStore('timers').delete(cursor.primaryKey);
           tx.objectStore('attemptSummaries').delete(cursor.primaryKey);
+          tx.objectStore('attemptMoves').delete(moveRange(String(cursor.primaryKey)));
+          const id = String(cursor.primaryKey);
+          tx.addEventListener('complete', () => forgetAttempt(id), { once: true });
           cursor.delete();
           cursor.continue();
         } else done(undefined);

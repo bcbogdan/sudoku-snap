@@ -4,7 +4,8 @@ Implementation follow-up: the findings below are now addressed in the web host,
 including schema-2 timer/summary stores, solver/OCR workers, ordered input, local
 error feedback, original-photo comparison and rename focus. The original evidence
 is retained below; it does not describe the updated code's line numbers or timings.
-The next architecture work is in [the Rust/iOS plan](rust-ios-implementation-plan.md).
+This is historical schema-2 evidence; current TypeScript-only/schema-3 architecture
+is recorded in [the validation report](core-correctness-performance.md).
 See [implementation and verification](react-implementation-verification.md) for
 delivered behavior and remaining platform checks.
 
@@ -31,7 +32,7 @@ main-thread long tasks. Renaming produced another **217ms** long task in the pro
 Cache validated solutions by immutable clues, narrow memo dependencies and avoid
 solving for undo. Move uncached solving/uniqueness work off the main thread while
 retaining transaction revision checks. See the IndexedDB transaction constraint
-in [the shared-core plan](shared-core-ios-plan.md#transaction-contract-preserve-this-across-both-hosts).
+in [the current engine/storage contract](web-core-rollout.md#saving-a-move).
 
 ### P1: input silently disappears during a save
 

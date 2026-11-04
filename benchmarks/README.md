@@ -1,4 +1,4 @@
-# Phase 1 performance baselines
+# TypeScript performance benchmarks
 
 Run from the repository root with Node 22. Uses existing `tsx` and
 `@playwright/test`; no additional dependency. The standalone config uses
@@ -115,6 +115,13 @@ navigation prepares one entry (`historyPerAttempt` is the seed length and
 `inputHistory` records the count after preparation). A note-mode
 toggle and selected-cell click are setup. Other histories end on an erased cell.
 
+`resident-entry` and `timer-entry` additionally prepare an entry then erase before
+measuring another entry (`inputHistory` is seed length + 2). The latter changes
+the durable timer outside timing. All workloads use the TypeScript game engine. Stored
+output checks reconstruct schema-v3 move records outside measured intervals,
+while continuing to support earlier monolithic schemas. Legacy seeding remains
+unchanged and migration completes before measurement.
+
 ```sh
 # Fast harness/correctness smoke, not statistically useful
 BENCH_SAMPLES=1 BENCH_WARMUP=0 npx tsx benchmarks/core.ts
@@ -219,7 +226,7 @@ descriptive; fewer than 20 samples explicitly says small sample. p95 is emitted
 only with at least 100 samples (nearest rank). No p95 of three runs, confidence
 intervals, significance claims, forced GC, tracing or screenshots.
 
-## Compare baseline with a later Rust adapter
+## Compare TypeScript revisions
 
 Schema 2 separates provenance into:
 
@@ -241,28 +248,36 @@ Schema 2 separates provenance into:
   source; it does **not** prove it was built from that source. Rebuild before each
   revision, retain outputs, and record custom build flags. Core has no browser
   build provenance. Implementation/build hashes are recorded, not equality-gated:
-  they are expected to differ when comparing TypeScript with Rust.
+  they are expected to differ between revisions.
 
 Schema 1 reports must be regenerated. Incomplete reports are rejected.
 
 ```sh
-BENCH_OUTPUT=/tmp/sudoku-baseline npx tsx benchmarks/core.ts
-BENCH_OUTPUT=/tmp/sudoku-baseline npx tsx benchmarks/browser.ts
-# After implementing the adapter and rebuilding production with npm run build:
-BENCH_ADAPTER=rust BENCH_OUTPUT=/tmp/sudoku-rust npx tsx benchmarks/core.ts
-BENCH_ADAPTER=rust BENCH_OUTPUT=/tmp/sudoku-rust npx tsx benchmarks/browser.ts
-npx tsx benchmarks/compare.ts /tmp/sudoku-baseline/core.json /tmp/sudoku-rust/core.json
-npx tsx benchmarks/compare.ts /tmp/sudoku-baseline/browser.json /tmp/sudoku-rust/browser.json
+BENCH_OUTPUT=/tmp/opencode/sudoku-before npx tsx benchmarks/core.ts
+BENCH_OUTPUT=/tmp/opencode/sudoku-before npx tsx benchmarks/browser.ts
+# After changing the implementation and rebuilding with npm run build:
+BENCH_OUTPUT=/tmp/opencode/sudoku-after npx tsx benchmarks/core.ts
+BENCH_OUTPUT=/tmp/opencode/sudoku-after npx tsx benchmarks/browser.ts
+npx tsx benchmarks/compare.ts /tmp/opencode/sudoku-before/core.json /tmp/opencode/sudoku-after/core.json
+npx tsx benchmarks/compare.ts /tmp/opencode/sudoku-before/browser.json /tmp/opencode/sudoku-after/browser.json
 ```
 
-`BENCH_ADAPTER` is **metadata only**, not an implementation switch. The core
-imports current public lib functions directly; a later adapter must actually
-back those functions without changing the benchmark imports. Include JS/WASM
-boundary conversions and result materialization in core timing; initialize the
-adapter outside steady-state timing and measure its cold load in browser reload.
+The adapter label is always `typescript`; there is no engine-selection control.
+The core imports current public lib functions directly.
 Keep fixtures, workload semantics, correctness assertions and options identical.
 The comparison command rejects mismatched environments/fixtures/workload sets and
 prints ratios of medians, not a significance test. Repeat complete runs in
-alternating baseline/adapter order to assess drift; record any build flags and
-adapter artifact hashes alongside reports. Small differences need more samples
+alternating before/after order to assess drift; record any build flags alongside
+reports. Small differences need more samples
 and repeated runs before drawing conclusions.
+
+## Storage and historical evidence
+
+`npx tsx benchmarks/storage-browser-check.ts` checks schema-3 migration, bounded
+appends and storage/worker behavior in actual Chromium without a Next server.
+`npx tsx benchmarks/storage-incremental.ts` measures full-record versus incremental
+IndexedDB transfer costs; these are not end-to-end application timings.
+
+Rust-only host/boundary runners are retired. Existing Wasm JSON archives and
+their source hashes remain historical evidence, not runnable current engines.
+See [the decision and final comparison](../docs/core-correctness-performance.md).

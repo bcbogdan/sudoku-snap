@@ -1,8 +1,15 @@
 # Sudoku Snap core and host implementation verification
 
+**Historical verification before Rust/iOS retirement, not current gates.** The
+iOS app, native CI and bridge tooling have been removed to focus on the web app.
+See [retirement scope](rust-retirement.md).
+
+For the later browser OCR/game-engine correctness and performance work, see
+[the core validation report](core-correctness-performance.md). The historical
+measurements below are retained; iOS development was deferred for that effort.
+
 The original web work and branding are pushed as `8a9bcb0` and `06f4eaf`.
-Resident core sessions are committed as `0fb40fe`. Implementation follows
-[the Rust/iOS plan](rust-ios-implementation-plan.md); gates below distinguish
+Resident core sessions were committed as `0fb40fe`. Historical gates distinguish
 native Rust, actual compiled bindings, browser integration and Apple platforms.
 
 ## Core and binding checks
@@ -25,10 +32,9 @@ native Rust, actual compiled bindings, browser integration and Apple platforms.
 
 ## Web integration
 
-TypeScript remains the default. `NEXT_PUBLIC_SUDOKU_ENGINE=wasm` is an explicit
-build-time opt-in. The default Node-only test suite has 99 passing tests and was
-checked without generated Wasm artifacts; TypeScript compilation also passes in
-that configuration. Generated public assets are required only for the Wasm path.
+At this milestone TypeScript was the default and a now-retired build flag opted
+into Wasm. The Node suite then had 99 passing tests and was checked without
+generated assets; compilation also passed. This is not the current engine setup.
 
 Both production builds pass. Browser checks cover original/dark OCR, manual entry,
 completion and history, notes/undo, focus restoration, photo comparison, sharing,
@@ -55,7 +61,7 @@ entry 1173.7ms, undo 1372.8ms, idle task time 21.885ms. Archive:
 `5df4ce88-612f-4968-991c-758a8ef3a2e0`. These results do not support promoting
 Wasm on performance grounds; browser persistence/identity costs still need work.
 The archive's legacy `adapter: typescript` describes the TypeScript benchmark
-harness, not the selected domain engine; the command below and tested build asset
+harness, not the selected domain engine; recorded build flags and tested asset
 requests establish that this run used Wasm. Public Wasm artifacts are generated
 separately and are not covered by the harness's existing Next build fingerprint.
 
@@ -64,15 +70,9 @@ A subsequent default-engine build ran the same workload and instrumentation:
 run `4694899e-ad97-4460-8690-a88e8aed949b`. Descriptive medians: entry 826.4ms,
 undo 987.6ms, idle task time 20.964ms. The Wasm medians are approximately 42% and
 39% higher for entry and undo in these small samples. This is a rollout blocker,
-not a statistical significance claim. Keep TypeScript as the default while
-reducing restore, serialization and full-history persistence work.
-
-```sh
-BENCH_MODE=full BENCH_FILTER='^(entry|undo|timer-idle)$' BENCH_HISTORY=10000 \
-  BENCH_SAMPLES=3 BENCH_WARMUP=1 BENCH_SIZES=1 \
-  BENCH_OUTPUT=/tmp/opencode/sudoku-snap-wasm-10k NEXT_PUBLIC_SUDOKU_ENGINE=wasm \
-  npm run benchmark:browser
-```
+not a statistical significance claim. Later work reduced full-history storage
+costs; the Rust implementation was subsequently retired. Current benchmark
+commands are in [the TypeScript benchmark guide](../benchmarks/README.md).
 
 ## Apple-platform gate
 
