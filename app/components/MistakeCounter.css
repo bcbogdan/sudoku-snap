@@ -18,6 +18,5 @@
 }
 
 .kit-mistake-counter__text {
-  min-inline-size: 0;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }

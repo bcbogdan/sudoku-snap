@@ -339,3 +339,13 @@
   grid-column: 2;
   grid-row: 2;
 }
+
+@container (max-width: 320px) {
+  .sudoku-app--play .kit-game-toolbar__status > .kit-attempt-timer {
+    grid-row: 1;
+  }
+
+  .sudoku-app--play .kit-game-toolbar__status > .kit-game-toolbar__mistakes {
+    grid-column: 1 / -1;
+  }
+}

@@ -64,6 +64,7 @@ export default function SudokuBoard({
       aria-label="Sudoku board"
       aria-description={completed ? 'Completed board.' : undefined}
       onKeyDown={(event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
         if (/^[1-9]$/.test(event.key)) {
           event.preventDefault();
           onEnter(Number(event.key), selected);

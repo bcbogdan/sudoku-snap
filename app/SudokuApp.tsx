@@ -91,6 +91,14 @@ export default function Sudoku() {
   const [actionBusy, setBusy] = useState(false),
     [message, setMessage] = useState('');
   const [queueStatus, setQueueStatus] = useState<QueueStatus>({ pending: 0, error: '' });
+  const boardError = useRef<HTMLDivElement>(null);
+  const focusBeginError = useRef(false);
+  useEffect(() => {
+    if (!focusBeginError.current || !message || !boardError.current) return;
+    focusBeginError.current = false;
+    boardError.current.focus({ preventScroll: true });
+    boardError.current.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+  }, [message, actionFailed]);
   const queue = useRef<CommandQueue | null>(null);
   const committed = useRef({ puzzle, attempt });
   function publishPuzzle(value: Puzzle) {
@@ -360,8 +368,13 @@ export default function Sudoku() {
   async function begin() {
     if (!puzzle) return;
     await action(async () => {
-      const result = await startAttempt(puzzle);
-      window.location.assign(attemptURL(result.puzzle.id, result.attempt.id));
+      try {
+        const result = await startAttempt(puzzle);
+        window.location.assign(attemptURL(result.puzzle.id, result.attempt.id));
+      } catch (error) {
+        focusBeginError.current = true;
+        throw error;
+      }
     });
   }
   async function enter(value: number, cell = selected) {
@@ -652,7 +665,7 @@ export default function Sudoku() {
               <div>{puzzleTitle}</div>
             </div>
             {queueStatus.error || message || timerError ? (
-              <div role="alert" className="board-save-error">
+              <div ref={boardError} tabIndex={-1} role="alert" className="board-save-error">
                 {queueStatus.error || message}
                 {timerError ? (
                   <p>
