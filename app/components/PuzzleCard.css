@@ -1,0 +1,78 @@
+.kit-puzzle-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: 320px;
+  min-inline-size: 0;
+  min-block-size: var(--control-min);
+  padding: var(--space-2);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kit-puzzle-card__body {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: 0 var(--space-1) var(--space-2);
+}
+
+.kit-puzzle-card__heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.kit-puzzle-card__title {
+  min-inline-size: 0;
+  margin: 0;
+  font: var(--text-body);
+  font-weight: 600;
+}
+
+.kit-puzzle-card__arrow {
+  flex: none;
+  color: var(--color-text-secondary);
+}
+
+.kit-puzzle-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.kit-puzzle-card__meta {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+}
+
+.kit-puzzle-card:focus-visible {
+  outline: var(--border-frame) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.kit-puzzle-card:active {
+  border-color: var(--color-text);
+  background: var(--color-background);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .kit-puzzle-card:hover {
+    border-color: var(--color-text-secondary);
+  }
+
+  .kit-puzzle-card:hover .kit-puzzle-card__title {
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+  }
+}

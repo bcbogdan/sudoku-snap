@@ -10,14 +10,16 @@ export interface OriginalPhotoProps {
 export default function OriginalPhoto({ image }: OriginalPhotoProps) {
   const [url, setURL] = useState('');
   const [zoom, setZoom] = useState(1);
+  const [failed, setFailed] = useState(false);
   const id = useId();
   useEffect(() => {
     const objectURL = URL.createObjectURL(image);
+    setFailed(false);
     setURL(objectURL);
     return () => URL.revokeObjectURL(objectURL);
   }, [image]);
   return (
-    <details className="original-photo">
+    <details className="original-photo kit-original-photo">
       <summary>Compare original photo</summary>
       <label htmlFor={id}>Photo zoom · {zoom}×</label>
       <input
@@ -35,10 +37,14 @@ export default function OriginalPhoto({ image }: OriginalPhotoProps) {
         role="region"
         aria-label="Original photo; scroll to inspect enlarged clues"
       >
-        {url ? (
+        {failed ? (
+          <p role="status">Could not open the original photo.</p>
+        ) : url ? (
           <img
             src={url}
             alt="Original Sudoku photo for comparing recognized clues"
+            loading="lazy"
+            onError={() => setFailed(true)}
             style={{ width: `${zoom * 100}%` }}
           />
         ) : (

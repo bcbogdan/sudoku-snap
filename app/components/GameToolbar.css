@@ -1,0 +1,31 @@
+.kit-game-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  color: var(--color-text);
+  font: var(--text-body);
+}
+
+.kit-game-toolbar--review > span {
+  flex: 1 1 240px;
+  min-width: 0;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.kit-game-toolbar > .kit-button {
+  flex: 1 1 180px;
+  width: auto;
+  min-width: 0;
+  min-height: var(--control-height);
+  padding: var(--space-3) var(--space-4);
+  font-size: 16px;
+}
+
+.kit-game-toolbar > .kit-game-toolbar__mistakes {
+  margin: 0;
+}

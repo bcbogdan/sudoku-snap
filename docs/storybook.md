@@ -225,6 +225,86 @@ and counts visible. No clipping, missing-state content or remaining visual-test
 failures were found. This completes the core-kit gate, not production app E2E
 or later screen-composition approval. The canonical environment guard is unchanged.
 
+### Composite kit verification
+
+`tests/storybook/composites.visual.ts` extends the same guarded four-project
+matrix for collection, attempts/replay, contextual navigation/title/actions,
+toolbar, supplementary photo/notices, and scan-tip specimens. Story IDs must
+come from actual CSF titles/exports, then be checked against the fresh generated
+index; do not invent IDs or approve captures from a stale build.
+
+Each composite additionally checks horizontal overflow, content containment and
+44px minimum interactive targets at its project width and 320px. Board cells are
+not 44px controls at phone widths; they retain the existing separate grid checks
+and keypad/keyboard alternatives. Long titles must wrap without clipping their
+rename action. Native keyboard focus, replay range boundaries and navigation
+hrefs complement the stories' callback and axe checks.
+
+Reference review targets PDF pp3/4/9/10: preview-first puzzle cards and filters,
+attempt rows and summary hierarchy, and replay position/navigation/timestamp
+wrapping. Dark and desktop layouts need separate review; the PDF supplies mobile
+light examples, not pixel-identical screenshot expectations. Error fixtures must
+retain their actual message and controls, not be replaced by a generic success.
+
+Review differences are intentional: card titles wrap rather than lose their full
+names to the PDF's ellipsis; a single draft or completion-count badge exposes actual state;
+completed counts alone never fabricate a completed preview. Attempt rows retain
+explicit started dates, moves and filled-square counts. They share one white
+panel with separators, retain title-left/time-right hierarchy at 390px, and stack
+only in narrow containers rather than overlap long metadata. Missing best times remain “—”, while
+zero times remain `00:00:00`. Replay timestamps wrap naturally and native range
+keys are checked with trusted Playwright keyboard input, independently of the
+stories' synthetic change/callback assertions. Original-photo zoom likewise checks
+ArrowRight/Home/End, 0.5 increments, actual inline image widths and retained focus.
+Fixed-position copy/status notices are captured directly, not through a `main`
+region that excludes the overlay. The combined specimen is a component review
+composition, not approval of migrated application screens.
+
+Final-source verification:
+
+- Fresh Storybook build passed; interaction/axe suite **216/216 passed** across
+  34 files.
+- Focused 390px row-alignment and 390/320px duration checks **8/8 passed**.
+- Guarded composite regeneration **308/308 passed**; the complete visual suite
+  rerun **without updates passed 639/639**.
+- Canonical preflight/drift tests **14/14 passed**. Environment metadata, guard,
+  rendering configuration and package lock remain unchanged.
+
+The set contains **632 PNGs**: 159 desktop-light, 159 desktop-dark, 157
+mobile-light and 157 mobile-dark. This adds 300 composite images; 20 existing
+dialog/title/status PNGs changed intentionally and were inspected individually.
+The other 312 prior PNGs, including all 28 foundation images, remain byte-identical.
+All 632 baseline hashes/dimensions remained identical after the clean
+comparison, as did all 125 recorded Storybook-related source/config hashes.
+Final regenerated contact sheets cover every new image. Compositions additionally
+have native-scale section captures, avoiding unreadably shrunken long-page sheets.
+
+Review artifacts are in `/tmp/opencode/sudoku-composite-review/`:
+
+- `compare-{cards,filters,attempts,attempt-rows,replay,composition,composition-replay}.png`
+  and matching HTML compare PDF pp3/4/9/10 with final browser specimens at the
+  same logical scale. Reference crops, page renders and `reference-manifest.json`
+  record the PDF hash, crop boxes and 96-CSS-pixel/72-point normalization.
+- `{project}-{collection,attempts,replay,navigation,supplementary,composition}-*.png`
+  and HTML are final contact sheets; `diff-{project}-{name}.png` shows every
+  intentionally changed prior baseline beside its original.
+- `{project}-composition-{section}.png` and `{project}-320-{section}.png` show
+  larger composition details. `row-390-geometry.json` measures **0px** title/time
+  top difference; `reference-320-geometry.json` records 26 interactive targets
+  per project with **44px minimum width and height**.
+- `manifest-before-clean.json`, `manifest-after-clean.json` and `manifest.json` record baseline dimensions and
+  SHA-256 hashes; `changed-baselines.json` identifies the 20 reviewed legacy
+  changes. `reviewed-images.json` pins the 320 new/changed image hashes;
+  `artifact-manifest.json` hashes the supplemental review PNGs. Source/guard
+  hashes are recorded independently, and `verification.json` summarizes counts.
+
+Normal durations stay intact at 320/390px; whole statistic tiles wrap in narrower
+containers rather than split their digits. Large counts/timestamps/title fixtures
+remain contained. Review found no remaining missing state content, clipped focus,
+or unintended theme/layout regressions. The composite visual gate is complete;
+`storybook-report/index.html` holds the clean comparison report. Full-screen application migration and
+real-device verification remain separate gates.
+
 PDF crops are review references, never pixel-identical browser baselines. With
 Poppler available, produce review artifacts outside the source tree, for example:
 

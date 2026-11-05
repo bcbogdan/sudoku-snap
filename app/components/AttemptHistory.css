@@ -1,0 +1,33 @@
+.history.kit-attempt-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 660px;
+  margin: var(--space-6) auto;
+  color: var(--color-text);
+}
+
+.kit-attempt-history > .kit-button {
+  align-self: flex-start;
+}
+
+.kit-attempt-history .kit-attempt-history__completion {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border-thin) solid var(--color-success);
+  border-radius: var(--radius-lg);
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  font: var(--text-body);
+}
+
+.kit-attempt-history__completion strong {
+  flex: 1 1 220px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

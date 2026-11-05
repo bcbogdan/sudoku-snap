@@ -7,8 +7,8 @@ const meta = {
   title: 'Library/PuzzleActions',
   component: PuzzleActions,
   decorators: [
-    (Story) => (
-      <StoryFrame>
+    (Story, context) => (
+      <StoryFrame width={context.parameters.frameWidth}>
         <Story />
       </StoryFrame>
     ),
@@ -36,5 +36,23 @@ export const Saving: Story = {
     }
     await expect(args.onShare).not.toHaveBeenCalled();
     await expect(args.onRemove).not.toHaveBeenCalled();
+  },
+};
+export const Mobile: Story = {
+  parameters: { frameWidth: 320 },
+  globals: { viewport: { value: 'mobile1', isRotated: false } },
+};
+export const KeyboardFocus: Story = {
+  parameters: { frameWidth: 320 },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const share = canvas.getByRole('button', { name: 'Share puzzle' });
+    share.focus();
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onShare).toHaveBeenCalledOnce();
+    await userEvent.tab();
+    await expect(canvas.getByRole('button', { name: 'Remove puzzle' })).toHaveFocus();
+    await userEvent.keyboard(' ');
+    await expect(args.onRemove).toHaveBeenCalledOnce();
   },
 };

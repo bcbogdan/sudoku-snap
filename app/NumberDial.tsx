@@ -1,5 +1,8 @@
 'use client';
 import { useLayoutEffect, useRef } from 'react';
+import Button from './components/Button';
+import { Icon } from './components/Icon';
+import './NumberDial.css';
 export interface NumberDialProps {
   onChoose: (value: number) => void;
   onClose: () => void;
@@ -20,7 +23,7 @@ export default function NumberDial({ onChoose, onClose }: NumberDialProps) {
   return (
     <dialog
       ref={dialog}
-      className="number-dial"
+      className="number-dial kit-number-dial"
       aria-labelledby="dial-title"
       onCancel={(event) => {
         event.preventDefault();
@@ -33,9 +36,10 @@ export default function NumberDial({ onChoose, onClose }: NumberDialProps) {
       <h2 id="dial-title">Choose a number</h2>
       <div className="dial-numbers">
         {Array.from({ length: 9 }, (_, i) => (
-          <button
+          <Button
             key={i}
-            className="secondary"
+            className="kit-number-dial__key"
+            iconOnly
             aria-label={`Choose ${i + 1}`}
             onClick={() => onChoose(i + 1)}
             style={{
@@ -44,20 +48,21 @@ export default function NumberDial({ onChoose, onClose }: NumberDialProps) {
             }}
           >
             {i + 1}
-          </button>
+          </Button>
         ))}
-        <button
-          className="secondary"
+        <Button
+          className="kit-number-dial__key"
+          iconOnly
           aria-label="Clear square"
           style={{ left: 130, top: 130 }}
           onClick={() => onChoose(0)}
         >
-          ⌫
-        </button>
+          <Icon name="delete" />
+        </Button>
       </div>
-      <button className="secondary" onClick={onClose}>
+      <Button variant="quiet" onClick={onClose}>
         Cancel
-      </button>
+      </Button>
     </dialog>
   );
 }

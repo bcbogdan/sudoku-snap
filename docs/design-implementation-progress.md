@@ -38,14 +38,14 @@ Independent foundation review found one custom-tint precedence issue in CSS-only
 
 - [x] Foundation tokens, type, themes, and alternate palette verified.
 - [x] Foundation screenshots generated and visually inspected.
-- [ ] Component kit and every significant state reviewed against the PDF.
+- [x] Component kit and every significant state reviewed against the PDF.
 - [ ] Pages migrated after component approval.
 - [ ] Responsive, persistence, interaction, and accessibility regressions checked.
 - [ ] Real iOS/Android device verification (requires hardware).
 
-Page composition remains unchanged until the component gate passes. Font and color foundation changes will affect existing pages, but their layout is not yet the reference design.
+The component gate has passed. Page composition remains unmigrated; shared fonts, colors, and component updates affect existing pages, but their layout is not yet the reference design.
 
-## Stage 2 — component kit (core primitives approved; composites pending)
+## Stage 2 — core primitives (approved)
 
 - Controls agent owns new Icon, Button, Toggle components and isolated stories.
 - Status agent owns new Badge, Alert, CornerFrame components and isolated stories.
@@ -59,7 +59,7 @@ Wave 1 implemented: Icon, Button, Toggle, Badge, Alert, CornerFrame, BoardPrevie
 
 Independent wave-1 review found and repaired two issues: `aria-disabled` button activation and contrast for combined replay states on Flash in dark mode. Added regression stories and replay on-color semantic roles/contrast tests. Production build, typecheck, 138 core/theme tests, and 28 app E2E tests pass.
 
-Expanded kit diagnostics exposed further blockers; partial PNGs are not approved:
+Expanded core-kit diagnostics exposed and repaired these blockers before approval:
 
 - Vitest did not inherit the app's `@` aliases. Storybook and Vitest now read `tsconfig.json` through Vite's `resolve.tsconfigPaths`.
 - Narrow stories inherited desktop gutters, shrinking keypad targets. StoryFrame now uses token gutters and the combined kit reduces panel padding on phones.
@@ -77,13 +77,53 @@ Core-kit verification completed after those repairs:
 - Coordinator independently reviewed PDF/browser button, board-state, status, and upload comparisons, plus narrow keypad and dark replay/composition captures.
 - Review artifacts: `/tmp/opencode/sudoku-kit-review/`; test report: `storybook-report/index.html`.
 
-The core primitive wave is approved. This does not mark the full component or page gate complete; composite components and full screens remain the next stages.
+The core primitive wave was approved before starting the composite wave below.
 
-The remaining composite components (puzzle cards/filters, attempt summaries/rows, replay controls, navigation/title/action composition) are not yet approved or migrated.
+## Stage 2 — composite wave (approved)
+
+Checkpoint commit: `73ae2b8` — verified foundations/core kit, references, bundled fonts, and approved snapshots. Unrelated local skill files remain untracked and untouched.
+
+- Collection agent: new PuzzleCard and CollectionFilters; existing library/page composition stays unchanged.
+- Attempts agent: new AttemptRow, AttemptSummary, and ReplayControls; no timer/history/persistence changes.
+- Navigation agent: adapt AppHeader, PuzzleTitle, and PuzzleActions while preserving callbacks, links, rename focus, and busy behavior.
+- Supporting-components agent: adapt GameToolbar, NumberDial, OriginalPhoto, StatusNotice, and CopyNotice without changing behavior.
+- Visual agent: isolated composite coverage, guarded screenshots, PDF comparisons, and clean rerun after source freeze.
+- Coordinator: ScanTips, combined reference specimens, shared integration, independent review, and app regressions.
+
+No page migration or storage changes in this wave. New data-bearing components accept truthful caller-supplied presentation data; bounded storage projections remain page-stage work.
+
+Confirmed no changes to `app/SudokuApp.tsx`, storage modules, `useFocusTimer`, screenshot environment metadata, or the environment guard relative to the checkpoint commit.
+
+Implemented and verified:
+
+- Added isolated composites and `Kit/Composites → Reference`, with sample collection filters, cards, attempts, replay navigation, rename/actions, and scan guidance.
+- Existing AttemptHistory now composes ReplayControls, preserving Undo guards and the original completion-animation lifecycle. Explicit replay screen state remains page-stage work.
+- Contextual header mode shows only its back link/status, matching the reference rather than repeating global navigation; current app callers retain the existing navigation mode.
+- Moved supporting-component presentation out of legacy globals; retained library/detail/create page styles until screen migration.
+- Typecheck, production build, formatting, and diff checks pass. Core/theme tests: 138 passing. Canonical rendering environment matches; guard tests: 14 passing.
+- Independent read-only behavior/accessibility review found no actionable issues.
+- App E2E clean rerun: 28/28 passing. The initial long-press failure measured a cell above the viewport after Undo auto-scrolled; scroll-into-view before measuring repairs the test without changing app behavior. Focused controls repeated three times: 6/6 passing.
+- A later app rerun exposed an intermittent copy-feedback clock test failure after two clean 28/28 runs. Debugger reproduced the async clipboard race by delaying completion: fake time advanced before the new copy sequence committed. Only the test changed, waiting for the previous keyed message to detach before advancing time. Repeated animation suite: 15/15 passing; deliberately delayed clipboard: 5/5 passing. No app timer/lifecycle changes. Final full app rerun: 28/28 passing.
+- Storybook interaction/axe rerun: 216/216 passing, including refined/grouped attempt-row stories, after repairing test-only whitespace, synthetic native-range input, and computed-versus-inline-width assertions. Playwright now covers native ArrowRight/Home/End behavior.
+- PDF inspection caught fidelity issues beyond initial passing snapshots: overly stacked attempt rows at 390px, redundant card badges, and vertically centered timers. Rows now group with separators and align title/timer tops exactly; cards keep one badge. Existing move counts and explicit progress text remain visible as intentional extensions to the reference.
+- Combined-layout review caught split duration digits; intrinsic summary sizing now wraps whole stat cells before ordinary durations. Metadata retains the requested monospaced font even when this requires more wrapping than the PDF.
+
+Final composite gate:
+
+- Storybook build and interactions/axe: 216/216 passing.
+- Guarded composite regeneration: 308/308 passing.
+- Complete clean non-update visual comparison: 639/639 passing.
+- Canonical environment regressions: 14/14 passing; guard/config unchanged.
+- 632 PNG baselines total; all 300 new and 20 changed captures inspected. All PNG hashes unchanged after clean comparison; 125 frozen source hashes also unchanged.
+- 390px title/timer offset: 0px. At 320px, tested controls meet 44×44px minimums; ordinary durations remain on one line and large values remain contained.
+- Coordinator inspected final PDF comparisons for cards, attempts, and replay; dark composition, contextual navigation, original-photo zoom/error, and actual toast captures.
+- Final evidence: `/tmp/opencode/sudoku-composite-review/verification.json`, final contact sheets/PDF comparisons/hash manifests; report: `storybook-report/index.html`.
+
+Component gate approved. Composite-wave changes remain uncommitted. Next: migrate the six screens using the data-access constraints below, then run full-screen responsive/theme and persistence regressions. Real-device iOS/Android verification remains outstanding.
 
 ## Screen-data audit — later handoff
 
-No persistence migration is needed. `AttemptSummary` lacks latest positions, mistakes, and unfinished time, but existing records provide them without reconstructing history:
+No persistence migration is needed. The stored `AttemptSummary` type exported by `lib/storage.ts` lacks latest positions, mistakes, and unfinished time, but existing records provide them without reconstructing history:
 
 - Extend `lib/storage.ts` with a bounded readonly projection over `attempts`, `attemptMoves`, and `timers`: one last move per selected attempt (`[id, moveCount - 1]`), or `header.initial` for zero moves, plus its timer. Reject missing expected moves.
 - Collection counts/filtering already use summaries. Fetch positions only for chosen preview attempts; do not read every attempt history or puzzle photo.

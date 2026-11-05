@@ -63,37 +63,6 @@ main {
   margin: auto;
   padding: 0 40px;
 }
-header {
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 25px;
-  letter-spacing: -1px;
-}
-.brand span {
-  font-size: 32px;
-}
-nav {
-  display: flex;
-  gap: 28px;
-  font-size: 14px;
-}
-nav a {
-  text-decoration: none;
-  padding: 10px 0;
-}
-nav a[aria-current='page'] {
-  border-bottom: 2px solid var(--ink);
-}
 .library {
   padding: 48px 0;
 }
@@ -325,19 +294,6 @@ h2 {
   align-items: center;
   gap: 18px;
 }
-.play-toolbar,
-.review-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 16px 0;
-  font-size: 14px;
-  flex-wrap: wrap;
-}
-.review-toolbar {
-  justify-content: space-between;
-}
 .save-state {
   font-size: 12px;
   color: var(--muted);
@@ -377,9 +333,6 @@ h2 {
 .share-link button {
   justify-self: start;
 }
-.mistakes {
-  margin: 0 4px;
-}
 .board-wrap {
   width: min(100%, max(320px, calc(100dvh - 350px)), 660px);
   margin: auto;
@@ -389,55 +342,6 @@ h2 {
   text-align: center;
   color: var(--muted);
   margin-top: 18px;
-}
-.history {
-  max-width: 660px;
-  margin: 18px auto 0;
-}
-.history-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.history-buttons label {
-  flex: 1;
-  max-width: 300px;
-  font-size: 12px;
-  text-align: center;
-  color: var(--muted);
-}
-.history input {
-  display: block;
-  width: 100%;
-  accent-color: var(--ink);
-  margin-top: 7px;
-}
-.history p {
-  text-align: center;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--muted);
-}
-.completion {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
-}
-.completion strong {
-  font-size: 14px;
-  font-weight: 500;
-}
-.status {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--error);
-  text-align: center;
-}
-.status:empty {
-  display: none;
 }
 @media (max-width: 800px) {
   main {
@@ -456,16 +360,6 @@ h2 {
 @media (max-width: 520px) {
   main {
     padding: 0 14px;
-  }
-  header {
-    height: 64px;
-  }
-  .brand {
-    font-size: 21px;
-  }
-  nav {
-    gap: 18px;
-    font-size: 13px;
   }
   .library {
     padding: 28px 0;
@@ -498,36 +392,12 @@ h2 {
     align-items: flex-end;
     flex-direction: column;
   }
-  .play-toolbar {
-    gap: 8px;
-    justify-content: flex-start;
-  }
-  .play-toolbar button {
-    font-size: 12px;
-    padding: 8px 10px;
-  }
   .save-state {
     margin-left: auto;
-  }
-  .review-toolbar {
-    font-size: 13px;
-  }
-  .review-toolbar .primary {
-    width: 100%;
   }
   .board-wrap {
     width: 100%;
     max-width: 470px;
-  }
-  .history-buttons {
-    gap: 5px;
-  }
-  .history-buttons button {
-    padding: 8px 12px;
-  }
-  .completion {
-    align-items: stretch;
-    flex-direction: column;
   }
   .attempt-row {
     flex-wrap: wrap;
@@ -544,53 +414,6 @@ h2 {
   }
 }
 
-/* Names can be edited without leaving the board, including on narrow phones. */
-.puzzle-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.puzzle-title h1 {
-  overflow-wrap: anywhere;
-  min-width: 0;
-}
-.rename-button {
-  flex-shrink: 0;
-  min-width: 44px;
-  min-height: 44px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 22px;
-}
-.name-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 520px;
-  width: 100%;
-  margin: 8px 0;
-}
-.name-editor label {
-  font-size: 14px;
-}
-.name-editor input {
-  font: inherit;
-  font-size: 16px;
-  min-height: 46px;
-  width: 100%;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  padding: 10px 12px;
-}
-.name-editor > div {
-  display: flex;
-  gap: 8px;
-}
 .play-heading > div:first-child,
 .section-heading > div,
 .puzzle-card > div:not(.mini-board) {
@@ -612,28 +435,17 @@ a,
 input {
   touch-action: manipulation;
 }
-nav a {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-}
 .back {
   min-height: 36px;
   display: inline-flex;
   align-items: center;
 }
-.history input {
-  min-height: 32px;
-}
 .mini-board,
-.dial-numbers button,
-.history-buttons label,
 .save-state,
 .eyebrow,
 .puzzle-card p,
 .attempt-row p,
-.attempt-row > span:not(.badge),
-.mistakes {
+.attempt-row > span:not(.badge) {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
@@ -653,33 +465,11 @@ nav a {
   .play-meta .badge {
     font-size: 11px;
   }
-  .play-toolbar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .play-toolbar button {
-    font-size: 14px;
-    min-height: 44px;
-  }
   .save-state {
     justify-self: end;
   }
-  .review-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .review-toolbar .primary {
-    width: 100%;
-  }
   .play-surface {
     padding-top: 8px;
-  }
-  .history {
-    margin-top: 12px;
-  }
-  .play-toolbar {
-    margin: 10px 0;
   }
   .section-heading {
     flex-wrap: wrap;
@@ -702,10 +492,6 @@ nav a {
   .badge {
     white-space: normal;
   }
-  .completion {
-    align-items: stretch;
-    flex-direction: column;
-  }
   .create-screen {
     margin-top: 28px;
   }
@@ -720,16 +506,6 @@ nav a {
   }
 }
 @media (max-width: 360px) {
-  nav {
-    gap: 12px;
-  }
-  .brand {
-    font-size: 17px;
-    gap: 8px;
-  }
-  .brand span {
-    font-size: 26px;
-  }
   .mini-board {
     width: 81px;
     height: 81px;
@@ -746,13 +522,6 @@ nav a {
     justify-content: space-between;
     width: 100%;
   }
-  .history-buttons button {
-    padding: 8px;
-    min-width: 44px;
-  }
-  .history-buttons label {
-    min-width: 0;
-  }
   .puzzle-card p {
     font-size: 12px;
   }
@@ -764,97 +533,7 @@ nav a {
   .play-heading {
     align-items: center;
   }
-  .play-toolbar {
-    margin: 8px 0;
-  }
   .play-surface {
     padding-top: 8px;
-  }
-}
-.puzzle-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin: 18px 0;
-}
-.remove-button {
-  color: var(--error);
-}
-.number-dial {
-  padding: 16px;
-  border: 1px solid var(--muted);
-  border-radius: 24px;
-  background: var(--surface);
-  color: var(--ink);
-  max-width: calc(100vw - 24px);
-}
-.number-dial::backdrop {
-  background: rgb(0 0 0 / 35%);
-}
-.number-dial h2 {
-  margin: 0;
-  text-align: center;
-  font-size: 18px;
-}
-.dial-numbers {
-  position: relative;
-  width: 260px;
-  height: 260px;
-  max-width: 100%;
-}
-.dial-numbers button {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 22px;
-}
-.number-dial > button {
-  display: block;
-  margin: 0 auto;
-}
-
-.copy-notice {
-  position: fixed;
-  bottom: max(24px, env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translate(-50%, 0);
-  opacity: 1;
-  transition:
-    opacity 180ms var(--ease-out),
-    transform 180ms var(--ease-out);
-  padding: 12px 18px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 4px 20px #0002;
-  z-index: 20;
-  max-width: calc(100vw - 32px);
-  text-align: center;
-}
-.copy-notice[data-closing] {
-  opacity: 0;
-  transform: translate(-50%, 8px);
-  transition-duration: 140ms;
-}
-@starting-style {
-  .copy-notice {
-    opacity: 0;
-    transform: translate(-50%, 8px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .copy-notice,
-  .copy-notice[data-closing] {
-    transform: translate(-50%, 0);
-    transition-duration: 100ms;
-  }
-  @starting-style {
-    .copy-notice {
-      transform: translate(-50%, 0);
-    }
   }
 }

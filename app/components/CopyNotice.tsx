@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Icon } from './Icon';
+import './CopyNotice.css';
 
 export default function CopyNotice({ sequence }: { sequence: number }) {
   const [present, setPresent] = useState(false);
@@ -21,7 +23,13 @@ export default function CopyNotice({ sequence }: { sequence: number }) {
 
   if (!present) return null;
   return (
-    <div className="copy-notice" data-closing={!open || undefined} role="status" aria-atomic="true">
+    <div
+      className="copy-notice kit-copy-notice"
+      data-closing={!open || undefined}
+      role="status"
+      aria-atomic="true"
+    >
+      <Icon name="check" />
       <span key={sequence}>Link copied to clipboard.</span>
     </div>
   );

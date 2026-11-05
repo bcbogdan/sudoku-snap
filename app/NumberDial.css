@@ -1,0 +1,44 @@
+.number-dial.kit-number-dial {
+  box-sizing: border-box;
+  width: 294px;
+  max-width: calc(100vw - var(--space-6));
+  padding: var(--space-4);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.kit-number-dial::backdrop {
+  background: color-mix(in srgb, var(--color-text) 35%, transparent);
+}
+
+.kit-number-dial h2 {
+  margin: 0;
+  font: var(--text-title);
+  text-align: center;
+}
+
+.kit-number-dial .dial-numbers {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  max-width: 100%;
+}
+
+.kit-number-dial .kit-number-dial__key {
+  position: absolute;
+  width: var(--control-min);
+  height: var(--control-min);
+  min-width: var(--control-min);
+  min-height: var(--control-min);
+  padding: 0;
+  border-radius: var(--radius-md);
+  transform: translate(-50%, -50%);
+  font: var(--text-digit);
+}
+
+.kit-number-dial > .kit-button {
+  display: flex;
+  margin: 0 auto;
+}

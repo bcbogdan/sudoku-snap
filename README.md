@@ -46,8 +46,9 @@ themes. Neither suite starts Next or loads OCR/storage. See
 [Storybook testing](docs/storybook.md) for setup and deliberate baseline review
 with `npm run test:visual:update`.
 
-Browse **Design/Foundations** for theme/type tokens and **Kit/Reference** for the
-component specimens compared with `design_language.pdf`. Component verification
+Browse **Design/Foundations** for theme/type tokens, **Kit/Reference** for primitives,
+and **Kit/Composites** for cards, attempts, replay, and action specimens compared
+with `design_language.pdf`. Component verification
 precedes page composition changes; see the [implementation progress](docs/design-implementation-progress.md).
 
 ## TypeScript architecture

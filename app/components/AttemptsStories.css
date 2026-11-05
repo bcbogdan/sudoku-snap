@@ -1,0 +1,14 @@
+.attempts-stories__group {
+  overflow: hidden;
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.attempts-stories__group > .kit-attempt-row-container:last-child .kit-attempt-row {
+  border-block-end: 0;
+}
+
+.attempts-stories__group:focus-within {
+  overflow: visible;
+}

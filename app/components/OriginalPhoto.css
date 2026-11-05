@@ -1,24 +1,55 @@
-.original-photo {
-  margin-block: 1rem;
+.original-photo.kit-original-photo {
+  min-width: 0;
+  margin-block: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: var(--text-body);
 }
-.original-photo summary {
+.kit-original-photo summary {
+  box-sizing: border-box;
+  min-height: var(--control-min);
   cursor: pointer;
-  padding-block: 0.75rem;
+  padding-block: var(--space-3);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.original-photo label {
+.kit-original-photo label {
   display: block;
+  margin-top: var(--space-3);
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
 }
-.original-photo input {
+.kit-original-photo input {
   width: min(100%, 20rem);
+  min-height: var(--control-min);
+  margin: 0;
+  accent-color: var(--color-focus);
 }
-.original-photo-viewport {
+.kit-original-photo .original-photo-viewport {
   max-height: 40dvh;
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid currentColor;
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-sm);
 }
-.original-photo-viewport img {
+.kit-original-photo .original-photo-viewport img {
   display: block;
   max-width: none;
   height: auto;
+}
+
+.kit-original-photo :is(summary, input, .original-photo-viewport):focus-visible {
+  outline: var(--border-frame) solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.kit-original-photo .original-photo-viewport p {
+  padding: var(--space-3);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
 }

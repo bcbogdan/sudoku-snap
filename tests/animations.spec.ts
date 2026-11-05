@@ -11,16 +11,26 @@ test('copy feedback refreshes its dwell and reverses an interrupted exit', async
   await page.clock.pauseAt(new Date('2026-10-19T12:00:01Z'));
   const share = page.getByRole('button', { name: 'Share puzzle', exact: true });
   const notice = page.locator('.copy-notice');
-  await share.dispatchEvent('click');
-  await expect(notice).toBeVisible();
+  const copy = async () => {
+    const [previousMessage] = await notice.locator('span').elementHandles();
+    await share.dispatchEvent('click');
+    await expect(notice).toBeVisible();
+    // Clipboard completion increments the sequence and replaces its keyed message.
+    if (previousMessage)
+      await expect
+        .poll(() => previousMessage.evaluate((element) => element.isConnected))
+        .toBe(false);
+    await expect(notice).not.toHaveAttribute('data-closing');
+  };
+  await copy();
   const original = await notice.elementHandle();
   await page.clock.runFor(2800);
-  await share.dispatchEvent('click');
+  await copy();
   await page.clock.runFor(400);
   await expect(notice).not.toHaveAttribute('data-closing');
   await page.clock.runFor(2600);
   await expect(notice).toHaveAttribute('data-closing', 'true');
-  await share.dispatchEvent('click');
+  await copy();
   await expect(notice).not.toHaveAttribute('data-closing');
   expect(await notice.evaluate((element, previous) => element === previous, original)).toBe(true);
   await page.clock.runFor(3000);
@@ -28,7 +38,7 @@ test('copy feedback refreshes its dwell and reverses an interrupted exit', async
   await page.clock.runFor(140);
   await expect(notice).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await share.dispatchEvent('click');
+  await copy();
   await expect(notice).toHaveCSS('transition-duration', '0.1s');
 });
 

@@ -58,6 +58,7 @@ test('entry toggle, persistent undo, unhighlighted notes and long-press dial', a
   await expect(cell).toHaveAttribute('data-value', '8');
   await page.getByRole('button', { name: 'Undo move', exact: true }).click();
   await expect(cell).toHaveAttribute('data-value', '0');
+  await cell.scrollIntoViewIfNeeded();
   const bounds = (await cell.boundingBox())!;
   await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
   await page.mouse.down();

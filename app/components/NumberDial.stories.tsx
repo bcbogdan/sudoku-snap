@@ -98,3 +98,18 @@ export const Mobile: Story = {
   parameters: { frameWidth: 320 },
   globals: { viewport: { value: 'mobile1', isRotated: false } },
 };
+
+export const Keyboard: Story = {
+  parameters: { frameWidth: 320 },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const dialog = await canvas.findByRole('dialog', { name: 'Choose a number' });
+    const first = within(dialog).getByRole('button', { name: 'Choose 1' });
+    await expect(first).toHaveFocus();
+    await userEvent.tab();
+    await expect(within(dialog).getByRole('button', { name: 'Choose 2' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onChoose).toHaveBeenLastCalledWith(2);
+    await expect(canvas.getByRole('button', { name: 'Open number dial' })).toHaveFocus();
+  },
+};

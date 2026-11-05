@@ -1,0 +1,32 @@
+.kit-attempt-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text);
+}
+
+.kit-attempt-summary > div {
+  display: flex;
+  flex: 1 1 max-content;
+  flex-direction: column;
+  min-inline-size: 0;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  overflow-wrap: anywhere;
+}
+
+.kit-attempt-summary dt {
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+}
+
+.kit-attempt-summary dd {
+  order: -1;
+  margin: 0;
+  font: var(--text-meta);
+  font-size: 18px;
+  font-weight: 600;
+}

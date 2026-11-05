@@ -23,7 +23,9 @@ test('shared links import, reopen without duplication, and removal requires conf
   await page.reload();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Shared weekend 🧩');
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.locator('.history-buttons label')).toContainText('Move 0');
+  await expect(page.getByRole('group', { name: 'Move history', exact: true })).toContainText(
+    'Move 0',
+  );
   page.once('dialog', async (dialog) => {
     expect(dialog.message()).toContain('all its attempts');
     await dialog.accept();

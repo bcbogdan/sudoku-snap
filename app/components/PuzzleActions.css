@@ -1,0 +1,22 @@
+.kit-puzzle-actions.puzzle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.kit-puzzle-actions > .kit-button {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.kit-puzzle-actions .kit-puzzle-actions__remove {
+  --kit-button-fg: var(--color-error);
+  color: var(--kit-button-fg);
+}
+
+.kit-puzzle-actions .kit-puzzle-actions__remove:disabled {
+  color: var(--color-text-secondary);
+}

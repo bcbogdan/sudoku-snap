@@ -1,3 +1,9 @@
+import Button from './Button';
+import { Icon } from './Icon';
+import { MistakeCounter } from './MistakeCounter';
+import Toggle from './Toggle';
+import './GameToolbar.css';
+
 export interface ReviewToolbarProps {
   mode: 'review';
   clueCount: number;
@@ -22,31 +28,30 @@ export type GameToolbarProps = ReviewToolbarProps | PlayToolbarProps;
 export default function GameToolbar(props: GameToolbarProps) {
   if (props.mode === 'review') {
     return (
-      <div className="review-toolbar">
+      <div className="review-toolbar kit-game-toolbar kit-game-toolbar--review">
         <span>
           {props.clueCount} clues · Check the numbers before playing.
           {props.uncertainCount ? ` ${props.uncertainCount} cells need review.` : ''}
         </span>
-        <button className="primary" disabled={props.busy} onClick={props.onBegin}>
-          Confirm clues &amp; play →
-        </button>
+        <Button variant="ink" disabled={props.busy} onClick={props.onBegin}>
+          <span>Confirm clues &amp; play</span>
+          <Icon name="arrow-right" />
+        </Button>
       </div>
     );
   }
   return (
-    <div className="play-toolbar">
-      <button
-        className="secondary"
-        aria-pressed={props.notesMode}
+    <div className="play-toolbar kit-game-toolbar kit-game-toolbar--play">
+      <Toggle
+        label="Pencil notes"
+        pressed={props.notesMode}
         disabled={props.readOnly || props.busy}
         onClick={props.onToggleNotes}
-      >
-        Pencil notes {props.notesMode ? 'On' : 'Off'}
-      </button>
-      <button className="secondary" aria-pressed={props.check} onClick={props.onToggleCheck}>
-        Mistake check {props.check ? 'On' : 'Off'}
-      </button>
-      <span className="mistakes">Mistakes {props.mistakes}</span>
+      />
+      <Toggle label="Mistake check" pressed={props.check} onClick={props.onToggleCheck} />
+      <span className="mistakes kit-game-toolbar__mistakes">
+        <MistakeCounter count={props.mistakes} />
+      </span>
     </div>
   );
 }

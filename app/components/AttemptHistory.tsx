@@ -1,6 +1,10 @@
 'use client';
 
 import { useLayoutEffect, useRef } from 'react';
+import { Button } from './Button';
+import { Icon } from './Icon';
+import ReplayControls from './ReplayControls';
+import './AttemptHistory.css';
 
 export interface AttemptHistoryProps {
   step: number;
@@ -50,68 +54,30 @@ export default function AttemptHistory({
     return () => animation.cancel();
   }, [complete]);
   return (
-    <div className="history">
+    <div className="history kit-attempt-history">
       {!complete ? (
-        <button className="secondary" disabled={busy || readOnly || !canUndo} onClick={onUndo}>
-          Undo move
-        </button>
+        <Button disabled={busy || readOnly || !canUndo} onClick={onUndo}>
+          <Icon name="undo" /> Undo move
+        </Button>
       ) : null}
-      <div className="history-buttons">
-        <button
-          className="secondary"
-          aria-label="First move"
-          disabled={step === 0 || busy}
-          onClick={() => onStepChange(0)}
-        >
-          ↤
-        </button>
-        <button
-          className="secondary"
-          aria-label="Previous move"
-          disabled={step === 0 || busy}
-          onClick={() => onStepChange(step - 1)}
-        >
-          ←
-        </button>
-        <label>
-          Move {step} of {moveCount}
-          <input
-            aria-label="Attempt history"
-            type="range"
-            min="0"
-            max={moveCount}
-            value={step}
-            disabled={busy || !moveCount}
-            onChange={(event) => onStepChange(Number(event.target.value))}
-          />
-        </label>
-        <button
-          className="secondary"
-          aria-label="Next move"
-          disabled={step === moveCount || busy}
-          onClick={() => onStepChange(step + 1)}
-        >
-          →
-        </button>
-        <button
-          className="secondary"
-          aria-label="Latest move"
-          disabled={step === moveCount || busy}
-          onClick={() => onStepChange(moveCount)}
-        >
-          ↦
-        </button>
-      </div>
-      <p>
-        {moveDescription}
-        {step < moveCount ? ' · History is read-only. Return to the latest move to continue.' : ''}
-      </p>
+      <ReplayControls
+        step={step}
+        moveCount={moveCount}
+        busy={busy}
+        onStepChange={onStepChange}
+        moveDescription={
+          moveDescription +
+          (step < moveCount
+            ? ' · History is read-only. Return to the latest move to continue.'
+            : '')
+        }
+      />
       {complete ? (
-        <div ref={completion} className="completion">
+        <div ref={completion} className="completion kit-attempt-history__completion">
           <strong>Completed in {completionDuration}. This attempt is locked.</strong>
-          <button className="primary" disabled={busy} onClick={onBegin}>
+          <Button variant="ink" disabled={busy} onClick={onBegin}>
             Start a new attempt
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>

@@ -1,6 +1,9 @@
 'use client';
 
 import { useLayoutEffect, useRef } from 'react';
+import Button from './Button';
+import Icon from './Icon';
+import './PuzzleTitle.css';
 
 export interface PuzzleTitleProps {
   name: string;
@@ -35,10 +38,11 @@ export default function PuzzleTitle({
   }, [editing, busy]);
   return editing ? (
     <form
-      className="name-editor"
+      className="name-editor kit-puzzle-title__editor"
+      aria-busy={busy || undefined}
       onSubmit={(event) => {
         event.preventDefault();
-        onSave();
+        if (!busy && value.trim()) onSave();
       }}
     >
       <label htmlFor="puzzle-name">Puzzle name</label>
@@ -58,28 +62,29 @@ export default function PuzzleTitle({
           }
         }}
       />
-      <div>
-        <button className="primary" disabled={busy || !value.trim()} type="submit">
+      <div className="kit-puzzle-title__editor-actions">
+        <Button variant="ink" busy={busy} disabled={busy || !value.trim()} type="submit">
           Save name
-        </button>
-        <button className="secondary" disabled={busy} type="button" onClick={onCancel}>
+        </Button>
+        <Button disabled={busy} type="button" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   ) : (
-    <div className="puzzle-title">
+    <div className="puzzle-title kit-puzzle-title">
       <h1>{name}</h1>
-      <button
-        className="rename-button"
+      <Button
+        className="rename-button kit-puzzle-title__rename"
+        iconOnly
         ref={rename}
         aria-label="Rename puzzle"
         title="Rename puzzle"
         disabled={busy}
         onClick={onEdit}
       >
-        ✎
-      </button>
+        <Icon name="pencil" />
+      </Button>
     </div>
   );
 }

@@ -7,8 +7,8 @@ const meta = {
   title: 'App/StatusNotice',
   component: StatusNotice,
   decorators: [
-    (Story) => (
-      <StoryFrame>
+    (Story, context) => (
+      <StoryFrame width={context.parameters.frameWidth}>
         <Story />
       </StoryFrame>
     ),
@@ -38,5 +38,27 @@ export const Empty: Story = {
   args: { message: '' },
   play: async ({ canvasElement }) => {
     await expect(canvasElement.querySelector('.status')).not.toBeVisible();
+  },
+};
+
+export const NarrowLongMessage: Story = {
+  parameters: { frameWidth: 320 },
+  args: {
+    message:
+      'This attempt changed in another tab. Reload to continue without overwriting it. Reference: abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz.',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('status')).toHaveAttribute('aria-live', 'polite');
+    await expect(canvas.queryByRole('alert')).not.toBeInTheDocument();
+  },
+};
+
+export const NarrowLongCopied: Story = {
+  parameters: { frameWidth: 320 },
+  globals: { viewport: { value: 'mobile1', isRotated: false } },
+  args: {
+    kind: 'copied',
+    message: 'Link copied to clipboard. Share this puzzle with someone who would like to play.',
   },
 };
