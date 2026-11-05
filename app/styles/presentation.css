@@ -13,12 +13,6 @@
   font-weight: 600;
 }
 
-.sudoku-app .puzzle-library .primary {
-  background: var(--color-button-flash-bg);
-  color: var(--color-button-flash-text);
-  border-color: transparent;
-}
-
 .sudoku-app .library {
   padding-block: var(--space-8);
 }
@@ -34,7 +28,7 @@
 }
 
 .sudoku-app .puzzle-list {
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--space-6);
 }
 
@@ -232,19 +226,8 @@
   }
 
   .sudoku-app .puzzle-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sudoku-app .puzzle-list .kit-puzzle-card {
-    display: grid;
-    grid-template-columns: minmax(88px, 112px) minmax(0, 1fr);
-    align-items: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
-    padding: var(--space-3);
-  }
-
-  .sudoku-app .puzzle-list .kit-puzzle-card__body {
-    padding: 0;
   }
 
   .sudoku-app .puzzle-library .section-heading {
@@ -261,9 +244,72 @@
     width: 100%;
   }
 
-  .sudoku-app .puzzle-list .kit-puzzle-card {
-    grid-template-columns: 96px minmax(0, 1fr);
-    gap: var(--space-2);
+  .sudoku-app .puzzle-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sudoku-app .play-support {
+  min-width: 0;
+}
+
+.sudoku-app .review-board-frame > .kit-corner-frame__corner {
+  margin: -7px;
+}
+
+.sudoku-app .review-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-meta);
+  color: var(--color-text-secondary);
+}
+
+.sudoku-app .review-legend > span {
+  flex: 0 0 20px;
+  height: 20px;
+  border: 2px dashed var(--color-text);
+  background: var(--color-cell-unclear);
+}
+
+.sudoku-app--review .play-support > div > .kit-button {
+  width: 100%;
+  margin-block: var(--space-4);
+}
+
+@media (min-width: 960px) {
+  .sudoku-app .play-surface {
+    display: grid;
+    grid-template-columns: minmax(0, 540px) minmax(0, 340px);
+    grid-template-rows: min-content 1fr;
+    align-items: start;
+    column-gap: var(--space-8);
+    row-gap: var(--space-4);
+    width: min(100%, 912px);
+  }
+
+  .sudoku-app .play-surface > .puzzle-console {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .sudoku-app .play-surface > .board-wrap {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    margin: 0;
+  }
+
+  .sudoku-app .play-surface > .play-support {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .sudoku-app.board-screen > .kit-app-header,
+  .sudoku-app.board-screen > .puzzle-actions {
+    width: min(100%, 912px);
+    max-width: none;
+    margin-inline: auto;
   }
 }
 

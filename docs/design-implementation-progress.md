@@ -39,11 +39,13 @@ Independent foundation review found one custom-tint precedence issue in CSS-only
 - [x] Foundation tokens, type, themes, and alternate palette verified.
 - [x] Foundation screenshots generated and visually inspected.
 - [x] Component kit and every significant state reviewed against the PDF.
-- [ ] Pages migrated after component approval.
-- [ ] Responsive, persistence, interaction, and accessibility regressions checked.
-- [ ] Real iOS/Android device verification (requires hardware).
+- [x] Pages migrated after component approval.
+- [x] Responsive, persistence, interaction, and accessibility regressions checked.
+- Real-device iOS/Android validation is outside the current web-only scope (user confirmed).
 
-The component gate passed before the subsequent refinement wave. Library/create/detail/play now use improved shared-kit presentation, but the full six-screen migration and its data integration remain incomplete. Updated screenshot baselines and a clean final-source visual rerun are pending.
+The component gate passed before the refinement wave. Its remaining six-screen
+integration and verification are completed in the screen-completion wave recorded
+below; the earlier checkpoint results remain historical evidence.
 
 ## Stage 2 — core primitives (approved)
 
@@ -128,7 +130,7 @@ Composite checkpoint committed as `f7784b5`. The verification above describes th
 - Final refinement verification: production/Storybook builds and typecheck pass; 138 core, 29 app E2E, 216 interaction/axe, and 14 environment tests pass. Eight actual-app 320px overflow checks pass.
 - Final-source guarded baseline update and clean visual comparison remain pending. Port 6007 was occupied by another task's server; it was not stopped or bypassed. The earlier 639-pass result applies only to the composite checkpoint.
 
-Remaining main-plan work:
+Remaining main-plan work at the refinement checkpoint (completed by the wave below):
 
 1. Finish collection counts/filter integration and real attempt-progress previews using bounded projections, not complete histories/photos.
 2. Complete review-clues composition/state coverage and all-attempts preview/completion/stats/mistake/progress integration using fresh timer records.
@@ -148,3 +150,88 @@ No persistence migration is needed. The stored `AttemptSummary` type exported by
 - Proposed filters: All includes drafts; In progress includes ready puzzles with unfinished attempts; Completed includes any completed attempt. Mixed puzzles appear in both. Collection completion count counts puzzles, not attempts.
 - Replay requires an explicit state so latest/zero-move replay stays read-only. Exit restores the latest step. Keep `useFocusTimer(attempt, ...)` mounted: focused replay currently accrues time; changing this would be a separate behavior change.
 - Add read-bound tests in `tests/storage-performance.test.ts` and replay/latest/zero/completed/timing coverage in `tests/react-flows.spec.ts` when implementing pages.
+
+## Screen completion — coordinated implementation (2026-11-05)
+
+This wave completes [design-implementation-plan.md](design-implementation-plan.md),
+with separate storage, collection/detail, replay, regression, and read-only review
+owners. The earlier remaining-work lists describe the preceding checkpoint.
+
+Implemented:
+
+- Bounded `listAttemptPresentations(ids)` reads requested headers/fresh timers and
+  one final move per nonzero attempt; zero moves use initial positions. Missing
+  expected records reject; valid zero and unknown completed durations stay distinct.
+- `getPuzzleSummary(id)` keeps ready-puzzle detail/play loading photo-free. Draft
+  review still loads the original photo. No schema, solver/OCR, command queue, or
+  focus-clock changes.
+- Collection filters/counts include drafts in All and mixed puzzles in both
+  relevant subsets. Filter selection survives reload through the URL. Previews
+  select latest unfinished, otherwise newest completed; stable ID tie-breaking
+  makes destinations deterministic. Completion appearance belongs to that preview.
+- All attempts now shows preview, completion count, fresh durations, best/total
+  recorded time, mistakes, filled non-clue progress, and Continue for the latest
+  unfinished attempt. Notes do not increase progress; missing statistics show “—”.
+- Replay has explicit state independent of move index. First/latest/zero/completed
+  replay is read-only; editing controls disappear, the current move is marked,
+  and Return to play restores the latest position without writes. The focus timer
+  and completion lifecycle remain mounted.
+- Review includes checking brackets, uncertainty legend, and bottom confirmation.
+  Create feedback is inline and preserves actual scan/cancellation/load messages.
+  Collection is preview-first/two-column where readable; desktop board controls
+  sit alongside a board bounded to 540px. Short screens scroll naturally.
+- Added guarded real-app screen snapshots through `npm run test:screens`, sharing
+  the existing canonical environment preflight. Root E2E retains artifact captures
+  and functional/geometry checks; screenshot approval uses the dedicated config.
+
+Visual review repaired missing checking brackets, excess desktop row spacing,
+pressed-toggle ink/inverse styling, split large attempt indices, dragging copy,
+and isolated-library Flash actions. Unrelated local skills/files remain untouched.
+
+Verification on the frozen source, canonical Node 22.23.2:
+
+- Production and Storybook builds: passing; typecheck ran after production build.
+- Core/storage/model tests: **150/150** passing.
+- Storybook interaction/axe tests: **223/223** passing.
+- Canonical environment and guard regressions: **14/14** passing. Environment
+  metadata, guard, dependencies, and lockfile unchanged.
+- Guarded component regeneration: initial **621/639**, then **188/188** focused
+  final-source updates passing. The initial failures were a stale upload-description
+  assertion and two transient lazy-import readiness delays, not approved failures.
+- Guarded real-app screen regeneration: **26/26** passing after test-only repairs
+  for Next's out-of-main route announcer and already-cancelled request cleanup.
+- Complete clean component comparison without updates: **639/639** passing.
+- Complete clean real-app screen comparison without updates: **26/26** passing.
+- Full app E2E: **60/60** passing, including upload/manual creation, independent
+  attempts, replay, reloads, sharing/removal, custom themes, storage failures,
+  cross-tab conflicts, keyboard/long press, and the new screen regressions.
+  Stale sharing-test selectors were updated for explicit replay and persistent
+  inline load errors before the clean rerun.
+- Scoped Prettier checks and `git diff --check`: passing.
+
+Screenshot evidence:
+
+- **632** component PNGs in `tests/storybook/__screenshots__/`; all **194** changed
+  component PNGs inspected, including native-scale narrow/long-content variants.
+  Review found and verified all four component repairs listed above.
+- **122** real-app PNGs in `tests/screens/__screenshots__/`, covering all six screens,
+  both themes, seven viewport sizes, and significant empty/error/replay states.
+  All inspected through contact sheets; six 390px screens and critical 1280px
+  variants additionally inspected at native scale in both themes. No visual
+  blockers remain in these captures.
+- Generated review sheets/manifests: `/tmp/opencode/sudoku-completion-review/`.
+  `frozen-review-hashes.json` records the reviewed component files; the combined
+  baseline hash manifests (`snapshots-before.json` / `snapshots-after.json`) prove
+  all **754** PNGs remained byte-identical through the clean comparisons.
+  Actual-screen review and its 122-file hash manifest are in `screens/REVIEW.md`
+  and `screens/SHA256SUMS` under that evidence directory.
+- Reports: `storybook-report/index.html` and `screen-report/index.html`.
+
+Port 6007 was released with explicit user authorization for that specific old
+Tabs server. Sudoku verification uses only its configured 6007/3187 ports; Tabs'
+6008/6009/6014 processes/routes were not touched. Final port checks confirm test
+servers released 6007/3187 and the existing Storybook on 6006 remains running.
+
+The user confirmed a web-only scope: real-device iOS/Android validation is not a
+release gate for this work. The web implementation and automated verification
+are complete. No real-hardware validation or deployment is claimed.

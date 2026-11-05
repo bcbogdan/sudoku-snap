@@ -63,15 +63,21 @@ test('play controls stay aligned and readable at narrow widths; attempt focus is
 }) => {
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'Layout checks'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.getByLabel('Attempt history')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
     for (const width of [320, 360, 390, 1280]) {
       await page.setViewportSize({ width, height: 844 });
       const board = await page.locator('.board-wrap').boundingBox();
       const toolbar = await page.locator('.play-toolbar').boundingBox();
-      expect(Math.abs(board!.x - toolbar!.x)).toBeLessThan(1);
-      expect(Math.abs(board!.width - toolbar!.width)).toBeLessThan(1);
+      if (width < 960) {
+        expect(Math.abs(board!.x - toolbar!.x)).toBeLessThan(1);
+        expect(Math.abs(board!.width - toolbar!.width)).toBeLessThan(1);
+      } else {
+        expect(board!.width).toBeLessThanOrEqual(540);
+        expect(toolbar!.x).toBeGreaterThanOrEqual(board!.x + board!.width + 24);
+        expect(toolbar!.width).toBeGreaterThanOrEqual(300);
+      }
       const toggles = await page.locator('.play-toolbar .kit-toggle').evaluateAll((buttons) =>
         buttons.map((button) => {
           const box = button.getBoundingClientRect();

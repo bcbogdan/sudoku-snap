@@ -10,7 +10,7 @@ export interface PuzzleCardProps {
   preview?: { board: readonly number[]; completed?: boolean };
 }
 
-export default function PuzzleCard({ item, preview }: PuzzleCardProps) {
+export default function PuzzleCard({ item, preview = item.preview }: PuzzleCardProps) {
   return (
     <a className="kit-puzzle-card" href={item.href}>
       <BoardPreview

@@ -23,9 +23,15 @@ test('shared links import, reopen without duplication, and removal requires conf
   await page.reload();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Shared weekend 🧩');
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.getByRole('group', { name: 'Move history', exact: true })).toContainText(
-    'Move 0',
-  );
+  const history = page.getByRole('group', { name: 'Move history', exact: true });
+  await expect(page.getByText('Move 0 of 0', { exact: true })).toBeVisible();
+  await expect(history).toHaveCount(0);
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
+  await expect(history).toContainText('Move 0 of 0');
+  await expect(history.getByRole('slider', { name: 'Attempt history' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Return to play', exact: true }).click();
+  await expect(history).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
   page.once('dialog', async (dialog) => {
     expect(dialog.message()).toContain('all its attempts');
     await dialog.accept();
@@ -34,6 +40,9 @@ test('shared links import, reopen without duplication, and removal requires conf
   await expect(page.getByRole('heading', { name: 'My puzzles', exact: true })).toBeVisible();
   await expect(page.locator('.kit-puzzle-card')).toHaveCount(0);
   await page.goto('/?p=invalid&n=Bad');
-  await expect(page.locator('main > .status')).toContainText('invalid');
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('invalid');
+  await expect(
+    page.getByRole('main').getByRole('button', { name: 'Reload saved puzzles', exact: true }),
+  ).toBeEnabled();
   await expect(page.locator('.kit-puzzle-card')).toHaveCount(0);
 });

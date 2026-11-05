@@ -11,6 +11,7 @@ export interface ReviewToolbarProps {
   uncertainCount: number;
   busy: boolean;
   onBegin: () => void;
+  showConfirmation?: boolean;
 }
 
 export interface PlayToolbarProps {
@@ -35,10 +36,12 @@ export default function GameToolbar(props: GameToolbarProps) {
           {props.clueCount} clues · Check the numbers before playing.
           {props.uncertainCount ? ` ${props.uncertainCount} cells need review.` : ''}
         </span>
-        <Button variant="ink" disabled={props.busy} onClick={props.onBegin}>
-          <span>Confirm clues &amp; play</span>
-          <Icon name="arrow-right" />
-        </Button>
+        {props.showConfirmation !== false ? (
+          <Button variant="ink" disabled={props.busy} onClick={props.onBegin}>
+            <span>Confirm clues &amp; play</span>
+            <Icon name="arrow-right" />
+          </Button>
+        ) : null}
       </div>
     );
   }

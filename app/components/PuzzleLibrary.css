@@ -1,0 +1,13 @@
+.puzzle-library__summary {
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+}
+
+.puzzle-library .kit-collection-filters {
+  margin-block: var(--space-4) var(--space-6);
+}
+.puzzle-library .primary {
+  background: var(--color-button-flash-bg);
+  color: var(--color-button-flash-text);
+  border-color: transparent;
+}

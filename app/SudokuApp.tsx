@@ -17,11 +17,24 @@ import SudokuBoard from './components/SudokuBoard';
 import OriginalPhoto from './components/OriginalPhoto';
 import AttemptTimer from './components/AttemptTimer';
 import { Badge } from './components/Badge';
+import type { CollectionFilter } from './components/CollectionFilters';
+import { Alert } from './components/Alert';
+import { Button } from './components/Button';
+import { Icon } from './components/Icon';
+import { CornerFrame } from './components/CornerFrame';
 import './styles/presentation.css';
 import { CommandQueue, type QueueStatus } from '@/lib/command-queue';
 import { useFocusTimer } from '@/lib/use-focus-timer';
 import { puzzleShareURL } from '@/lib/sharing';
 import { solveCached } from '@/lib/solver-client';
+import {
+  attemptsByPuzzle,
+  attemptStatistics,
+  continueAttempt,
+  entryProgress,
+  newestAttempts,
+  previewAttempt,
+} from '@/lib/collection-model';
 import {
   durationLabel,
   undoTarget,
@@ -35,10 +48,13 @@ import {
   importSharedPuzzle,
   removePuzzle,
   getPuzzle,
+  getPuzzleSummary,
   getAttempt,
   listAttemptSummaries,
+  listAttemptPresentations,
   listPuzzleSummaries,
   type AttemptSummary,
+  type AttemptPresentation,
   recordMove,
   undoLastMove,
   renamePuzzle,
@@ -61,12 +77,17 @@ export default function Sudoku() {
     [screen, setScreen] = useState<'library' | 'create' | 'review' | 'detail' | 'play'>('library');
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]),
     [attempts, setAttempts] = useState<AttemptSummary[]>([]);
+  const [presentations, setPresentations] = useState<readonly AttemptPresentation[]>([]);
+  const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
+  const [loadError, setLoadError] = useState('');
+  const [actionFailed, setActionFailed] = useState(false);
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null),
     [attempt, setAttempt] = useState<Attempt | null>(null);
   const [step, setStep] = useState(0),
     [selected, setSelected] = useState(0),
     [notesMode, setNotesMode] = useState(false),
     [check, setCheck] = useState(true);
+  const [attemptView, setAttemptView] = useState<'play' | 'replay'>('play');
   const [actionBusy, setBusy] = useState(false),
     [message, setMessage] = useState('');
   const [queueStatus, setQueueStatus] = useState<QueueStatus>({ pending: 0, error: '' });
@@ -115,6 +136,13 @@ export default function Sudoku() {
     [nameValue, setNameValue] = useState('');
   useEffect(() => {
     let cancelled = false;
+    const loadAttemptRows = async (puzzleId: string) => {
+      const rows = await listAttemptSummaries(puzzleId);
+      const views = await listAttemptPresentations(rows.map((row) => row.id));
+      if (cancelled) return;
+      setAttempts(newestAttempts(views));
+      setPresentations(views);
+    };
     Promise.resolve()
       .then(async () => {
         const query = new URLSearchParams(window.location.search),
@@ -124,14 +152,15 @@ export default function Sudoku() {
           const imported = await importSharedPuzzle(query.get('p')!, query.get('n'));
           if (cancelled) return;
           publishPuzzle(imported);
-          setAttempts(await listAttemptSummaries(imported.id));
+          if (imported.status === 'ready') await loadAttemptRows(imported.id);
           setScreen(imported.status === 'draft' ? 'review' : 'detail');
           window.history.replaceState(null, '', puzzleURL(imported.id));
           return;
         }
         if (query.has('new')) setScreen('create');
         else if (id) {
-          const p = await getPuzzle(id);
+          const summary = await getPuzzleSummary(id);
+          const p = summary?.status === 'draft' ? await getPuzzle(id) : summary;
           if (cancelled) return;
           if (!p) {
             setMessage('This puzzle is not saved in this browser.');
@@ -143,7 +172,7 @@ export default function Sudoku() {
             if (cancelled) return;
             if (!a || a.puzzleId !== id) {
               setMessage('This attempt is unavailable.');
-              setAttempts(await listAttemptSummaries(id));
+              await loadAttemptRows(id);
               setScreen('detail');
               return;
             }
@@ -157,19 +186,29 @@ export default function Sudoku() {
             );
             setScreen('play');
           } else {
-            if (p.status === 'ready') setAttempts(await listAttemptSummaries(id));
+            if (p.status === 'ready') await loadAttemptRows(id);
             if (!cancelled) setScreen(p.status === 'draft' ? 'review' : 'detail');
           }
         } else {
           const [saved, plays] = await Promise.all([listPuzzleSummaries(), listAttemptSummaries()]);
+          const groups = attemptsByPuzzle(plays);
+          const previewIds = saved.flatMap((item) => {
+            if (item.status === 'draft') return [];
+            const selected = previewAttempt(groups.get(item.id) ?? []);
+            return selected ? [selected.id] : [];
+          });
+          const previews = await listAttemptPresentations(previewIds);
           if (cancelled) return;
           setPuzzles(saved);
           setAttempts(plays);
+          setPresentations(previews);
+          const filter = query.get('filter');
+          if (filter === 'in-progress' || filter === 'completed') setCollectionFilter(filter);
         }
       })
       .catch((error) => {
         if (!cancelled)
-          setMessage(error instanceof Error ? error.message : 'Local storage is unavailable.');
+          setLoadError(error instanceof Error ? error.message : 'Local storage is unavailable.');
       })
       .finally(() => {
         if (!cancelled) setLoaded(true);
@@ -210,26 +249,42 @@ export default function Sudoku() {
         : [],
     [position, screen, check, puzzle, solution],
   );
+  const replay = attemptView === 'replay';
   const historical = !!attempt && step < attempt.moves.length,
     complete = attempt?.completedAt !== null && !!attempt;
-  const readOnly = historical || complete;
+  const readOnly = replay || historical || complete;
   const elapsed = attempt
-    ? historical
+    ? replay
       ? step
         ? attempt.moves[step - 1].elapsedMs
         : 0
       : attempt.durationMs
     : 0;
+  function changeReplay(next = step) {
+    if (!attempt || saving.current || busy) return;
+    if (!Number.isInteger(next) || next < 0 || next > attempt.moves.length) return;
+    setDialCell(null);
+    setStep(next);
+    setAttemptView('replay');
+  }
+  function exitReplay() {
+    if (!attempt || saving.current || busy) return;
+    setStep(attempt.moves.length);
+    setAttemptView('play');
+  }
   async function action(work: () => Promise<void>) {
     if (saving.current || queueStatus.pending) return;
     saving.current = true;
     setBusy(true);
     setMessage('');
+    setActionFailed(false);
     try {
       await work();
     } catch (error) {
-      if (mounted.current && !(error instanceof DOMException && error.name === 'AbortError'))
+      if (mounted.current && !(error instanceof DOMException && error.name === 'AbortError')) {
+        setActionFailed(true);
         setMessage(error instanceof Error ? error.message : 'Could not save. Please try again.');
+      }
     } finally {
       saving.current = false;
       setBusy(false);
@@ -398,8 +453,8 @@ export default function Sudoku() {
       }
       status={
         screen === 'play' && attempt ? (
-          <Badge kind={complete ? 'completed' : historical ? 'replaying' : 'in-progress'}>
-            {complete ? 'Completed' : historical ? 'Viewing history' : 'In progress'}
+          <Badge kind={replay ? 'replaying' : complete ? 'completed' : 'in-progress'}>
+            {replay ? 'Viewing history' : complete ? 'Completed' : 'In progress'}
           </Badge>
         ) : screen === 'review' ? (
           <Badge kind="draft">Review clues</Badge>
@@ -433,31 +488,67 @@ export default function Sudoku() {
   const moveDescription = useMemo(() => {
     const lastMove = attempt && step ? attempt.moves[step - 1] : null;
     return lastMove
-      ? `${lastMove.kind === 'undo' ? 'Move undone' : lastMove.kind === 'note' ? 'Pencil note' : lastMove.value ? 'Number entered' : 'Cell erased'} · Row ${Math.floor(lastMove.cell / 9) + 1}, column ${(lastMove.cell % 9) + 1} · ${dateLabel(lastMove.at)}`
-      : 'Original puzzle';
+      ? `${lastMove.kind === 'undo' ? 'Move undone' : lastMove.kind === 'note' ? `Pencil note ${lastMove.value} ${lastMove.position.notes[lastMove.cell].includes(lastMove.value) ? 'added' : 'removed'}` : lastMove.value ? `Number ${lastMove.value} entered` : 'Cell erased'} · Row ${Math.floor(lastMove.cell / 9) + 1}, column ${(lastMove.cell % 9) + 1} · ${dateLabel(lastMove.at)}`
+      : `Original puzzle${attempt ? ` · ${dateLabel(attempt.startedAt)}` : ''}`;
   }, [attempt, step]);
+  const presentationById = useMemo(
+    () => new Map(presentations.map((view) => [view.id, view])),
+    [presentations],
+  );
   const libraryItems = useMemo(() => {
-    const counts = new Map<string, { count: number; completed: number; latest: string }>();
-    for (const play of attempts) {
-      const summary = counts.get(play.puzzleId) ?? { count: 0, completed: 0, latest: play.id };
-      summary.count++;
-      if (play.completedAt !== null) summary.completed++;
-      counts.set(play.puzzleId, summary);
-    }
+    const grouped = attemptsByPuzzle(attempts);
     return puzzles.map((p) => {
-      const summary = counts.get(p.id);
+      const rows = grouped.get(p.id) ?? [];
+      const selectedAttempt = p.status === 'ready' ? previewAttempt(rows) : undefined;
+      const view = selectedAttempt ? presentationById.get(selectedAttempt.id) : undefined;
+      const completedCount = rows.filter((row) => row.completedAt !== null).length;
       return {
         id: p.id,
         name: p.name,
         clues: p.clues,
         createdLabel: dateLabel(p.createdAt),
         status: p.status,
-        attemptCount: summary?.count ?? 0,
-        completedCount: summary?.completed ?? 0,
-        href: summary ? attemptURL(p.id, summary.latest) : puzzleURL(p.id),
+        attemptCount: rows.length,
+        completedCount,
+        unfinishedCount: rows.length - completedCount,
+        preview: view
+          ? { board: view.position.board, completed: view.completedAt !== null }
+          : undefined,
+        href: selectedAttempt ? attemptURL(p.id, selectedAttempt.id) : puzzleURL(p.id),
       };
     });
-  }, [puzzles, attempts]);
+  }, [puzzles, attempts, presentationById]);
+  const detailAttempts = useMemo(
+    () => newestAttempts(attempts.filter((row) => row.puzzleId === puzzle?.id)),
+    [attempts, puzzle?.id],
+  );
+  const detailStats = useMemo(
+    () => attemptStatistics(presentations.filter((view) => view.puzzleId === puzzle?.id)),
+    [presentations, puzzle?.id],
+  );
+  const detailPreviewId = previewAttempt(detailAttempts)?.id;
+  const detailPreview = detailPreviewId ? presentationById.get(detailPreviewId) : undefined;
+  const continueTarget = continueAttempt(detailAttempts);
+  const gameBoard =
+    puzzle && position ? (
+      <SudokuBoard
+        mode={screen === 'review' ? 'review' : 'play'}
+        board={board}
+        notes={position.notes}
+        clues={puzzle.clues}
+        uncertain={puzzle.uncertain}
+        wrongCells={wrongCells}
+        selected={selected}
+        replayCurrentCell={replay && step ? attempt?.moves[step - 1].cell : undefined}
+        completed={complete && !replay}
+        readOnly={readOnly}
+        busy={actionBusy || !!queueStatus.error}
+        onSelect={setSelected}
+        onEnter={(value, cell) => void enter(value, cell)}
+        onToggleNotes={() => setNotesMode((v) => !v)}
+        onOpenDial={setDialCell}
+      />
+    ) : null;
 
   if (!loaded)
     return (
@@ -467,17 +558,42 @@ export default function Sudoku() {
         <StatusNotice kind="loading" message="Opening your puzzles…" />
       </main>
     );
+  if (loadError)
+    return (
+      <main className="sudoku-app">
+        {header}
+        <Alert>{loadError}</Alert>
+        <button className="secondary" onClick={() => window.location.reload()}>
+          Reload saved puzzles
+        </button>
+      </main>
+    );
   return (
     <main
       className={`sudoku-app sudoku-app--${screen} ${screen === 'play' || screen === 'review' ? 'board-screen' : ''}`}
     >
       {header}
-      {screen === 'library' ? <PuzzleLibrary items={libraryItems} /> : null}
+      {screen === 'library' ? (
+        <PuzzleLibrary
+          items={libraryItems}
+          filter={collectionFilter}
+          onFilterChange={(filter) => {
+            setCollectionFilter(filter);
+            const url = new URL(window.location.href);
+            if (filter === 'all') url.searchParams.delete('filter');
+            else url.searchParams.set('filter', filter);
+            window.history.replaceState(null, '', url);
+          }}
+        />
+      ) : null}
       {screen === 'create' ? (
         <CreatePuzzle
           busy={busy}
+          notice={message}
+          failed={actionFailed}
           onCancel={() => {
             photoController.current?.abort();
+            setActionFailed(false);
             setMessage('Photo processing cancelled. Choose another photo or enter clues manually.');
           }}
           onUpload={(file) => void upload(file)}
@@ -498,17 +614,32 @@ export default function Sudoku() {
           title={puzzleTitle}
           actions={puzzleActions}
           onBegin={() => void begin()}
-          attempts={attempts
-            .filter((a) => a.puzzleId === puzzle.id)
-            .map((a, i, all) => ({
+          clues={puzzle.clues}
+          preview={
+            detailPreview
+              ? {
+                  board: detailPreview.position.board,
+                  completed: detailPreview.completedAt !== null,
+                }
+              : undefined
+          }
+          bestTime={detailStats.bestMs === null ? null : durationLabel(detailStats.bestMs)}
+          totalTime={detailStats.totalMs === null ? null : durationLabel(detailStats.totalMs)}
+          continueHref={continueTarget ? attemptURL(puzzle.id, continueTarget.id) : null}
+          attempts={detailAttempts.map((a, i, all) => {
+            const view = presentationById.get(a.id);
+            return {
               id: a.id,
               href: attemptURL(puzzle.id, a.id),
               number: all.length - i,
               startedLabel: dateLabel(a.startedAt),
               complete: a.completedAt !== null,
               moveCount: a.moveCount,
-              durationLabel: a.durationMs !== null ? durationLabel(a.durationMs) : null,
-            }))}
+              durationLabel: view?.elapsedMs != null ? durationLabel(view.elapsedMs) : null,
+              mistakes: view?.position.mistakes,
+              progress: view ? entryProgress(puzzle.clues, view.position.board) : null,
+            };
+          })}
         />
       ) : null}
       {(screen === 'play' || screen === 'review') && puzzle && position ? (
@@ -544,7 +675,10 @@ export default function Sudoku() {
                 uncertainCount={puzzle.uncertain.length}
                 busy={busy}
                 onBegin={() => void begin()}
+                showConfirmation={false}
               />
+            ) : replay ? (
+              <p className="replay-introduction">Every move, in order. This replay is read-only.</p>
             ) : (
               <GameToolbar
                 mode="play"
@@ -571,48 +705,60 @@ export default function Sudoku() {
             )}
           </div>
           <div className="board-wrap">
-            <SudokuBoard
-              mode={screen}
-              board={board}
-              notes={position.notes}
-              clues={puzzle.clues}
-              uncertain={puzzle.uncertain}
-              wrongCells={wrongCells}
-              selected={selected}
-              readOnly={readOnly}
-              busy={actionBusy || !!queueStatus.error}
-              onSelect={setSelected}
-              onEnter={(value, cell) => void enter(value, cell)}
-              onToggleNotes={() => setNotesMode((v) => !v)}
-              onOpenDial={setDialCell}
-            />
-            {!complete ? (
+            {screen === 'review' ? (
+              <CornerFrame state="checking" className="review-board-frame">
+                {gameBoard}
+              </CornerFrame>
+            ) : (
+              gameBoard
+            )}
+            {!complete && !replay ? (
               <NumberKeypad
+                board={board}
+                selectedDigit={board[selected] || undefined}
                 disabled={readOnly || actionBusy || !!queueStatus.error}
                 onEnter={(value) => void enter(value)}
               />
             ) : null}
           </div>
-          {screen === 'review' && puzzle.image ? <OriginalPhoto image={puzzle.image} /> : null}
-          {attempt ? (
-            <AttemptHistory
-              step={step}
-              moveCount={attempt.moves.length}
-              busy={busy}
-              readOnly={readOnly}
-              complete={complete}
-              canUndo={canUndo}
-              moveDescription={moveDescription}
-              completionDuration={complete ? durationLabel(attempt.durationMs!) : ''}
-              onStepChange={setStep}
-              onUndo={() => void undo()}
-              onBegin={() => void begin()}
-            />
-          ) : (
-            <p className="hint">
-              Select a square, then use 1–9 or Delete. Your draft saves automatically.
-            </p>
-          )}
+          <div className="play-support">
+            {screen === 'review' && puzzle.image ? <OriginalPhoto image={puzzle.image} /> : null}
+            {attempt ? (
+              <AttemptHistory
+                step={step}
+                moveCount={attempt.moves.length}
+                busy={busy}
+                readOnly={readOnly}
+                replay={replay}
+                onEnterReplay={() => changeReplay()}
+                onExitReplay={exitReplay}
+                complete={complete}
+                canUndo={canUndo}
+                moveDescription={moveDescription}
+                completionDuration={complete ? durationLabel(attempt.durationMs!) : ''}
+                onStepChange={changeReplay}
+                onUndo={() => void undo()}
+                onBegin={() => void begin()}
+              />
+            ) : (
+              <div>
+                {puzzle.uncertain.length ? (
+                  <p className="hint">
+                    Highlighted clues need review. Compare them with your original photo.
+                  </p>
+                ) : null}
+                <p className="hint">
+                  Select a square, then use 1–9 or Delete. Your draft saves automatically.
+                </p>
+                <p className="review-legend">
+                  <span aria-hidden="true" /> Unclear clues have a dashed outline.
+                </p>
+                <Button variant="ink" disabled={busy} onClick={() => void begin()}>
+                  Confirm clues &amp; play <Icon name="arrow-right" />
+                </Button>
+              </div>
+            )}
+          </div>
         </section>
       ) : null}
       {screen === 'play' || screen === 'review' ? puzzleActions : null}
@@ -643,7 +789,9 @@ export default function Sudoku() {
         </section>
       ) : null}
       <CopyNotice sequence={copySequence} />
-      {screen !== 'play' && screen !== 'review' ? <StatusNotice message={message} /> : null}
+      {screen !== 'play' && screen !== 'review' && screen !== 'create' ? (
+        <StatusNotice message={message} />
+      ) : null}
     </main>
   );
 }

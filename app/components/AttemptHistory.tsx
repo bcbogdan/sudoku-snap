@@ -11,6 +11,9 @@ export interface AttemptHistoryProps {
   moveCount: number;
   busy: boolean;
   readOnly: boolean;
+  replay?: boolean;
+  onEnterReplay?: () => void;
+  onExitReplay?: () => void;
   complete: boolean;
   canUndo: boolean;
   moveDescription: string;
@@ -25,6 +28,9 @@ export default function AttemptHistory({
   moveCount,
   busy,
   readOnly,
+  replay,
+  onEnterReplay,
+  onExitReplay,
   complete,
   canUndo,
   moveDescription,
@@ -55,23 +61,36 @@ export default function AttemptHistory({
   }, [complete]);
   return (
     <div className="history kit-attempt-history">
-      {!complete ? (
+      {!complete && !replay ? (
         <Button disabled={busy || readOnly || !canUndo} onClick={onUndo}>
           <Icon name="undo" /> Undo move
         </Button>
       ) : null}
-      <ReplayControls
-        step={step}
-        moveCount={moveCount}
-        busy={busy}
-        onStepChange={onStepChange}
-        moveDescription={
-          moveDescription +
-          (step < moveCount
-            ? ' · History is read-only. Return to the latest move to continue.'
-            : '')
-        }
-      />
+      {replay !== undefined ? (
+        <Button disabled={busy} onClick={replay ? onExitReplay : onEnterReplay}>
+          {replay ? 'Return to play' : 'Move history'}
+        </Button>
+      ) : null}
+      {replay === false ? (
+        <p className="hint">
+          Move {step} of {moveCount}
+        </p>
+      ) : (
+        <ReplayControls
+          step={step}
+          moveCount={moveCount}
+          busy={busy}
+          onStepChange={onStepChange}
+          moveDescription={
+            moveDescription +
+            (replay
+              ? ' · Replay is read-only. Return to play to restore the latest position.'
+              : step < moveCount
+                ? ' · History is read-only.'
+                : '')
+          }
+        />
+      )}
       {complete ? (
         <div ref={completion} className="completion kit-attempt-history__completion">
           <strong>Completed in {completionDuration}. This attempt is locked.</strong>

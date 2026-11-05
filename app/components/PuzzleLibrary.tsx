@@ -1,5 +1,10 @@
+'use client';
+
+import { useState } from 'react';
+import CollectionFilters, { type CollectionFilter } from './CollectionFilters';
 import PuzzleCard from './PuzzleCard';
 import { Icon } from './Icon';
+import './PuzzleLibrary.css';
 
 export interface PuzzleCardModel {
   readonly id: string;
@@ -9,14 +14,37 @@ export interface PuzzleCardModel {
   readonly status: 'draft' | 'ready';
   readonly attemptCount: number;
   readonly completedCount: number;
+  readonly unfinishedCount?: number;
+  readonly preview?: { readonly board: readonly number[]; readonly completed?: boolean };
   readonly href: string;
 }
 
 export interface PuzzleLibraryProps {
   items: readonly PuzzleCardModel[];
+  filter?: CollectionFilter;
+  onFilterChange?: (filter: CollectionFilter) => void;
 }
 
-export default function PuzzleLibrary({ items }: PuzzleLibraryProps) {
+export default function PuzzleLibrary({ items, filter, onFilterChange }: PuzzleLibraryProps) {
+  const [localFilter, setLocalFilter] = useState<CollectionFilter>('all');
+  const selectedFilter = filter ?? localFilter;
+  const inProgress = (item: PuzzleCardModel) =>
+    item.status === 'ready' &&
+    (item.unfinishedCount ?? item.attemptCount - item.completedCount) > 0;
+  const completed = (item: PuzzleCardModel) => item.completedCount > 0;
+  const counts = {
+    all: items.length,
+    'in-progress': items.filter(inProgress).length,
+    completed: items.filter(completed).length,
+  };
+  const visibleItems = items.filter((item) =>
+    selectedFilter === 'all'
+      ? true
+      : selectedFilter === 'in-progress'
+        ? inProgress(item)
+        : completed(item),
+  );
+
   return (
     <section className="library puzzle-library">
       <div className="section-heading">
@@ -28,6 +56,18 @@ export default function PuzzleLibrary({ items }: PuzzleLibraryProps) {
           <Icon name="plus" /> New puzzle
         </a>
       </div>
+      <p className="puzzle-library__summary">
+        {counts.all} {counts.all === 1 ? 'puzzle' : 'puzzles'} · {counts.completed}{' '}
+        {counts.completed === 1 ? 'puzzle' : 'puzzles'} completed
+      </p>
+      <CollectionFilters
+        value={selectedFilter}
+        counts={counts}
+        onChange={(value) => {
+          setLocalFilter(value);
+          onFilterChange?.(value);
+        }}
+      />
       {items.length === 0 ? (
         <div className="empty-state">
           <span aria-hidden="true">▦</span>
@@ -37,9 +77,20 @@ export default function PuzzleLibrary({ items }: PuzzleLibraryProps) {
             Create a puzzle
           </a>
         </div>
+      ) : visibleItems.length === 0 ? (
+        <div className="empty-state" role="status">
+          <h2>
+            No {selectedFilter === 'completed' ? 'completed puzzles' : 'puzzles in progress'} yet.
+          </h2>
+          <p>
+            {selectedFilter === 'completed'
+              ? 'Completed puzzles will appear here after you finish an attempt.'
+              : 'Start an attempt on a ready puzzle to see it here.'}
+          </p>
+        </div>
       ) : (
         <div className="puzzle-list">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <PuzzleCard key={item.id} item={item} />
           ))}
         </div>

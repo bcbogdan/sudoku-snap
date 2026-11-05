@@ -11,7 +11,7 @@ test('timer-only external commits and stale attempt revisions are respected', as
   });
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'Concurrent engine'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.getByLabel('Attempt history')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
   expect(engineRequests).toEqual([]);
   await page.locator('#cell-0').click();
   await page.keyboard.press('8');
@@ -95,7 +95,7 @@ test('aborted move is not published and the next command uses committed state', 
 }) => {
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'Engine persistence'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.getByLabel('Attempt history')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
   await page.evaluate(() => {
     const put = IDBObjectStore.prototype.put;
     IDBObjectStore.prototype.put = function (...args) {
@@ -122,7 +122,7 @@ test('aborted move is not published and the next command uses committed state', 
 test('erasing an empty cell completes without rewriting its full history', async ({ page }) => {
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'Unchanged persistence'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.getByLabel('Attempt history')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
   await page.locator('#cell-0').click();
   await page.evaluate(() => {
     const result = { completed: 0, writes: [] as string[] };

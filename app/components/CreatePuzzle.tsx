@@ -2,6 +2,7 @@ import { Button } from './Button';
 import { Icon } from './Icon';
 import { PhotoDropZone } from './PhotoDropZone';
 import { ScanTips } from './ScanTips';
+import { Alert } from './Alert';
 
 export interface CreatePuzzleProps {
   busy: boolean;
@@ -9,6 +10,8 @@ export interface CreatePuzzleProps {
   onPasteImage: () => void;
   onCreateManual: () => void;
   onCancel?: () => void;
+  notice?: string;
+  failed?: boolean;
 }
 
 export default function CreatePuzzle({
@@ -17,13 +20,15 @@ export default function CreatePuzzle({
   onPasteImage,
   onCreateManual,
   onCancel,
+  notice,
+  failed = false,
 }: CreatePuzzleProps) {
   return (
     <section className="create-screen">
       <p className="eyebrow">ADD TO YOUR COLLECTION</p>
       <h1>A new puzzle.</h1>
       <p>Start with a photo, or enter the printed clues yourself.</p>
-      <PhotoDropZone busy={busy} onUpload={onUpload} />
+      <PhotoDropZone busy={busy} onUpload={onUpload} invalid={failed} />
       <div className="create-actions">
         {busy && onCancel && <Button onClick={onCancel}>Cancel reading</Button>}
         <Button disabled={busy} onClick={onPasteImage}>
@@ -33,6 +38,7 @@ export default function CreatePuzzle({
           <Icon name="pencil" /> Enter clues by hand
         </Button>
       </div>
+      {notice ? failed ? <Alert>{notice}</Alert> : <p role="status">{notice}</p> : null}
       <p className="storage-note">Photos are processed and saved on your device.</p>
       <ScanTips />
     </section>

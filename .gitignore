@@ -10,3 +10,5 @@ playwright-report/
 storybook-static/
 storybook-test-results/
 storybook-report/
+screen-test-results/
+screen-report/

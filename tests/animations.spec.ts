@@ -66,7 +66,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     almost[0] = 0;
     await page.goto(puzzleShareURL('http://127.0.0.1:3187', almost, 'Completion feedback'));
     await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-    await expect(page.getByLabel('Attempt history')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
     await page.locator('#cell-0').press(String(solution[0]));
     await expect(page.locator('.completion')).toBeVisible();
     const animations = () =>
@@ -84,6 +84,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     expect(calls[0].frames[0].transform).toBe(
       reducedMotion === 'reduce' ? 'none' : 'translateY(4px)',
     );
+    await page.getByRole('button', { name: 'Move history', exact: true }).click();
     await page.getByRole('button', { name: 'Previous move', exact: true }).click();
     await page.getByRole('button', { name: 'Latest move', exact: true }).click();
     expect(await animations()).toHaveLength(1);

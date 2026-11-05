@@ -1,6 +1,6 @@
 import { getGameEngine } from './game-engine';
 import { decodeSharedPuzzle } from './sharing';
-import { randomName, type Puzzle, type Attempt } from './attempts';
+import { randomName, type Puzzle, type Attempt, type Position } from './attempts';
 import { emptyBoard, type Board } from './sudoku';
 import { solveCached } from './solver-client';
 import {
@@ -22,10 +22,16 @@ import {
   readAttemptHistory,
   rememberAttempt,
   type AttemptHeader,
+  type StoredMove,
 } from './storage-history';
 export type ActiveTimer = StoredActiveTimer;
 export type AttemptSummary = StoredAttemptSummary;
 export type PuzzleSummary = StoredPuzzleSummary;
+export type AttemptPresentation = AttemptSummary & {
+  position: Position;
+  // Recorded active time; null only when a completed duration is unavailable.
+  elapsedMs: number | null;
+};
 let connection: Promise<IDBDatabase> | undefined;
 function database() {
   if (connection) return connection;
@@ -116,6 +122,9 @@ async function readById<T>(store: string, id: string): Promise<T | undefined> {
 export function getPuzzle(id: string): Promise<Puzzle | undefined> {
   return readById<Puzzle>('puzzles', id);
 }
+export function getPuzzleSummary(id: string): Promise<PuzzleSummary | undefined> {
+  return readById<PuzzleSummary>('puzzleSummaries', id);
+}
 function publicAttempt(attempt: Attempt): Attempt {
   return { ...attempt, moves: attempt.moves.slice() };
 }
@@ -161,6 +170,76 @@ export async function listAttemptSummaries(puzzleId?: string): Promise<AttemptSu
   return (await readAll<AttemptSummary>('attemptSummaries', puzzleId)).sort(
     (a, b) => b.startedAt - a.startedAt,
   );
+}
+// Reads only the requested headers, timers, and final positions, never histories or photos.
+// Missing attempts/moves reject; missing timers use recorded time, not wall-clock gaps.
+export async function listAttemptPresentations(
+  ids: readonly string[],
+): Promise<readonly AttemptPresentation[]> {
+  const selected = [...new Set(ids)];
+  if (!selected.length) return [];
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(['attempts', 'attemptMoves', 'timers'], 'readonly');
+    const results = new Map<string, AttemptPresentation>();
+    let error: Error | undefined;
+    const fail = (cause: Error) => {
+      error = cause;
+      tx.abort();
+    };
+    for (const id of selected) {
+      const headerRequest = tx.objectStore('attempts').get(id);
+      const timerRequest = tx.objectStore('timers').get(id);
+      headerRequest.onsuccess = transactionCallback(fail, () => {
+        const header = headerRequest.result as AttemptHeader | undefined;
+        if (!header) throw new Error(`Saved attempt is unavailable: ${id}.`);
+        if (!Number.isSafeInteger(header.moveCount) || header.moveCount < 0)
+          throw new Error('Saved attempt header is invalid.');
+        let last: StoredMove | undefined;
+        const project = () => {
+          const timer = timerRequest.result as TimerRecord | undefined;
+          const position = last ? last.move.position : header.initial;
+          const elapsedMs =
+            header.completedAt !== null
+              ? (header.durationMs ?? timer?.durationMs ?? null)
+              : (timer?.activeMs ??
+                header.activeMs ??
+                timer?.fallbackMs ??
+                last?.move.elapsedMs ??
+                0);
+          results.set(id, {
+            id: header.id,
+            puzzleId: header.puzzleId,
+            startedAt: header.startedAt,
+            completedAt: header.completedAt,
+            durationMs: header.durationMs,
+            moveCount: header.moveCount,
+            position,
+            elapsedMs,
+          });
+        };
+        // Timer requests precede the dependent final-move read in this transaction.
+        if (header.moveCount === 0) {
+          timerRequest.onsuccess = transactionCallback(fail, project);
+          return;
+        }
+        const move = tx.objectStore('attemptMoves').get([id, header.moveCount - 1]);
+        move.onsuccess = transactionCallback(fail, () => {
+          last = move.result as StoredMove | undefined;
+          if (
+            !last ||
+            last.attemptId !== id ||
+            last.index !== header.moveCount - 1 ||
+            !last.move?.position
+          )
+            throw new Error('Saved attempt history is incomplete.');
+          project();
+        });
+      });
+    }
+    tx.oncomplete = () => resolve(selected.map((id) => results.get(id)!));
+    tx.onabort = () => reject(error ?? tx.error ?? new Error('Could not read saved attempts.'));
+  });
 }
 function transactionCallback(fail: (error: Error) => void, operation: () => void) {
   return () => {

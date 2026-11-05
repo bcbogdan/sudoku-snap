@@ -383,3 +383,36 @@ npx playwright test --config tests/storybook/playwright.config.ts --project mobi
 The generated build, traces and HTML report are ignored; baseline PNGs are not.
 These tests complement, not replace, production app E2E tests for persistence,
 OCR and full navigation.
+
+## Full application screen regressions
+
+`tests/design-screens.spec.ts` exercises the real Next app and IndexedDB, separately
+from the isolated Storybook suite. Its fixtures include drafts, unstarted puzzles,
+mixed/completed attempts, zero durations, and timer-only checkpoints. The suite
+covers all six screens in both themes at phone, tablet, desktop, and short-landscape
+sizes, plus filtering, statistics, replay boundaries, save failures, conflicts,
+and scan cancellation/load errors. Representative phone/desktop screens also run axe.
+
+The normal app E2E command attaches full-page captures and checks geometry without
+updating baselines. The dedicated screen config additionally compares screenshots
+and runs the **same canonical rendering-environment guard** as Storybook:
+
+```sh
+mise exec node@22.23.2 -- npm run build
+mise exec node@22.23.2 -- npm run typecheck
+mise exec node@22.23.2 -- npm run test:screens:update
+# Inspect every new/changed capture before the clean comparison.
+mise exec node@22.23.2 -- npm run test:screens
+```
+
+Run build before typecheck, sequentially. The screen runner owns port 3187 and
+refuses to reuse another server; do not run it alongside app E2E. It uses bundled
+Chromium regardless of `PLAYWRIGHT_CHANNEL`, en-US/UTC, fixed wall time, bundled
+fonts, disabled screenshot animations, and CSS-pixel captures. Fixed wall time
+also prevents the focused timer changing screenshot contents while ordinary
+browser timers and IndexedDB continue running.
+
+Baselines live in `tests/screens/__screenshots__/`; generated artifacts/report
+live in ignored `screen-test-results/` and `screen-report/`. Neither snapshot
+regeneration nor browser emulation substitutes for visual inspection or real
+iOS/Android verification.

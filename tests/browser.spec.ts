@@ -57,10 +57,12 @@ test('photo → saved draft → persistent attempts, history and independent rep
   await expect(page.locator('#cell-0 .notes')).toHaveText('12');
   await page.reload();
   await expect(page.locator('#cell-0 .notes')).toHaveText('12');
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
   await page.getByRole('button', { name: 'Previous move', exact: true }).click();
   await expect(page.locator('#cell-0 .notes')).toHaveText('1');
-  await expect(page.getByRole('button', { name: 'Enter 3', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Enter 3', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Latest move', exact: true }).click();
+  await page.getByRole('button', { name: 'Return to play', exact: true }).click();
   await page.locator('#cell-0').click();
   const correct = solve(expected).solution![0],
     wrong = correct === 1 ? 2 : 1;
@@ -116,6 +118,7 @@ test('manual creation saves each draft edit and completed attempts stay locked a
   await page.locator('#cell-0').click();
   await page.keyboard.press('Delete');
   await expect(page.locator('#cell-0')).toHaveAttribute('data-value', String(solution[0]));
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
   await page.getByRole('button', { name: 'Previous move', exact: true }).click();
   await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '0');
   await page.locator('#cell-0').press('1');

@@ -1,11 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 import { puzzleShareURL } from '../lib/sharing';
 import clues from './fixtures/expected.json';
+import { solve } from '../lib/sudoku';
 
 async function openGame(page: Page) {
   await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'React flows'));
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
-  await expect(page.getByLabel('Attempt history')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
 }
 
 test('delayed IndexedDB commits preserve ordered digits and evaluate toggles at commit time', async ({
@@ -35,6 +36,7 @@ test('delayed IndexedDB commits preserve ordered digits and evaluate toggles at 
     });
   });
   await page.keyboard.press('8');
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeDisabled();
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('5');
   await page.keyboard.press('5');
@@ -103,4 +105,208 @@ test('rename restores focus on save, Cancel and Escape; failures retain the edit
   await expect(page.getByRole('region', { name: 'Sudoku game' }).getByRole('alert')).toContainText(
     'Test storage is full',
   );
+});
+
+async function storedReplayState(page: Page) {
+  return page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('sudoku-local');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      return await new Promise<{ history: string; activeMs: number }>((resolve, reject) => {
+        const tx = db.transaction(['attempts', 'attemptMoves', 'timers']);
+        const attempts = tx.objectStore('attempts').getAll();
+        const moves = tx.objectStore('attemptMoves').getAll();
+        const timers = tx.objectStore('timers').getAll();
+        tx.oncomplete = () =>
+          resolve({
+            history: JSON.stringify([attempts.result, moves.result]),
+            activeMs: timers.result.reduce((sum, timer) => sum + timer.activeMs, 0),
+          });
+        tx.onabort = () => reject(tx.error);
+      });
+    } finally {
+      db.close();
+    }
+  });
+}
+
+test('explicit replay stays locked at latest, highlights moves and exits without rewriting history', async ({
+  page,
+}) => {
+  await openGame(page);
+  await page.locator('#cell-0').press('8');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
+  await page.locator('#cell-1').click();
+  await page.locator('#cell-1').press('5');
+  await expect(page.locator('#cell-1')).toHaveAttribute('data-value', '5');
+  const before = await storedReplayState(page);
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Return to play' })).toBeVisible();
+  await expect(page.locator('#cell-1')).toHaveAttribute('aria-current', 'step');
+  await expect(page.getByText(/Number 5 entered · Row 1, column 2/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Enter 1', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Undo move' })).toHaveCount(0);
+  await page.locator('#cell-1').press('Delete');
+  await expect(page.locator('#cell-1')).toHaveAttribute('data-value', '5');
+  await page.getByRole('button', { name: 'Previous move', exact: true }).click();
+  await expect(page.locator('#cell-0')).toHaveAttribute('aria-current', 'step');
+  await expect(page.locator('#cell-1')).toHaveAttribute('data-value', '0');
+  await page.getByRole('button', { name: 'First move', exact: true }).click();
+  await expect(page.locator('[aria-current="step"]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Previous move', exact: true })).toBeDisabled();
+  await expect(page.getByText(/Original puzzle ·/)).toBeVisible();
+  await page.getByRole('button', { name: 'Latest move', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Enter 1', exact: true })).toHaveCount(0);
+  await page.locator('#cell-0').press('9');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
+  await expect
+    .poll(async () => (await storedReplayState(page)).activeMs)
+    .toBeGreaterThan(before.activeMs);
+  await page.getByRole('button', { name: 'First move', exact: true }).click();
+  await page.getByRole('button', { name: 'Return to play' }).click();
+  await expect(page.locator('#cell-1')).toHaveAttribute('data-value', '5');
+  await expect(page.locator('[aria-current="step"]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Enter 1', exact: true })).toBeEnabled();
+  expect((await storedReplayState(page)).history).toBe(before.history);
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
+  await page.getByRole('button', { name: 'First move', exact: true }).click();
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
+  await expect(page.locator('#cell-1')).toHaveAttribute('data-value', '5');
+  expect((await storedReplayState(page)).history).toBe(before.history);
+});
+
+test('zero-move replay is explicitly read-only and exits to an editable initial position', async ({
+  page,
+}) => {
+  await openGame(page);
+  const before = await storedReplayState(page);
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
+  await expect(page.getByRole('slider', { name: 'Attempt history' })).toBeDisabled();
+  for (const name of ['First move', 'Previous move', 'Next move', 'Latest move']) {
+    await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
+  }
+  await page.locator('#cell-0').press('8');
+  await page.locator('#cell-0').press('n');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '0');
+  await expect(page.getByRole('button', { name: 'Pencil notes' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Enter 8', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Return to play' }).click();
+  await expect(page.getByRole('button', { name: 'Pencil notes' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  expect((await storedReplayState(page)).history).toBe(before.history);
+  await page.locator('#cell-0').press('8');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
+});
+
+test('completed attempts replay independently and remain locked after exit and reload', async ({
+  page,
+}) => {
+  const solution = solve(clues).solution!;
+  const almost = solution.map((value, index) => (index === 0 ? 0 : value));
+  await page.goto(puzzleShareURL('http://127.0.0.1:3187', almost, 'Completed replay'));
+  await page.getByRole('button', { name: 'Confirm clues & play' }).click();
+  await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
+  await page.locator('#cell-0').press(String(solution[0]));
+  await expect(page.getByText(/This attempt is locked/)).toBeVisible();
+  const before = await storedReplayState(page);
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
+  await expect(page.locator('#cell-0')).toHaveAttribute('aria-current', 'step');
+  await page.getByRole('button', { name: 'First move', exact: true }).click();
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '0');
+  await page.locator('#cell-0').press(String(solution[0]));
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '0');
+  await page.getByRole('button', { name: 'Latest move', exact: true }).click();
+  await page.locator('#cell-0').press('Delete');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', String(solution[0]));
+  await page.getByRole('button', { name: 'Return to play' }).click();
+  await page.locator('#cell-0').press('Delete');
+  expect((await storedReplayState(page)).history).toBe(before.history);
+  await page.reload();
+  await expect(page.getByText(/This attempt is locked/)).toBeVisible();
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', String(solution[0]));
+});
+
+test('replay preserves failed-command feedback and never retries a discarded move', async ({
+  page,
+}) => {
+  await openGame(page);
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.name === 'attempts') {
+        IDBObjectStore.prototype.put = put;
+        this.transaction.abort();
+        throw new DOMException('Injected replay failure', 'AbortError');
+      }
+      return put.apply(this, args);
+    };
+  });
+  await page.locator('#cell-0').press('8');
+  const error = page.getByRole('region', { name: 'Sudoku game' }).getByRole('alert');
+  await expect(error).toContainText('Unsaved inputs were discarded');
+  const before = await storedReplayState(page);
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
+  await page.locator('#cell-0').press('5');
+  await page.getByRole('button', { name: 'Return to play' }).click();
+  await expect(error).toContainText('Unsaved inputs were discarded');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '0');
+  expect((await storedReplayState(page)).history).toBe(before.history);
+  await page.getByRole('button', { name: 'Resume editing' }).click();
+  await page.locator('#cell-0').press('8');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
+});
+
+test('exiting replay does not overwrite another tab and subsequent edits still detect conflict', async ({
+  page,
+}) => {
+  await openGame(page);
+  await page.locator('#cell-0').press('8');
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
+  await page.getByRole('button', { name: 'First move', exact: true }).click();
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const request = indexedDB.open('sudoku-local');
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('attempts', 'readwrite');
+          const read = tx.objectStore('attempts').openCursor();
+          read.onsuccess = () => {
+            const cursor = read.result;
+            if (cursor)
+              cursor.update({
+                ...cursor.value,
+                revision: cursor.value.revision + 1,
+                historyId: crypto.randomUUID(),
+              });
+          };
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onabort = () => {
+            db.close();
+            reject(tx.error);
+          };
+        };
+      }),
+  );
+  const external = await storedReplayState(page);
+  await page.locator('#cell-0').press('5');
+  await page.getByRole('button', { name: 'Return to play' }).click();
+  expect((await storedReplayState(page)).history).toBe(external.history);
+  await page.locator('#cell-0').press('5');
+  await expect(page.getByRole('region', { name: 'Sudoku game' }).getByRole('alert')).toContainText(
+    'another tab',
+  );
+  await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
+  expect((await storedReplayState(page)).history).toBe(external.history);
 });

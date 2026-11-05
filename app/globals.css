@@ -4,6 +4,9 @@
 * {
   box-sizing: border-box;
 }
+html {
+  -webkit-text-size-adjust: 100%;
+}
 body {
   margin: 0;
   padding-top: env(safe-area-inset-top, 0px);
@@ -41,6 +44,9 @@ button {
   font: inherit;
   color: inherit;
   cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 a {
   color: inherit;

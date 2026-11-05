@@ -15,6 +15,8 @@
     "test:visual": "npm run build-storybook && playwright test --config tests/storybook/playwright.config.ts",
     "test:visual:update": "npm run build-storybook && playwright test --config tests/storybook/playwright.config.ts --update-snapshots",
     "test:visual:environment": "node scripts/storybook-environment.mjs --check && node --test tests/storybook/environment.test.mjs",
+    "test:screens": "playwright test --config tests/screens/playwright.config.ts",
+    "test:screens:update": "playwright test --config tests/screens/playwright.config.ts --update-snapshots",
     "benchmark:core": "tsx benchmarks/core.ts",
     "benchmark:browser": "tsx benchmarks/browser.ts",
     "benchmark:compare": "tsx benchmarks/compare.ts",

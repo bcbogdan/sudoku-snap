@@ -260,7 +260,9 @@ for (const { id, region: selector, kind } of specimens) {
       });
       await expect(input).toHaveAttribute('type', 'file');
       await expect(input).toHaveAttribute('accept', 'image/*');
-      await expect(input).toHaveAccessibleDescription('or drop or paste an image · up to 20 MB');
+      await expect(input).toHaveAccessibleDescription(
+        /^or drop or paste an image up\s+to\s+20\s+MB$/,
+      );
       if (busy) await expect(input).toBeDisabled();
       else await expect(input).toBeEnabled();
       await expect(region.locator('.kit-photo-drop')).toHaveAttribute('aria-busy', String(busy));
@@ -492,6 +494,7 @@ test('Kit photo drop zone shows nested dragging and keyboard focus', async ({
     await camera.dispatchEvent('dragenter', { dataTransfer: transfer });
     await camera.dispatchEvent('dragleave', { dataTransfer: transfer });
     await expect(zone).toHaveAttribute('data-dragging', 'true');
+    await expect(region.getByLabel('Drop to add', { exact: true })).toBeVisible();
     await expect(region).toHaveScreenshot('kit-photo-drop-dragging.png');
     await zone.dispatchEvent('dragleave', { dataTransfer: transfer });
     await expect(zone).toHaveAttribute('data-dragging', 'false');

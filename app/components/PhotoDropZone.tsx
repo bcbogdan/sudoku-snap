@@ -75,7 +75,7 @@ export function PhotoDropZone({ busy, onUpload, invalid = false }: PhotoDropZone
             <Icon name="camera" size={32} />
           </span>
           <span className="kit-photo-drop__label" id={`${id}-label`}>
-            {busy ? 'Reading your photo…' : 'Choose a Sudoku photo'}
+            {busy ? 'Reading your photo…' : activeDrag ? 'Drop to add' : 'Choose a Sudoku photo'}
           </span>
           <span className="kit-photo-drop__description" id={`${id}-description`}>
             <span>or drop or paste an image</span>{' '}
