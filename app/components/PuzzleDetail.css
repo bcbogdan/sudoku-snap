@@ -31,7 +31,7 @@
 @media (max-width: 600px) {
   .puzzle-detail__overview {
     display: grid;
-    grid-template-columns: minmax(72px, 96px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-4);
   }
 

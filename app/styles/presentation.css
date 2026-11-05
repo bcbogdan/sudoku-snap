@@ -316,3 +316,12 @@
 .sudoku-app--play .puzzle-console {
   margin-bottom: var(--space-4);
 }
+
+.sudoku-app .unavailable-notice {
+  margin-block: var(--space-6) 0;
+}
+
+.sudoku-app .unavailable-notice p {
+  margin: 0 0 var(--space-3);
+  font-weight: 400;
+}

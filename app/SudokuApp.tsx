@@ -80,6 +80,7 @@ export default function Sudoku() {
   const [presentations, setPresentations] = useState<readonly AttemptPresentation[]>([]);
   const [collectionFilter, setCollectionFilter] = useState<CollectionFilter>('all');
   const [loadError, setLoadError] = useState('');
+  const [unavailable, setUnavailable] = useState(false);
   const [actionFailed, setActionFailed] = useState(false);
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null),
     [attempt, setAttempt] = useState<Attempt | null>(null);
@@ -93,6 +94,7 @@ export default function Sudoku() {
   const [queueStatus, setQueueStatus] = useState<QueueStatus>({ pending: 0, error: '' });
   const boardError = useRef<HTMLDivElement>(null);
   const focusBeginError = useRef(false);
+  const shareTrigger = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!focusBeginError.current || !message || !boardError.current) return;
     focusBeginError.current = false;
@@ -151,6 +153,21 @@ export default function Sudoku() {
       setAttempts(newestAttempts(views));
       setPresentations(views);
     };
+    const loadLibrary = async (filter: string | null) => {
+      const [saved, plays] = await Promise.all([listPuzzleSummaries(), listAttemptSummaries()]);
+      const groups = attemptsByPuzzle(plays);
+      const previewIds = saved.flatMap((item) => {
+        if (item.status === 'draft') return [];
+        const selected = previewAttempt(groups.get(item.id) ?? []);
+        return selected ? [selected.id] : [];
+      });
+      const previews = await listAttemptPresentations(previewIds);
+      if (cancelled) return;
+      setPuzzles(saved);
+      setAttempts(plays);
+      setPresentations(previews);
+      if (filter === 'in-progress' || filter === 'completed') setCollectionFilter(filter);
+    };
     Promise.resolve()
       .then(async () => {
         const query = new URLSearchParams(window.location.search),
@@ -171,7 +188,10 @@ export default function Sudoku() {
           const p = summary?.status === 'draft' ? await getPuzzle(id) : summary;
           if (cancelled) return;
           if (!p) {
-            setMessage('This puzzle is not saved in this browser.');
+            // A missing deep link must not present unqueried arrays as an empty collection.
+            await loadLibrary(query.get('filter'));
+            if (cancelled) return;
+            setUnavailable(true);
             return;
           }
           publishPuzzle(p);
@@ -198,20 +218,7 @@ export default function Sudoku() {
             if (!cancelled) setScreen(p.status === 'draft' ? 'review' : 'detail');
           }
         } else {
-          const [saved, plays] = await Promise.all([listPuzzleSummaries(), listAttemptSummaries()]);
-          const groups = attemptsByPuzzle(plays);
-          const previewIds = saved.flatMap((item) => {
-            if (item.status === 'draft') return [];
-            const selected = previewAttempt(groups.get(item.id) ?? []);
-            return selected ? [selected.id] : [];
-          });
-          const previews = await listAttemptPresentations(previewIds);
-          if (cancelled) return;
-          setPuzzles(saved);
-          setAttempts(plays);
-          setPresentations(previews);
-          const filter = query.get('filter');
-          if (filter === 'in-progress' || filter === 'completed') setCollectionFilter(filter);
+          await loadLibrary(query.get('filter'));
         }
       })
       .catch((error) => {
@@ -441,6 +448,7 @@ export default function Sudoku() {
   const puzzleActions = puzzle ? (
     <PuzzleActions
       busy={busy}
+      shareRef={shareTrigger}
       onShare={() =>
         void action(async () => {
           const link = puzzleShareURL(window.location.origin, puzzle.clues, puzzle.name);
@@ -589,6 +597,17 @@ export default function Sudoku() {
       className={`sudoku-app sudoku-app--${screen} ${screen === 'play' || screen === 'review' ? 'board-screen' : ''}`}
     >
       {header}
+      {unavailable ? (
+        <Alert className="unavailable-notice">
+          <p>
+            This puzzle isn’t saved in this browser. It may have been removed, or the link may come
+            from another device. Your saved puzzles are shown below.
+          </p>
+          <a className="secondary" href="/">
+            Go to My puzzles
+          </a>
+        </Alert>
+      ) : null}
       {screen === 'library' ? (
         <PuzzleLibrary
           items={libraryItems}
@@ -596,6 +615,7 @@ export default function Sudoku() {
           onFilterChange={(filter) => {
             setCollectionFilter(filter);
             const url = new URL(window.location.href);
+            url.searchParams.delete('puzzle');
             if (filter === 'all') url.searchParams.delete('filter');
             else url.searchParams.set('filter', filter);
             window.history.replaceState(null, '', url);
@@ -797,7 +817,13 @@ export default function Sudoku() {
             value={shareLink}
             onFocus={(event) => event.target.select()}
           />
-          <button className="secondary" onClick={() => setShareLink('')}>
+          <button
+            className="secondary"
+            onClick={() => {
+              setShareLink('');
+              shareTrigger.current?.focus();
+            }}
+          >
             Close link
           </button>
         </section>

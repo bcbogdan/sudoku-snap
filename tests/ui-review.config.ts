@@ -2,7 +2,12 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: '.',
-  testMatch: ['ui-review.spec.ts', 'ui-quality-regressions.spec.ts', 'ui-polish.spec.ts'],
+  testMatch: [
+    'ui-review.spec.ts',
+    'ui-quality-regressions.spec.ts',
+    'ui-polish.spec.ts',
+    'ui-screen-fixes-round-1.spec.ts',
+  ],
   timeout: 60000,
   workers: 1,
   outputDir: '/tmp/opencode/ui-review-fixes-results',
