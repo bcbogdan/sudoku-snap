@@ -45,3 +45,24 @@ export function scoreBoard(expected: number[], actual: number[], uncertain: numb
     mismatches,
   };
 }
+
+export function scoreExtraction(expected: number[], extracted: number[], uncertain: number[]) {
+  scoreBoard(expected, expected);
+  if (
+    new Set(extracted).size !== extracted.length ||
+    extracted.some((index) => !Number.isInteger(index) || index < 0 || index >= 81)
+  )
+    throw new Error('Expected unique extracted indices in 0–80.');
+  const clues = expected.flatMap((value, index) => (value ? [index] : []));
+  const omitted = clues.filter((index) => !extracted.includes(index));
+  const extractedClues = clues.length - omitted.length;
+  return {
+    extractedCells: extracted.length,
+    extractedClues,
+    extractedBlankCells: extracted.length - extractedClues,
+    omitted,
+    unflaggedOmissions: omitted.filter((index) => !uncertain.includes(index)),
+    precision: extracted.length ? extractedClues / extracted.length : null,
+    recall: clues.length ? extractedClues / clues.length : null,
+  };
+}

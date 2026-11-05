@@ -98,6 +98,88 @@ test('photo reader owns workers throughout initialization, recognition and cance
   });
 
   await t.test(
+    'extraction losses and augmented readings remain uncertain without duplicate flags',
+    async () => {
+      const image = new Uint8Array([1]),
+        deslanted = new Uint8Array([2]);
+      const recognized: Uint8Array[] = [];
+      respond = (worker, payload) => {
+        if (payload.file)
+          worker.reply({
+            type: 'result',
+            cells: [{ index: 3, image, deslanted }],
+            uncertain: [3, 4],
+          });
+        else {
+          if (payload.action === 'recognize') recognized.push(payload.payload.image);
+          worker.reply({
+            jobId: payload.jobId,
+            status: 'resolve',
+            data:
+              payload.payload?.image === deslanted
+                ? { text: '7', confidence: 89 }
+                : { text: '', confidence: 0 },
+          });
+        }
+      };
+      const result = await readSudoku(file, noop);
+      assert.equal(result.board[3], 7);
+      assert.equal(result.board[4], 0, 'a rejected component is never invented as a clue');
+      assert.deepEqual(result.uncertain, [3, 4]);
+      assert.deepEqual(recognized, [image, deslanted], 'at most one alternate read');
+      assert.ok(workers.every((worker) => worker.terminated));
+    },
+  );
+
+  await t.test('confident primary reads do not run the alternate OCR view', async () => {
+    let recognized = 0;
+    respond = (worker, payload) => {
+      if (payload.file)
+        worker.reply({ type: 'result', cells: [{ ...cells[0], deslanted: new Uint8Array([2]) }] });
+      else {
+        if (payload.action === 'recognize') recognized++;
+        worker.reply({
+          jobId: payload.jobId,
+          status: 'resolve',
+          data: { text: '1', confidence: 86 },
+        });
+      }
+    };
+    const result = await readSudoku(file, noop);
+    assert.equal(result.board[3], 1);
+    assert.deepEqual(result.uncertain, []);
+    assert.equal(recognized, 1);
+  });
+
+  for (const failure of ['abort', 'reject'])
+    await t.test(`${failure} during alternate recognition releases both workers`, async () => {
+      const controller = new AbortController();
+      let recognized = 0;
+      respond = (worker, payload) => {
+        if (payload.file)
+          worker.reply({
+            type: 'result',
+            cells: [{ ...cells[0], deslanted: new Uint8Array([2]) }],
+          });
+        else if (payload.action === 'recognize' && ++recognized === 2) {
+          if (failure === 'abort') controller.abort();
+          else worker.reply({ jobId: payload.jobId, status: 'reject', data: 'alternate failed' });
+        } else
+          worker.reply({
+            jobId: payload.jobId,
+            status: 'resolve',
+            data: { text: '', confidence: 0 },
+          });
+      };
+      await assert.rejects(
+        readSudoku(file, noop, { signal: controller.signal }),
+        failure === 'abort' ? { name: 'AbortError' } : /alternate failed/,
+      );
+      assert.equal(recognized, 2);
+      assert.ok(workers.every((worker) => worker.terminated));
+    });
+
+  await t.test(
     'initializes OCR before preprocessing finishes without changing uncertain clues',
     async () => {
       const controller = new AbortController();

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { parseRows, scoreBoard } from './ocr-evaluation-metrics';
+import { parseRows, scoreBoard, scoreExtraction } from './ocr-evaluation-metrics';
 
 test('evaluation metrics distinguish missing, spurious, wrong and unflagged clues', () => {
   const expected = [1, 2, 3, 0, ...Array(77).fill(0)];
@@ -26,6 +26,22 @@ test('empty predictions have undefined precision, not perfect recognition', () =
   assert.equal(score.cluePrecision, null);
   assert.equal(score.clueRecall, 0);
   assert.equal(score.exactCells, 80);
+});
+
+test('extraction diagnostics expose omitted clues independently of recognition and review flags', () => {
+  const expected = [1, 2, 3, 0, ...Array(77).fill(0)];
+  assert.deepEqual(scoreExtraction(expected, [0, 3], [1]), {
+    extractedCells: 2,
+    extractedClues: 1,
+    extractedBlankCells: 1,
+    omitted: [1, 2],
+    unflaggedOmissions: [2],
+    precision: 1 / 2,
+    recall: 1 / 3,
+  });
+  assert.equal(scoreExtraction(expected, [], []).precision, null);
+  assert.throws(() => scoreExtraction(expected, [0, 0], []));
+  assert.throws(() => scoreExtraction(expected, [81], []));
 });
 
 test('malformed ground truth and predictions are rejected', () => {

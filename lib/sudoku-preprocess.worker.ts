@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import type CV from '@techstark/opencv-js';
-import { detectGrid, extractDigit } from './sudoku-image-processing';
+import { detectGrid, extractDigitCell } from './sudoku-image-processing';
 import type { PreprocessRequest, PreprocessResponse } from './sudoku-reader-protocol';
 
 declare const self: DedicatedWorkerGlobalScope & { cv: typeof CV };
@@ -45,7 +45,10 @@ function canvas(width: number, height: number) {
 async function preprocess(
   file: File,
   progress: (message: string, stage?: 'processing') => void,
-): Promise<{ cells: { index: number; image: Uint8Array }[] }> {
+): Promise<{
+  cells: { index: number; image: Uint8Array; deslanted: Uint8Array }[];
+  uncertain: number[];
+}> {
   progress('Loading the local image reader…');
   if (typeof OffscreenCanvas === 'undefined' || typeof createImageBitmap === 'undefined')
     throw new Error(
@@ -100,9 +103,27 @@ async function preprocess(
       31,
       12,
     );
-    const cells: { index: number; image: Uint8Array }[] = [];
+    const cells: { index: number; image: Uint8Array; deslanted: Uint8Array }[] = [];
+    const uncertain: number[] = [];
+    let recoveryInk: CV.Mat | undefined;
+    const recoverInk = () => {
+      if (!recoveryInk) {
+        recoveryInk = own(new cv.Mat());
+        cv.adaptiveThreshold(
+          flat,
+          recoveryInk,
+          255,
+          cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+          cv.THRESH_BINARY_INV,
+          31,
+          8,
+        );
+      }
+      return recoveryInk;
+    };
     for (let index = 0; index < 81; index++) {
-      const extracted = extractDigit(cv, ink, index);
+      const { digit: extracted, uncertain: partial } = extractDigitCell(cv, ink, index, recoverInk);
+      if (partial) uncertain.push(index);
       if (!extracted) continue;
       const { width: w, height: h, pixels } = extracted;
       const digit = canvas(w, h),
@@ -116,9 +137,23 @@ async function preprocess(
       const factor = 110 / Math.max(w, h);
       nctx.drawImage(digit, (160 - w * factor) / 2, (160 - h * factor) / 2, w * factor, h * factor);
       const blob = await normalized.convertToBlob({ type: 'image/png' });
-      cells.push({ index, image: new Uint8Array(await blob.arrayBuffer()) });
+      // A bounded alternate view counteracts a modest right-leaning italic
+      // stroke. OCR uses it only when the unchanged primary read is weak.
+      const deslanted = canvas(160, 160),
+        dctx = deslanted.getContext('2d')!;
+      dctx.fillStyle = 'white';
+      dctx.fillRect(0, 0, 160, 160);
+      dctx.translate(80, 80);
+      dctx.transform(1, 0, -0.2, 1, 0, 0);
+      dctx.drawImage(normalized, -80, -80);
+      const alternate = await deslanted.convertToBlob({ type: 'image/png' });
+      cells.push({
+        index,
+        image: new Uint8Array(await blob.arrayBuffer()),
+        deslanted: new Uint8Array(await alternate.arrayBuffer()),
+      });
     }
-    return { cells };
+    return { cells, uncertain };
   } finally {
     for (const mat of mats.reverse()) mat.delete();
   }
@@ -133,7 +168,10 @@ self.onmessage = async ({ data }: MessageEvent<PreprocessRequest>) => {
     );
     send(
       { type: 'result', ...result },
-      result.cells.map(({ image }) => image.buffer as ArrayBuffer),
+      result.cells.flatMap(({ image, deslanted }) => [
+        image.buffer as ArrayBuffer,
+        deslanted.buffer as ArrayBuffer,
+      ]),
     );
   } catch (error) {
     send({ type: 'error', message: error instanceof Error ? error.message : String(error) });

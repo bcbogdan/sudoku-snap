@@ -2,15 +2,37 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { build } from 'vite';
 import { chromium } from '@playwright/test';
-import { parseRows, scoreBoard } from './ocr-evaluation-metrics';
+import { parseRows, scoreBoard, scoreExtraction } from './ocr-evaluation-metrics';
 
 const root = process.cwd();
 const directory = path.join(root, 'tests/fixtures/ocr-evaluation');
+const sourceFiles = [
+  'lib/localSudokuReader.ts',
+  'lib/sudoku-preprocess.worker.ts',
+  'lib/sudoku-image-processing.ts',
+  'lib/image-polarity.ts',
+  'lib/digit-recognition.ts',
+  'lib/sudoku-reader-protocol.ts',
+  'tests/ocr-evaluation.mts',
+  'tests/ocr-evaluation-metrics.ts',
+];
+const hashSources = async () =>
+  Object.fromEntries(
+    await Promise.all(
+      sourceFiles.map(async (file) => [
+        file,
+        createHash('sha256')
+          .update(await readFile(file))
+          .digest('hex'),
+      ]),
+    ),
+  );
+const sourceHashes = await hashSources();
 const manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8')) as {
   id: string;
   file: string;
@@ -80,9 +102,14 @@ await new Promise<void>((resolve, reject) => {
 });
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
 const samples = [];
+const captureDirectory = process.env.OCR_EVALUATION_CAPTURE_DIR;
+if (captureDirectory) await mkdir(captureDirectory, { recursive: true });
 try {
   browser = await chromium.launch({ headless: true });
-  for (const fixture of cases) {
+  for (const fixture of cases.filter(
+    (fixture) =>
+      !process.env.OCR_EVALUATION_FIXTURE || fixture.id === process.env.OCR_EVALUATION_FIXTURE,
+  )) {
     const bytes = fixture.file ? await readFile(fixture.file) : null;
     for (const variant of fixture.variants) {
       const context = await browser.newContext();
@@ -100,25 +127,49 @@ try {
       });
       await page.goto(`http://127.0.0.1:${port}`);
       const result = await page.evaluate(
-        async ({ image, variant, id }) => {
+        async ({ image, variant, id, capture }) => {
           const extracted: number[] = [];
-          const digits: { index: number; text: string; confidence: number }[] = [];
+          let extractionUncertain: number[] = [];
+          const digits: { index: number; view: string; text: string; confidence: number }[] = [];
+          const imageCells = new WeakMap<Uint8Array, { index: number; view: string }>();
           const progress: string[] = [];
+          const images: { index: number; base64: string }[] = [];
+          const base64 = (bytes: Uint8Array) => {
+            let binary = '';
+            for (let offset = 0; offset < bytes.length; offset += 8192)
+              binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+            return btoa(binary);
+          };
           const NativeWorker = window.Worker;
           window.Worker = class extends NativeWorker {
-            private jobs = new Map<string, { action?: string }>();
+            private jobs = new Map<string, { action?: string; index?: number; view?: string }>();
             constructor(url: string | URL, options?: WorkerOptions) {
               super(url, options);
               // Register before production assigns onmessage: final responses may terminate the worker.
               this.addEventListener('message', (event: MessageEvent) => {
                 const data = event.data;
-                if (data.type === 'result')
+                if (data.type === 'result') {
                   extracted.push(...data.cells.map((cell: { index: number }) => cell.index));
+                  extractionUncertain = data.uncertain ?? [];
+                  for (const cell of data.cells) {
+                    imageCells.set(cell.image, { index: cell.index, view: 'primary' });
+                    if (cell.deslanted)
+                      imageCells.set(cell.deslanted, { index: cell.index, view: 'deslanted' });
+                  }
+                  if (capture)
+                    images.push(
+                      ...data.cells.map((cell: { index: number; image: Uint8Array }) => ({
+                        index: cell.index,
+                        base64: base64(cell.image),
+                      })),
+                    );
+                }
                 const job = this.jobs.get(data.jobId);
                 if (job && ['resolve', 'reject'].includes(data.status)) {
                   if (job.action === 'recognize' && data.status === 'resolve')
                     digits.push({
-                      index: extracted[digits.length],
+                      index: job.index ?? extracted[digits.length],
+                      view: job.view ?? 'primary',
                       text: data.data.text,
                       confidence: data.data.confidence,
                     });
@@ -127,7 +178,11 @@ try {
               });
             }
             postMessage(payload: any, ...rest: any[]) {
-              if (payload.jobId !== undefined) this.jobs.set(payload.jobId, payload);
+              if (payload.jobId !== undefined)
+                this.jobs.set(payload.jobId, {
+                  ...payload,
+                  ...imageCells.get(payload.payload?.image),
+                });
               super.postMessage(payload, ...(rest as [Transferable[]]));
             }
           };
@@ -170,6 +225,7 @@ try {
             });
           }
           const start = performance.now();
+          const input = capture ? base64(new Uint8Array(await file.arrayBuffer())) : null;
           try {
             const entry = '/reader.js';
             const { readSudoku } = await import(/* @vite-ignore */ entry);
@@ -180,8 +236,11 @@ try {
               error: null,
               totalMs: performance.now() - start,
               extracted,
+              extractionUncertain,
               digits,
               progress,
+              images,
+              input,
             };
           } catch (error) {
             return {
@@ -190,15 +249,30 @@ try {
               error: error instanceof Error ? error.message : String(error),
               totalMs: performance.now() - start,
               extracted,
+              extractionUncertain,
               digits,
               progress,
+              images,
+              input,
             };
           } finally {
             window.Worker = NativeWorker;
           }
         },
-        { image: bytes?.toString('base64') ?? null, variant, id: fixture.id },
+        {
+          image: bytes?.toString('base64') ?? null,
+          variant,
+          id: fixture.id,
+          capture: Boolean(captureDirectory),
+        },
       );
+      const { images, input, ...measurement } = result;
+      if (captureDirectory) {
+        const prefix = path.join(captureDirectory, `${fixture.id}-${variant}`);
+        if (input) await writeFile(`${prefix}-input`, Buffer.from(input, 'base64'));
+        for (const { index, base64 } of images)
+          await writeFile(`${prefix}-cell-${index}.png`, Buffer.from(base64, 'base64'));
+      }
       assert.ok(
         result.uncertain.every((index) => Number.isInteger(index) && index >= 0 && index < 81),
       );
@@ -206,20 +280,43 @@ try {
       assert.deepEqual(networkErrors, [], 'Evaluation assets failed to load');
       if (!result.error?.startsWith('Could not find a Sudoku grid.'))
         assert.deepEqual(cancelledRequests, [], 'Unexpected failed asset request');
-      if (result.board) assert.equal(result.digits.length, result.extracted.length);
+      if (result.board) {
+        assert.deepEqual(
+          result.digits.filter(({ view }) => view === 'primary').map(({ index }) => index),
+          result.extracted,
+          'one primary response per extracted cell',
+        );
+        for (const index of result.extracted)
+          assert.ok(
+            result.digits.filter((digit) => digit.index === index).length <= 2,
+            'at most one bounded retry',
+          );
+        assert.ok(
+          result.digits.every(({ index }) => result.extracted.includes(index)),
+          'every OCR response has an extracted cell',
+        );
+      }
       const sample = {
         fixture: fixture.id,
         group: fixture.group,
         variant,
         sha256: bytes ? createHash('sha256').update(bytes).digest('hex') : null,
         expected: fixture.expected.length ? fixture.expected : null,
-        ...result,
+        ...measurement,
         cancelledRequests,
         metrics:
           result.board && fixture.expected.length
             ? scoreBoard(fixture.expected, result.board, result.uncertain)
             : null,
-        negativeRejected: fixture.group === 'synthetic-negative' ? result.board === null : null,
+        extraction:
+          result.board && fixture.expected.length
+            ? scoreExtraction(fixture.expected, result.extracted, result.uncertain)
+            : null,
+        negativeRejected:
+          fixture.group === 'synthetic-negative'
+            ? result.board === null &&
+              Boolean(result.error?.startsWith('Could not find a Sudoku grid.'))
+            : null,
       };
       samples.push(sample);
       console.log(
@@ -236,26 +333,16 @@ try {
       await context.close();
     }
   }
+  if (!process.env.OCR_EVALUATION_FIXTURE)
+    assert.equal(samples.length, 13, 'complete evaluation corpus');
+  assert.deepEqual(await hashSources(), sourceHashes, 'OCR sources changed during the measurement');
   const report = {
     browser: browser.version(),
     sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
     source: 'working-tree production reader; real local OpenCV/Tesseract assets',
     measuredAt: new Date().toISOString(),
-    sourceHashes: Object.fromEntries(
-      await Promise.all(
-        [
-          'lib/localSudokuReader.ts',
-          'lib/sudoku-preprocess.worker.ts',
-          'lib/sudoku-image-processing.ts',
-          'lib/image-polarity.ts',
-        ].map(async (file) => [
-          file,
-          createHash('sha256')
-            .update(await readFile(file))
-            .digest('hex'),
-        ]),
-      ),
-    ),
+    scope: process.env.OCR_EVALUATION_FIXTURE ?? 'all-13-cases',
+    sourceHashes,
     manifest,
     samples,
   };

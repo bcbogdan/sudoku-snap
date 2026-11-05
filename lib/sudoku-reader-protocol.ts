@@ -4,7 +4,11 @@ export interface PreprocessRequest {
 
 export type PreprocessResponse =
   | { type: 'progress'; message: string; stage?: 'processing' }
-  | { type: 'result'; cells: { index: number; image: Uint8Array }[] }
+  | {
+      type: 'result';
+      cells: { index: number; image: Uint8Array; deslanted?: Uint8Array }[];
+      uncertain?: number[];
+    }
   | { type: 'error'; message: string };
 
 // Tesseract's local worker uses the same job protocol as its createWorker wrapper.

@@ -97,18 +97,54 @@ function gridLine(ink: CV.Mat, horizontal: boolean, nominal: number, start: numb
     }
   }
   // Require broad support, but tolerate broken low-contrast grid lines.
-  return best >= (end - start) * (2 / 3) ? position : nominal;
+  return best >= (end - start) * (2 / 3) ? position : null;
 }
 
-export function extractDigit(cv: typeof CV, ink: CV.Mat, index: number) {
-  // Keep large glyphs intact; components touching this narrower crop are still
-  // excluded because they can be grid lines connected to a digit.
+function cellLine(ink: CV.Mat, horizontal: boolean, nominal: number, start: number, end: number) {
+  const found = gridLine(ink, horizontal, nominal, start, end);
+  if (found !== null) return found;
+  // Thresholding can erase faint internal rules. Interpolate their position
+  // from observed rules, not the perfectly straight canonical grid.
+  let before: { nominal: number; position: number } | undefined;
+  let after: { nominal: number; position: number } | undefined;
+  for (let index = Math.round(nominal / 100) - 1; index >= 0; index--) {
+    const at = index * 100;
+    const position = gridLine(ink, horizontal, at, start, end);
+    if (position !== null) {
+      before = { nominal: at, position };
+      break;
+    }
+  }
+  for (let index = Math.round(nominal / 100) + 1; index <= 9; index++) {
+    const at = Math.min(899, index * 100);
+    const position = gridLine(ink, horizontal, at, start, end);
+    if (position !== null) {
+      after = { nominal: at, position };
+      break;
+    }
+  }
+  if (!before || !after) return nominal;
+  return Math.round(
+    before.position +
+      ((after.position - before.position) * (nominal - before.nominal)) /
+        (after.nominal - before.nominal),
+  );
+}
+
+export function cellBounds(ink: CV.Mat, index: number) {
   const column = (index % 9) * 100;
   const row = Math.floor(index / 9) * 100;
-  const top = gridLine(ink, true, row, column + 15, column + 85);
-  const bottom = gridLine(ink, true, Math.min(899, row + 100), column + 15, column + 85);
-  const left = gridLine(ink, false, column, top + 15, bottom - 15);
-  const right = gridLine(ink, false, Math.min(899, column + 100), top + 15, bottom - 15);
+  const top = cellLine(ink, true, row, column + 15, column + 85);
+  const bottom = cellLine(ink, true, Math.min(899, row + 100), column + 15, column + 85);
+  const left = cellLine(ink, false, column, top + 15, bottom - 15);
+  const right = cellLine(ink, false, Math.min(899, column + 100), top + 15, bottom - 15);
+  return { top, bottom, left, right };
+}
+
+export function analyzeDigit(cv: typeof CV, ink: CV.Mat, index: number) {
+  // Keep large glyphs intact; components touching this narrower crop are still
+  // excluded because they can be grid lines connected to a digit.
+  const { top, bottom, left, right } = cellBounds(ink, index);
   const roiWidth = right - left - 10;
   const roiHeight = bottom - top - 10;
   const roi = ink.roi(new cv.Rect(left + 5, top + 5, roiWidth, roiHeight));
@@ -119,49 +155,116 @@ export function extractDigit(cv: typeof CV, ink: CV.Mat, index: number) {
     const count = cv.connectedComponentsWithStats(roi, labels, stats, centers, 8, cv.CV_32S);
     let selected = 0;
     let best = 0;
+    let partialInk = false;
+    const fragments: { label: number; x: number; y: number; w: number; h: number; area: number }[] =
+      [];
     for (let k = 1; k < count; k++) {
       const x = stats.intAt(k, cv.CC_STAT_LEFT);
       const y = stats.intAt(k, cv.CC_STAT_TOP);
       const w = stats.intAt(k, cv.CC_STAT_WIDTH);
       const h = stats.intAt(k, cv.CC_STAT_HEIGHT);
       const area = stats.intAt(k, cv.CC_STAT_AREA);
+      const centered =
+        Math.abs(x + w / 2 - roiWidth / 2) <= 22 && Math.abs(y + h / 2 - roiHeight / 2) <= 22;
+      const border = x <= 1 || y <= 1 || x + w >= roiWidth - 1 || y + h >= roiHeight - 1;
+      // A centered, substantial partial glyph is not proof of a blank. Reject
+      // lines/specks by shape and density, rather than flagging every ink pixel.
       if (
-        x <= 1 ||
-        y <= 1 ||
-        x + w >= roiWidth - 1 ||
-        y + h >= roiHeight - 1 ||
-        h < 22 ||
-        w < 5 ||
-        area < 65 ||
-        Math.abs(x + w / 2 - roiWidth / 2) > 22 ||
-        Math.abs(y + h / 2 - roiHeight / 2) > 22
+        border &&
+        centered &&
+        h >= 22 &&
+        w >= 5 &&
+        w <= roiWidth * 0.8 &&
+        area >= 65 &&
+        area / (w * h) >= 0.15
       )
-        continue;
+        partialInk = true;
+      if (!border && centered && h >= 5 && w >= 3 && area >= 20)
+        fragments.push({ label: k, x, y, w, h, area });
+      if (border || h < 22 || w < 5 || area < 65 || !centered) continue;
       if (area > best) {
         selected = k;
         best = area;
       }
     }
-    if (!selected) return null;
-    const x = stats.intAt(selected, cv.CC_STAT_LEFT);
-    const y = stats.intAt(selected, cv.CC_STAT_TOP);
-    const width = stats.intAt(selected, cv.CC_STAT_WIDTH);
-    const height = stats.intAt(selected, cv.CC_STAT_HEIGHT);
+    if (!selected) return { digit: null, uncertain: partialInk };
+    let x = stats.intAt(selected, cv.CC_STAT_LEFT);
+    let y = stats.intAt(selected, cv.CC_STAT_TOP);
+    let right = x + stats.intAt(selected, cv.CC_STAT_WIDTH);
+    let bottom = y + stats.intAt(selected, cv.CC_STAT_HEIGHT);
+    const members = new Set([selected]);
+    // Preserve disconnected strokes, not just the largest component. Keep only
+    // nearby interior pieces; copying labels below never invents bridging ink.
+    const candidates = fragments.sort((a, b) => b.area - a.area).slice(0, 16);
+    for (let pass = 0; pass < candidates.length; pass++) {
+      let added = false;
+      for (const piece of candidates) {
+        if (members.has(piece.label)) continue;
+        const dx = Math.max(0, piece.x - right, x - piece.x - piece.w);
+        const dy = Math.max(0, piece.y - bottom, y - piece.y - piece.h);
+        const nextX = Math.min(x, piece.x),
+          nextY = Math.min(y, piece.y);
+        const nextRight = Math.max(right, piece.x + piece.w),
+          nextBottom = Math.max(bottom, piece.y + piece.h);
+        if (
+          Math.hypot(dx, dy) > 8 ||
+          nextRight - nextX > roiWidth * 0.85 ||
+          nextBottom - nextY > roiHeight * 0.9
+        )
+          continue;
+        members.add(piece.label);
+        x = nextX;
+        y = nextY;
+        right = nextRight;
+        bottom = nextBottom;
+        added = true;
+      }
+      if (!added) break;
+    }
+    const width = right - x;
+    const height = bottom - y;
     const pixels = new Uint8ClampedArray(width * height * 4);
     for (let py = 0; py < height; py++)
       for (let px = 0; px < width; px++) {
         const offset = (py * width + px) * 4;
-        const value = labels.intAt(y + py, x + px) === selected ? 0 : 255;
+        const value = members.has(labels.intAt(y + py, x + px)) ? 0 : 255;
         pixels[offset] = value;
         pixels[offset + 1] = value;
         pixels[offset + 2] = value;
         pixels[offset + 3] = 255;
       }
-    return { width, height, pixels };
+    return { digit: { width, height, pixels }, uncertain: partialInk || members.size > 1 };
   } finally {
     roi.delete();
     labels.delete();
     stats.delete();
     centers.delete();
   }
+}
+
+export function extractDigit(cv: typeof CV, ink: CV.Mat, index: number) {
+  return analyzeDigit(cv, ink, index).digit;
+}
+
+export function extractDigitCell(
+  cv: typeof CV,
+  ink: CV.Mat,
+  index: number,
+  recoveryInk: () => CV.Mat,
+) {
+  const primary = analyzeDigit(cv, ink, index);
+  if (!primary.digit || !primary.uncertain) return primary;
+  const recovered = analyzeDigit(cv, recoveryInk(), index);
+  if (!recovered.digit || recovered.uncertain) return primary;
+  const { width, height } = primary.digit;
+  // A gentler threshold may reconnect faint strokes, but must not replace a
+  // glyph with a smaller fragment or a much larger patch of background ink.
+  if (
+    recovered.digit.width < width ||
+    recovered.digit.height < height ||
+    recovered.digit.width > width * 1.5 ||
+    recovered.digit.height > height * 1.5
+  )
+    return primary;
+  return { digit: recovered.digit, uncertain: true };
 }

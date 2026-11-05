@@ -1,0 +1,3605 @@
+{
+  "browser": "153.0.8010.12",
+  "results": [
+    {
+      "file": "opencv-paper-blur-1-cell-11.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "6",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "6",
+          "confidence": 87
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "6",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "6",
+          "confidence": 91
+        },
+        {
+          "experiment": "psm-7",
+          "text": "6",
+          "confidence": 91
+        },
+        {
+          "experiment": "psm-10",
+          "text": "6",
+          "confidence": 91
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "6",
+          "confidence": 92
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "6",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-60",
+          "text": "6",
+          "confidence": 81
+        },
+        {
+          "experiment": "size-80",
+          "text": "6",
+          "confidence": 89
+        },
+        {
+          "experiment": "size-140",
+          "text": "6",
+          "confidence": 82
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-17.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "9",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "9",
+          "confidence": 77
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "9",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "9",
+          "confidence": 86
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "9",
+          "confidence": 81
+        },
+        {
+          "experiment": "psm-6",
+          "text": "9",
+          "confidence": 93
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "9",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "9",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "9",
+          "confidence": 77
+        },
+        {
+          "experiment": "size-80",
+          "text": "9",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-140",
+          "text": "9",
+          "confidence": 94
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-23.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "5",
+          "confidence": 87
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "5",
+          "confidence": 65
+        },
+        {
+          "experiment": "psm-7",
+          "text": "5",
+          "confidence": 65
+        },
+        {
+          "experiment": "psm-10",
+          "text": "5",
+          "confidence": 65
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "5",
+          "confidence": 74
+        },
+        {
+          "experiment": "size-80",
+          "text": "5",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-140",
+          "text": "5",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-25.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "8",
+          "confidence": 82
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 54
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "8",
+          "confidence": 71
+        },
+        {
+          "experiment": "size-80",
+          "text": "8",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-140",
+          "text": "8",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-28.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "7",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "7",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "7",
+          "confidence": 23
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "1",
+          "confidence": 32
+        },
+        {
+          "experiment": "psm-6",
+          "text": "4",
+          "confidence": 7
+        },
+        {
+          "experiment": "psm-7",
+          "text": "4",
+          "confidence": 7
+        },
+        {
+          "experiment": "psm-10",
+          "text": "4",
+          "confidence": 7
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "7",
+          "confidence": 92
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "7",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-60",
+          "text": "7",
+          "confidence": 81
+        },
+        {
+          "experiment": "size-80",
+          "text": "7",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-140",
+          "text": "7",
+          "confidence": 80
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-31.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 89
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 70
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 88
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-35.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "3",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 69
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 66
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 89
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 94
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-36.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "8",
+          "confidence": 69
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "8",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-7",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-10",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "8",
+          "confidence": 75
+        },
+        {
+          "experiment": "size-80",
+          "text": "8",
+          "confidence": 86
+        },
+        {
+          "experiment": "size-140",
+          "text": "8",
+          "confidence": 83
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-44.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "5",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "9",
+          "confidence": 38
+        },
+        {
+          "experiment": "psm-6",
+          "text": "5",
+          "confidence": 92
+        },
+        {
+          "experiment": "psm-7",
+          "text": "5",
+          "confidence": 92
+        },
+        {
+          "experiment": "psm-10",
+          "text": "5",
+          "confidence": 92
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "5",
+          "confidence": 70
+        },
+        {
+          "experiment": "size-80",
+          "text": "5",
+          "confidence": 90
+        },
+        {
+          "experiment": "size-140",
+          "text": "5",
+          "confidence": 91
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-45.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "ra",
+          "confidence": 54
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-46.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "2",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 69
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 93
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-49.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "1",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "1",
+          "confidence": 86
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "4",
+          "confidence": 33
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "1",
+          "confidence": 91
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "1",
+          "confidence": 91
+        },
+        {
+          "experiment": "size-60",
+          "text": "1",
+          "confidence": 78
+        },
+        {
+          "experiment": "size-80",
+          "text": "1",
+          "confidence": 84
+        },
+        {
+          "experiment": "size-140",
+          "text": "1",
+          "confidence": 93
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-52.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "7",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "1",
+          "confidence": 29
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "1",
+          "confidence": 49
+        },
+        {
+          "experiment": "psm-6",
+          "text": "7",
+          "confidence": 94
+        },
+        {
+          "experiment": "psm-7",
+          "text": "7",
+          "confidence": 94
+        },
+        {
+          "experiment": "psm-10",
+          "text": "7",
+          "confidence": 94
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "size-60",
+          "text": "7",
+          "confidence": 80
+        },
+        {
+          "experiment": "size-80",
+          "text": "7",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-140",
+          "text": "7",
+          "confidence": 88
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-55.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "5",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "5",
+          "confidence": 89
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "5",
+          "confidence": 70
+        },
+        {
+          "experiment": "size-80",
+          "text": "5",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-140",
+          "text": "5",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-57.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 90
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "2",
+          "confidence": 59
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 70
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 90
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 87
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-63.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "9",
+          "confidence": 33
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "9",
+          "confidence": 33
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "O",
+          "confidence": 59
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-69.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 85
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 69
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 93
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-71.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "8",
+          "confidence": 80
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "8",
+          "confidence": 69
+        },
+        {
+          "experiment": "size-80",
+          "text": "8",
+          "confidence": 91
+        },
+        {
+          "experiment": "size-140",
+          "text": "8",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-74.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 80
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "2",
+          "confidence": 65
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 89
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 89
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 89
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 73
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 91
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 92
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-75.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "3",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 70
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 90
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 89
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-77.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "1",
+          "confidence": 90
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "1",
+          "confidence": 81
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "4",
+          "confidence": 28
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "1",
+          "confidence": 90
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "1",
+          "confidence": 90
+        },
+        {
+          "experiment": "size-60",
+          "text": "1",
+          "confidence": 78
+        },
+        {
+          "experiment": "size-80",
+          "text": "1",
+          "confidence": 82
+        },
+        {
+          "experiment": "size-140",
+          "text": "1",
+          "confidence": 93
+        }
+      ]
+    },
+    {
+      "file": "opencv-paper-blur-1-cell-9.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 88
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "7",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "1",
+          "confidence": 63
+        },
+        {
+          "experiment": "psm-6",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "psm-7",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "psm-10",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "7",
+          "confidence": 91
+        },
+        {
+          "experiment": "size-60",
+          "text": "7",
+          "confidence": 79
+        },
+        {
+          "experiment": "size-80",
+          "text": "7",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-140",
+          "text": "7",
+          "confidence": 87
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-0.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "8",
+          "confidence": 85
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 19
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 16
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "8",
+          "confidence": 67
+        },
+        {
+          "experiment": "size-80",
+          "text": "8",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 6
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-10.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 90
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "2",
+          "confidence": 75
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 51
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 51
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 51
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 87
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-11.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "1",
+          "confidence": 86
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "1",
+          "confidence": 88
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "94",
+          "confidence": 50
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "1",
+          "confidence": 86
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "1",
+          "confidence": 86
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "1",
+          "confidence": 45
+        },
+        {
+          "experiment": "size-140",
+          "text": "1",
+          "confidence": 94
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-2.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "6",
+          "confidence": 35
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "54",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "6",
+          "confidence": 29
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "[<4",
+          "confidence": 64
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 49
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 57
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-21.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "4",
+          "confidence": 21
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "7",
+          "confidence": 89
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "1",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "74",
+          "confidence": 49
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "4",
+          "confidence": 21
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "ve",
+          "confidence": 42
+        },
+        {
+          "experiment": "size-60",
+          "text": "7",
+          "confidence": 53
+        },
+        {
+          "experiment": "size-80",
+          "text": "1",
+          "confidence": 28
+        },
+        {
+          "experiment": "size-140",
+          "text": "4",
+          "confidence": 52
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-22.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "3",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "3",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "3",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 90
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "3",
+          "confidence": 85
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 28
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "3",
+          "confidence": 92
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "3",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 72
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 67
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-23.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "54",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "54",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "6",
+          "confidence": 34
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "[<4",
+          "confidence": 67
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 47
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 54
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-28.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 84
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "7",
+          "confidence": 90
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "4",
+          "confidence": 16
+        },
+        {
+          "experiment": "psm-6",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "ve",
+          "confidence": 57
+        },
+        {
+          "experiment": "size-60",
+          "text": "7",
+          "confidence": 55
+        },
+        {
+          "experiment": "size-80",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-29.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "4",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "4",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "A",
+          "confidence": 6
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-3.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "1",
+          "confidence": 83
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "1",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "94",
+          "confidence": 37
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "1",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-7",
+          "text": "1",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-10",
+          "text": "1",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "1",
+          "confidence": 83
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "1",
+          "confidence": 83
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "1",
+          "confidence": 47
+        },
+        {
+          "experiment": "size-140",
+          "text": "1",
+          "confidence": 94
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-33.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "9",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "9",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "9",
+          "confidence": 82
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "5",
+          "confidence": 40
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "9",
+          "confidence": 92
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "9",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "9",
+          "confidence": 85
+        },
+        {
+          "experiment": "size-140",
+          "text": "5",
+          "confidence": 5
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-35.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "8",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "8",
+          "confidence": 80
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 23
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 24
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "8",
+          "confidence": 93
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "8",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-60",
+          "text": "8",
+          "confidence": 72
+        },
+        {
+          "experiment": "size-80",
+          "text": "8",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-140",
+          "text": "8",
+          "confidence": 16
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-38.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "5",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "5",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-7",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-10",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-60",
+          "text": "5",
+          "confidence": 80
+        },
+        {
+          "experiment": "size-80",
+          "text": "5",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-140",
+          "text": "5",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-43.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "2",
+          "confidence": 81
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 27
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 27
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 27
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 88
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-45.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 93
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "2",
+          "confidence": 80
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 22
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 22
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 22
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 93
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 86
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 96
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-51.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 84
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "7",
+          "confidence": 88
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "ve",
+          "confidence": 56
+        },
+        {
+          "experiment": "size-60",
+          "text": "7",
+          "confidence": 46
+        },
+        {
+          "experiment": "size-80",
+          "text": "7",
+          "confidence": 22
+        },
+        {
+          "experiment": "size-140",
+          "text": "74",
+          "confidence": 51
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-53.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "3",
+          "confidence": 73
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "3",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "3",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 89
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "3",
+          "confidence": 87
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 63
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "3",
+          "confidence": 73
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "3",
+          "confidence": 73
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 69
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 28
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-54.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "1",
+          "confidence": 73
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "1",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "94",
+          "confidence": 46
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-7",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-10",
+          "text": "1",
+          "confidence": 96
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "1",
+          "confidence": 73
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "1",
+          "confidence": 73
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "1",
+          "confidence": 45
+        },
+        {
+          "experiment": "size-140",
+          "text": "1",
+          "confidence": 87
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-55.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "8",
+          "confidence": 82
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "8",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 23
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "3",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "8",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "8",
+          "confidence": 69
+        },
+        {
+          "experiment": "size-80",
+          "text": "8",
+          "confidence": 94
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 9
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-57.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "9",
+          "confidence": 85
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "9",
+          "confidence": 94
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "9",
+          "confidence": 73
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "1",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "9",
+          "confidence": 68
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "9",
+          "confidence": 85
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "9",
+          "confidence": 85
+        },
+        {
+          "experiment": "size-60",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-80",
+          "text": "9",
+          "confidence": 85
+        },
+        {
+          "experiment": "size-140",
+          "text": "5",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-58.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "7",
+          "confidence": 84
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "7",
+          "confidence": 87
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "7",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "4",
+          "confidence": 7
+        },
+        {
+          "experiment": "psm-6",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "ve",
+          "confidence": 52
+        },
+        {
+          "experiment": "size-60",
+          "text": "7",
+          "confidence": 58
+        },
+        {
+          "experiment": "size-80",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "size-140",
+          "text": "74",
+          "confidence": 47
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-62.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "6",
+          "confidence": 63
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "6",
+          "confidence": 84
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "6",
+          "confidence": 48
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "[<4",
+          "confidence": 63
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 54
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 53
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-68.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "3",
+          "confidence": 59
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "3",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "3",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "3",
+          "confidence": 83
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "3",
+          "confidence": 91
+        },
+        {
+          "experiment": "psm-6",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "3",
+          "confidence": 59
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "3",
+          "confidence": 59
+        },
+        {
+          "experiment": "size-60",
+          "text": "3",
+          "confidence": 71
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 96
+        },
+        {
+          "experiment": "size-140",
+          "text": "3",
+          "confidence": 21
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-75.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "6",
+          "confidence": 46
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "54",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "6",
+          "confidence": 36
+        },
+        {
+          "experiment": "psm-7",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-10",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "4",
+          "confidence": 0
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "[<4",
+          "confidence": 65
+        },
+        {
+          "experiment": "size-60",
+          "text": "6",
+          "confidence": 55
+        },
+        {
+          "experiment": "size-80",
+          "text": "3",
+          "confidence": 57
+        },
+        {
+          "experiment": "size-140",
+          "text": "",
+          "confidence": 0
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-76.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "5",
+          "confidence": 90
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "5",
+          "confidence": 96
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "5",
+          "confidence": 90
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-6",
+          "text": "5",
+          "confidence": 77
+        },
+        {
+          "experiment": "psm-7",
+          "text": "5",
+          "confidence": 77
+        },
+        {
+          "experiment": "psm-10",
+          "text": "5",
+          "confidence": 77
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "5",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "5",
+          "confidence": 78
+        },
+        {
+          "experiment": "size-80",
+          "text": "5",
+          "confidence": 93
+        },
+        {
+          "experiment": "size-140",
+          "text": "5",
+          "confidence": 95
+        }
+      ]
+    },
+    {
+      "file": "rozet-rendered-identity-cell-77.png",
+      "trials": [
+        {
+          "experiment": "baseline",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear--0.4",
+          "text": "2",
+          "confidence": 91
+        },
+        {
+          "experiment": "shear--0.2",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "shear-0.2",
+          "text": "2",
+          "confidence": 92
+        },
+        {
+          "experiment": "shear-0.4",
+          "text": "2",
+          "confidence": 82
+        },
+        {
+          "experiment": "psm-6",
+          "text": "2",
+          "confidence": 48
+        },
+        {
+          "experiment": "psm-7",
+          "text": "2",
+          "confidence": 48
+        },
+        {
+          "experiment": "psm-10",
+          "text": "2",
+          "confidence": 48
+        },
+        {
+          "experiment": "psm-11",
+          "text": "",
+          "confidence": 0
+        },
+        {
+          "experiment": "psm-13",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "unwhitelisted",
+          "text": "2",
+          "confidence": 95
+        },
+        {
+          "experiment": "size-60",
+          "text": "2",
+          "confidence": 84
+        },
+        {
+          "experiment": "size-80",
+          "text": "2",
+          "confidence": 92
+        },
+        {
+          "experiment": "size-140",
+          "text": "2",
+          "confidence": 96
+        }
+      ]
+    }
+  ]
+}

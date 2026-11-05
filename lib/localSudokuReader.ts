@@ -1,5 +1,6 @@
 import type { Board } from './sudoku';
 import type { OcrResponse, PreprocessResponse } from './sudoku-reader-protocol';
+import { needsDeslant, selectDigit } from './digit-recognition';
 
 export async function readSudoku(
   file: File,
@@ -122,37 +123,37 @@ export async function readSudoku(
     progress('Loading the local image reader…');
     const preprocessing = new Worker(new URL('./sudoku-preprocess.worker.ts', import.meta.url));
     workers.push(preprocessing);
-    const { cells } = await request<Extract<PreprocessResponse, { type: 'result' }>>(
-      preprocessing,
-      { file },
-      (value, resolve, reject) => {
-        const data = value as PreprocessResponse;
-        if (data.type === 'progress') {
-          if (data.stage === 'processing') void initialize().catch(reject);
-          progress(data.message);
-        } else if (data.type === 'error') reject(new Error(data.message));
-        else if (data.type === 'result') resolve(data);
-      },
-    );
+    const { cells, uncertain: extractionUncertain = [] } = await request<
+      Extract<PreprocessResponse, { type: 'result' }>
+    >(preprocessing, { file }, (value, resolve, reject) => {
+      const data = value as PreprocessResponse;
+      if (data.type === 'progress') {
+        if (data.stage === 'processing') void initialize().catch(reject);
+        progress(data.message);
+      } else if (data.type === 'error') reject(new Error(data.message));
+      else if (data.type === 'result') resolve(data);
+    });
     preprocessing.terminate();
     signal?.throwIfAborted();
     if (!cells.length) throw new Error('No digits were recognized. Try a sharper photo.');
     progress('Loading local digit recognition…');
     await initialize();
     const board: Board = Array(81).fill(0);
-    const uncertain: number[] = [];
-    for (const { index, image } of cells) {
+    const uncertain = new Set(extractionUncertain);
+    for (const { index, image, deslanted } of cells) {
       progress(`Reading cells… ${index + 1} / 81`);
       const result = await run('recognize', { image, options: {}, output: { text: true } });
-      const text = result.text.trim();
-      if (/^[1-9]$/.test(text)) {
-        board[index] = Number(text);
-        if (result.confidence < 65) uncertain.push(index);
-      } else uncertain.push(index);
+      const alternative =
+        deslanted && needsDeslant(result)
+          ? await run('recognize', { image: deslanted, options: {}, output: { text: true } })
+          : undefined;
+      const selected = selectDigit(result, alternative);
+      board[index] = selected.digit;
+      if (selected.uncertain) uncertain.add(index);
     }
     if (!board.some(Boolean)) throw new Error('No digits were recognized. Try a sharper photo.');
     signal?.throwIfAborted();
-    return { board, uncertain };
+    return { board, uncertain: [...uncertain].sort((a, b) => a - b) };
   } finally {
     stopped = true;
     signal?.removeEventListener('abort', abort);

@@ -2,7 +2,13 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import CV from '@techstark/opencv-js';
 import sharp from 'sharp';
-import { detectGrid, extractDigit, findGridCorners } from '../lib/sudoku-image-processing';
+import {
+  analyzeDigit,
+  detectGrid,
+  extractDigit,
+  extractDigitCell,
+  findGridCorners,
+} from '../lib/sudoku-image-processing';
 import manifest from './fixtures/ocr-evaluation/manifest.json';
 
 // The legacy Emscripten module is thenable and must never itself resolve a Promise.
@@ -186,5 +192,121 @@ test('local grid support preserves digits crossing nominal cell boundaries on bo
     assert.equal(extractDigit(CV, ink, 5), null);
   } finally {
     ink.delete();
+  }
+});
+
+test('missing faint row lines interpolate between supported boundaries instead of clipping clues', async () => {
+  await ready;
+  const ink = CV.Mat.zeros(900, 900, CV.CV_8UC1);
+  try {
+    for (const y of [18, 309, 606, 897])
+      CV.line(ink, new CV.Point(0, y), new CV.Point(899, y), new CV.Scalar(255), 3);
+    for (let x = 0; x < 900; x += 100)
+      CV.line(ink, new CV.Point(x, 0), new CV.Point(x, 899), new CV.Scalar(255), 3);
+    CV.rectangle(ink, new CV.Point(340, 43), new CV.Point(372, 102), new CV.Scalar(255), -1);
+    const digit = extractDigit(CV, ink, 3);
+    assert.ok(digit, 'a missing row line must not turn a complete clue into a border artifact');
+    assert.equal(digit.height, 60);
+    assert.equal(
+      extractDigit(CV, ink, 4),
+      null,
+      'interpolation does not turn blank cells into clues',
+    );
+  } finally {
+    ink.delete();
+  }
+});
+
+test('nearby interior stroke fragments stay in the glyph without filling their gaps', async () => {
+  await ready;
+  const ink = CV.Mat.zeros(900, 900, CV.CV_8UC1);
+  try {
+    CV.rectangle(ink, new CV.Point(36, 22), new CV.Point(61, 42), new CV.Scalar(255), -1);
+    CV.rectangle(ink, new CV.Point(34, 47), new CV.Point(62, 79), new CV.Scalar(255), -1);
+    CV.rectangle(ink, new CV.Point(8, 8), new CV.Point(10, 10), new CV.Scalar(255), -1);
+    const digit = extractDigit(CV, ink, 0);
+    assert.ok(digit);
+    assert.equal(digit.height, 58, 'both pieces of a faint, disconnected glyph survive');
+    assert.equal(digit.width, 29, 'remote specks are not joined');
+    assert.equal(
+      digit.pixels[(22 * digit.width + 10) * 4],
+      255,
+      'no synthetic ink bridges the gap',
+    );
+  } finally {
+    ink.delete();
+  }
+});
+
+test('discarded centered partial glyphs are review-visible but grids and specks are not', async () => {
+  await ready;
+  const ink = CV.Mat.zeros(900, 900, CV.CV_8UC1);
+  try {
+    CV.rectangle(ink, new CV.Point(34, 42), new CV.Point(63, 98), new CV.Scalar(255), -1);
+    assert.deepEqual(analyzeDigit(CV, ink, 0), { digit: null, uncertain: true });
+    CV.rectangle(ink, new CV.Point(100, 0), new CV.Point(199, 99), new CV.Scalar(255), 5);
+    assert.deepEqual(analyzeDigit(CV, ink, 1), { digit: null, uncertain: false });
+    CV.rectangle(ink, new CV.Point(242, 42), new CV.Point(246, 46), new CV.Scalar(255), -1);
+    assert.deepEqual(analyzeDigit(CV, ink, 2), { digit: null, uncertain: false });
+  } finally {
+    ink.delete();
+  }
+});
+
+test('fragmented ink can recover faint strokes while complete glyphs bypass rethresholding', async () => {
+  await ready;
+  const ink = CV.Mat.zeros(900, 900, CV.CV_8UC1);
+  const recovered = CV.Mat.zeros(900, 900, CV.CV_8UC1);
+  try {
+    CV.rectangle(ink, new CV.Point(36, 22), new CV.Point(61, 42), new CV.Scalar(255), -1);
+    CV.rectangle(ink, new CV.Point(34, 47), new CV.Point(62, 79), new CV.Scalar(255), -1);
+    CV.rectangle(recovered, new CV.Point(32, 20), new CV.Point(64, 81), new CV.Scalar(255), -1);
+    let retries = 0;
+    const recovery = () => {
+      retries++;
+      return recovered;
+    };
+    const result = extractDigitCell(CV, ink, 0, recovery);
+    assert.equal(
+      result.digit?.height,
+      62,
+      'a complete, slightly larger recovered stroke mask replaces fragments',
+    );
+    assert.equal(result.uncertain, true, 'restoration does not erase evidence of lost strokes');
+    assert.equal(retries, 1);
+    CV.rectangle(ink, new CV.Point(134, 22), new CV.Point(162, 79), new CV.Scalar(255), -1);
+    assert.ok(extractDigitCell(CV, ink, 1, recovery).digit);
+    assert.equal(retries, 1, 'complete glyphs never invoke the recovery threshold');
+  } finally {
+    ink.delete();
+    recovered.delete();
+  }
+});
+
+test('rethresholding does not select a smaller fragment, a giant ink patch or more disconnected ink', async () => {
+  await ready;
+  const ink = CV.Mat.zeros(900, 900, CV.CV_8UC1);
+  const recovered = CV.Mat.zeros(900, 900, CV.CV_8UC1);
+  try {
+    CV.rectangle(ink, new CV.Point(36, 22), new CV.Point(61, 42), new CV.Scalar(255), -1);
+    CV.rectangle(ink, new CV.Point(34, 47), new CV.Point(62, 79), new CV.Scalar(255), -1);
+    for (const rectangle of [
+      [40, 30, 60, 70],
+      [20, 10, 80, 90],
+    ]) {
+      recovered.setTo(new CV.Scalar(0));
+      CV.rectangle(
+        recovered,
+        new CV.Point(rectangle[0], rectangle[1]),
+        new CV.Point(rectangle[2], rectangle[3]),
+        new CV.Scalar(255),
+        -1,
+      );
+      assert.equal(extractDigitCell(CV, ink, 0, () => recovered).digit?.height, 58);
+    }
+    assert.equal(extractDigitCell(CV, ink, 0, () => ink).digit?.height, 58);
+  } finally {
+    ink.delete();
+    recovered.delete();
   }
 });
