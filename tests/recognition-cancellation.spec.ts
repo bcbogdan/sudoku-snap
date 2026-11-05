@@ -28,7 +28,7 @@ test('cancelling a photo read releases the create screen without saving a draft'
     releaseLoad();
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'My puzzles', exact: true })).toBeVisible();
-    await expect(page.locator('.puzzle-card')).toHaveCount(0);
+    await expect(page.locator('.kit-puzzle-card')).toHaveCount(0);
     await page.goto('/?new');
     await page.getByRole('button', { name: 'Enter clues by hand' }).click();
     await expect(page.getByRole('button', { name: 'Confirm clues & play' })).toBeVisible();

@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { puzzleShareURL } from '../lib/sharing';
+import clues from './fixtures/expected.json';
 
 test('editable names persist and mobile layouts follow live system theme changes', async ({
   page,
@@ -45,7 +47,7 @@ test('editable names persist and mobile layouts follow live system theme changes
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: 'test-results/mobile-dark.png', fullPage: true });
   await page.goto('/');
-  await expect(page.locator('.puzzle-card h2')).toHaveText('WeekendPuzzle'.repeat(6));
+  await expect(page.locator('.kit-puzzle-card h2')).toHaveText('WeekendPuzzle'.repeat(6));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
@@ -54,4 +56,65 @@ test('editable names persist and mobile layouts follow live system theme changes
   await page.goto(draftURL);
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(243, 245, 247)');
+});
+
+test('play controls stay aligned and readable at narrow widths; attempt focus is not clipped', async ({
+  page,
+}) => {
+  await page.goto(puzzleShareURL('http://127.0.0.1:3187', clues, 'Layout checks'));
+  await page.getByRole('button', { name: 'Confirm clues & play' }).click();
+  await expect(page.getByLabel('Attempt history')).toBeVisible();
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+    for (const width of [320, 360, 390, 1280]) {
+      await page.setViewportSize({ width, height: 844 });
+      const board = await page.locator('.board-wrap').boundingBox();
+      const toolbar = await page.locator('.play-toolbar').boundingBox();
+      expect(Math.abs(board!.x - toolbar!.x)).toBeLessThan(1);
+      expect(Math.abs(board!.width - toolbar!.width)).toBeLessThan(1);
+      const toggles = await page.locator('.play-toolbar .kit-toggle').evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const box = button.getBoundingClientRect();
+          const label = button.querySelector('.kit-toggle__label')!.getBoundingClientRect();
+          return {
+            x: box.x,
+            y: box.y,
+            bottom: box.bottom,
+            height: box.height,
+            labelHeight: label.height,
+          };
+        }),
+      );
+      expect(toggles.every((toggle) => toggle.height >= 44 && toggle.labelHeight <= 24)).toBe(true);
+      if (width === 320) {
+        expect(toggles[1].x).toBe(toggles[0].x);
+        expect(toggles[1].y).toBeGreaterThanOrEqual(toggles[0].bottom);
+      } else {
+        expect(toggles[1].y).toBe(toggles[0].y);
+      }
+      const saved = await page.locator('.save-state').boundingBox();
+      const mistakes = await page.locator('.kit-mistake-counter').boundingBox();
+      const timer = await page.locator('.kit-attempt-timer').boundingBox();
+      expect(Math.abs(saved!.x + saved!.width - mistakes!.x - mistakes!.width)).toBeLessThan(2);
+      expect(saved!.y).toBeGreaterThanOrEqual(timer!.y);
+      expect(mistakes!.y + mistakes!.height).toBeLessThanOrEqual(timer!.y + timer!.height);
+      const actions = await page.locator('.puzzle-actions button').evaluateAll((buttons) =>
+        buttons.map((button) => ({
+          height: button.getBoundingClientRect().height,
+          whiteSpace: getComputedStyle(button).whiteSpace,
+        })),
+      );
+      expect(
+        actions.every((button) => button.height === 52 && button.whiteSpace === 'nowrap'),
+      ).toBe(true);
+    }
+  }
+  await page.getByRole('link', { name: 'All attempts' }).click();
+  const attempt = page.getByRole('link', { name: /Attempt 1/ });
+  await attempt.focus();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  await expect(attempt).toBeFocused();
+  await expect(attempt).toHaveCSS('outline-style', 'solid');
+  await expect(page.locator('.attempt-list')).toHaveCSS('overflow', 'visible');
 });

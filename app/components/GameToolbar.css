@@ -1,4 +1,5 @@
 .kit-game-toolbar {
+  container-type: inline-size;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -8,6 +9,12 @@
   margin: 0;
   color: var(--color-text);
   font: var(--text-body);
+}
+
+@container (max-width: 300px) {
+  .kit-game-toolbar--play > .kit-toggle {
+    grid-column: 1 / -1;
+  }
 }
 
 .kit-game-toolbar--review > span {
@@ -26,6 +33,33 @@
   font-size: 16px;
 }
 
-.kit-game-toolbar > .kit-game-toolbar__mistakes {
+.kit-game-toolbar--play {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.kit-game-toolbar--play > .kit-button {
+  padding-inline: var(--space-2);
+  font-size: 14px;
+}
+
+.kit-game-toolbar__status {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 28px;
+  font: var(--text-meta);
+  color: var(--color-text-secondary);
+}
+
+.kit-game-toolbar__mistakes {
+  margin-inline-start: auto;
+}
+
+.kit-game-toolbar__status > .kit-game-toolbar__mistakes {
   margin: 0;
+  margin-inline-start: auto;
 }

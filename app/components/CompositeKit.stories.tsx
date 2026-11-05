@@ -14,6 +14,7 @@ import type { PuzzleCardModel } from './PuzzleLibrary';
 import PuzzleTitle from './PuzzleTitle';
 import ReplayControls from './ReplayControls';
 import { ScanTips } from './ScanTips';
+import { SaveStatus } from './SaveStatus';
 import { clues, completedBoard } from './story-fixtures';
 import './CompositeKit.css';
 
@@ -165,6 +166,7 @@ function CompositeKit() {
             notesMode={notes}
             check={check}
             mistakes={1}
+            status={<SaveStatus state="saved" />}
             busy={false}
             readOnly={false}
             onToggleNotes={() => setNotes(!notes)}

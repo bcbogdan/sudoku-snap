@@ -16,6 +16,8 @@ import StatusNotice from './components/StatusNotice';
 import SudokuBoard from './components/SudokuBoard';
 import OriginalPhoto from './components/OriginalPhoto';
 import AttemptTimer from './components/AttemptTimer';
+import { Badge } from './components/Badge';
+import './styles/presentation.css';
 import { CommandQueue, type QueueStatus } from '@/lib/command-queue';
 import { useFocusTimer } from '@/lib/use-focus-timer';
 import { puzzleShareURL } from '@/lib/sharing';
@@ -384,7 +386,27 @@ export default function Sudoku() {
       onRemove={() => void removeCurrentPuzzle()}
     />
   ) : null;
-  const header = <AppHeader screen={screen} />;
+  const header = (
+    <AppHeader
+      screen={screen}
+      backLink={
+        screen === 'play' && puzzle
+          ? { href: puzzleURL(puzzle.id), label: 'All attempts' }
+          : screen !== 'library'
+            ? { href: '/', label: 'My puzzles' }
+            : undefined
+      }
+      status={
+        screen === 'play' && attempt ? (
+          <Badge kind={complete ? 'completed' : historical ? 'replaying' : 'in-progress'}>
+            {complete ? 'Completed' : historical ? 'Viewing history' : 'In progress'}
+          </Badge>
+        ) : screen === 'review' ? (
+          <Badge kind="draft">Review clues</Badge>
+        ) : undefined
+      }
+    />
+  );
   const puzzleTitle = puzzle ? (
     <PuzzleTitle
       name={puzzle.name}
@@ -446,7 +468,9 @@ export default function Sudoku() {
       </main>
     );
   return (
-    <main className={screen === 'play' || screen === 'review' ? 'board-screen' : ''}>
+    <main
+      className={`sudoku-app sudoku-app--${screen} ${screen === 'play' || screen === 'review' ? 'board-screen' : ''}`}
+    >
       {header}
       {screen === 'library' ? <PuzzleLibrary items={libraryItems} /> : null}
       {screen === 'create' ? (
@@ -489,66 +513,63 @@ export default function Sudoku() {
       ) : null}
       {(screen === 'play' || screen === 'review') && puzzle && position ? (
         <section className="play-surface" aria-label="Sudoku game">
-          <div className="play-heading">
-            <div>
-              <a className="back" href={screen === 'play' ? puzzleURL(puzzle.id) : '/'}>
-                ← {screen === 'play' ? 'All attempts' : 'My puzzles'}
-              </a>
-              {puzzleTitle}
+          <div className="puzzle-console">
+            <div className="play-heading">
+              <div>{puzzleTitle}</div>
             </div>
-            <div className="play-meta">
-              {attempt ? (
-                <>
-                  <span className="badge">
-                    {complete ? 'Completed' : historical ? 'Viewing history' : 'In progress'}
-                  </span>
-                  <AttemptTimer store={focusTimer.store} fixedElapsed={elapsed} />
-                </>
-              ) : (
-                <span className="badge">Review clues</span>
-              )}
-            </div>
+            {queueStatus.error || message || timerError ? (
+              <div role="alert" className="board-save-error">
+                {queueStatus.error || message}
+                {timerError ? (
+                  <p>
+                    Timer could not save: {timerError} Keep this tab open; timing will retry
+                    automatically.
+                  </p>
+                ) : null}
+                {queueStatus.error ? (
+                  <button className="secondary" onClick={() => queue.current?.reset()}>
+                    Resume editing
+                  </button>
+                ) : null}
+              </div>
+            ) : screen === 'review' ? (
+              <p role="status" className="save-state">
+                {busy ? 'Saving…' : 'Draft saved'}
+              </p>
+            ) : null}
+            {screen === 'review' ? (
+              <GameToolbar
+                mode="review"
+                clueCount={board.filter(Boolean).length}
+                uncertainCount={puzzle.uncertain.length}
+                busy={busy}
+                onBegin={() => void begin()}
+              />
+            ) : (
+              <GameToolbar
+                mode="play"
+                notesMode={notesMode}
+                check={check}
+                mistakes={position.mistakes}
+                status={
+                  <>
+                    {attempt ? (
+                      <AttemptTimer store={focusTimer.store} fixedElapsed={elapsed} />
+                    ) : null}
+                    {!queueStatus.error && !message && !timerError ? (
+                      <span role="status" className="save-state">
+                        {busy ? 'Saving…' : 'Saved'}
+                      </span>
+                    ) : null}
+                  </>
+                }
+                busy={actionBusy}
+                readOnly={readOnly}
+                onToggleNotes={() => setNotesMode((v) => !v)}
+                onToggleCheck={() => setCheck((v) => !v)}
+              />
+            )}
           </div>
-          {queueStatus.error || message || timerError ? (
-            <div role="alert" className="board-save-error">
-              {queueStatus.error || message}
-              {timerError ? (
-                <p>
-                  Timer could not save: {timerError} Keep this tab open; timing will retry
-                  automatically.
-                </p>
-              ) : null}
-              {queueStatus.error ? (
-                <button className="secondary" onClick={() => queue.current?.reset()}>
-                  Resume editing
-                </button>
-              ) : null}
-            </div>
-          ) : (
-            <p role="status" className="save-state">
-              {busy ? 'Saving…' : screen === 'review' ? 'Draft saved' : 'Saved'}
-            </p>
-          )}
-          {screen === 'review' ? (
-            <GameToolbar
-              mode="review"
-              clueCount={board.filter(Boolean).length}
-              uncertainCount={puzzle.uncertain.length}
-              busy={busy}
-              onBegin={() => void begin()}
-            />
-          ) : (
-            <GameToolbar
-              mode="play"
-              notesMode={notesMode}
-              check={check}
-              mistakes={position.mistakes}
-              busy={actionBusy}
-              readOnly={readOnly}
-              onToggleNotes={() => setNotesMode((v) => !v)}
-              onToggleCheck={() => setCheck((v) => !v)}
-            />
-          )}
           <div className="board-wrap">
             <SudokuBoard
               mode={screen}

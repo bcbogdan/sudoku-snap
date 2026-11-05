@@ -32,8 +32,8 @@ test('shared links import, reopen without duplication, and removal requires conf
   });
   await page.getByRole('button', { name: 'Remove puzzle', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'My puzzles', exact: true })).toBeVisible();
-  await expect(page.locator('.puzzle-card')).toHaveCount(0);
+  await expect(page.locator('.kit-puzzle-card')).toHaveCount(0);
   await page.goto('/?p=invalid&n=Bad');
   await expect(page.locator('main > .status')).toContainText('invalid');
-  await expect(page.locator('.puzzle-card')).toHaveCount(0);
+  await expect(page.locator('.kit-puzzle-card')).toHaveCount(0);
 });

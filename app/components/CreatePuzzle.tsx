@@ -1,3 +1,8 @@
+import { Button } from './Button';
+import { Icon } from './Icon';
+import { PhotoDropZone } from './PhotoDropZone';
+import { ScanTips } from './ScanTips';
+
 export interface CreatePuzzleProps {
   busy: boolean;
   onUpload: (file: File) => void;
@@ -18,44 +23,18 @@ export default function CreatePuzzle({
       <p className="eyebrow">ADD TO YOUR COLLECTION</p>
       <h1>A new puzzle.</h1>
       <p>Start with a photo, or enter the printed clues yourself.</p>
-      <label
-        className="upload"
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          const file = event.dataTransfer.files[0];
-          if (file && !busy) onUpload(file);
-        }}
-      >
-        <span aria-hidden="true">＋</span>
-        <strong>{busy ? 'Reading your photo…' : 'Choose a Sudoku photo'}</strong>
-        <small>or drop or paste an image · up to 20 MB</small>
-        <input
-          aria-label="Choose a Sudoku photo"
-          type="file"
-          accept="image/*"
-          disabled={busy}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) onUpload(file);
-            event.target.value = '';
-          }}
-        />
-      </label>
+      <PhotoDropZone busy={busy} onUpload={onUpload} />
       <div className="create-actions">
-        {busy && onCancel && (
-          <button className="secondary" onClick={onCancel}>
-            Cancel reading
-          </button>
-        )}
-        <button disabled={busy} className="secondary" onClick={onPasteImage}>
-          Paste image
-        </button>
-        <button disabled={busy} className="secondary" onClick={onCreateManual}>
-          Enter clues by hand
-        </button>
+        {busy && onCancel && <Button onClick={onCancel}>Cancel reading</Button>}
+        <Button disabled={busy} onClick={onPasteImage}>
+          <Icon name="copy" /> Paste image
+        </Button>
+        <Button disabled={busy} onClick={onCreateManual}>
+          <Icon name="pencil" /> Enter clues by hand
+        </Button>
       </div>
       <p className="storage-note">Photos are processed and saved on your device.</p>
+      <ScanTips />
     </section>
   );
 }

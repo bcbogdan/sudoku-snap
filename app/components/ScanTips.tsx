@@ -8,7 +8,7 @@ export function ScanTips() {
       <ul>
         <li>
           <Icon name="check" />
-          Include the whole board, straight on.
+          Include the whole board, straight{'\u00a0'}on.
         </li>
         <li>
           <Icon name="check" />

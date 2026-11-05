@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Button from './Button';
 import { Icon } from './Icon';
 import { MistakeCounter } from './MistakeCounter';
@@ -17,6 +18,7 @@ export interface PlayToolbarProps {
   notesMode: boolean;
   check: boolean;
   mistakes: number;
+  status?: ReactNode;
   busy: boolean;
   readOnly: boolean;
   onToggleNotes: () => void;
@@ -42,6 +44,12 @@ export default function GameToolbar(props: GameToolbarProps) {
   }
   return (
     <div className="play-toolbar kit-game-toolbar kit-game-toolbar--play">
+      <div className="kit-game-toolbar__status">
+        {props.status}
+        <span className="mistakes kit-game-toolbar__mistakes">
+          <MistakeCounter count={props.mistakes} />
+        </span>
+      </div>
       <Toggle
         label="Pencil notes"
         pressed={props.notesMode}
@@ -49,9 +57,6 @@ export default function GameToolbar(props: GameToolbarProps) {
         onClick={props.onToggleNotes}
       />
       <Toggle label="Mistake check" pressed={props.check} onClick={props.onToggleCheck} />
-      <span className="mistakes kit-game-toolbar__mistakes">
-        <MistakeCounter count={props.mistakes} />
-      </span>
     </div>
   );
 }

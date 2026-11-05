@@ -8,7 +8,7 @@
   display: grid;
   grid-template-columns: var(--control-min) minmax(0, 1fr) fit-content(8.25rem);
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   min-inline-size: 0;
   min-block-size: var(--control-min);
   padding: var(--space-4) var(--space-3);
@@ -53,8 +53,21 @@
 }
 
 .kit-attempt-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
   color: var(--color-text-secondary);
   font: var(--text-meta);
+}
+
+.kit-attempt-row__date {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  text-wrap: pretty;
+}
+
+.kit-attempt-row__mistakes {
+  white-space: nowrap;
 }
 
 .kit-attempt-row__result {
@@ -85,6 +98,23 @@
   inline-size: 100%;
   block-size: var(--space-2);
   accent-color: var(--color-cell-entry);
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.kit-attempt-row__progress progress::-webkit-progress-bar {
+  background: var(--color-border);
+}
+
+.kit-attempt-row__progress progress::-webkit-progress-value {
+  background: var(--color-cell-entry);
+  border-radius: var(--radius-sm);
+}
+
+.kit-attempt-row[data-complete='true'] progress::-webkit-progress-value {
+  background: var(--color-success);
 }
 
 .kit-attempt-row[data-complete='true'] progress {
@@ -97,14 +127,62 @@
   }
 }
 
+@container (min-width: 320px) and (max-width: 420px) {
+  .kit-attempt-row__details {
+    display: contents;
+  }
+
+  .kit-attempt-row__title {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .kit-attempt-row__number {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    align-self: start;
+  }
+
+  .kit-attempt-row__meta {
+    grid-column: 2 / -1;
+  }
+
+  .kit-attempt-row__result {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
 @container (max-width: 319px) {
   .kit-attempt-row {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .kit-attempt-row__result {
+  .kit-attempt-row__details {
+    display: contents;
+  }
+
+  .kit-attempt-row__number {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .kit-attempt-row__title {
     grid-column: 2;
-    justify-items: start;
+    grid-row: 1;
+  }
+
+  .kit-attempt-row__meta {
+    grid-column: 1 / -1;
+  }
+
+  .kit-attempt-row__result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    grid-column: 1 / -1;
     max-inline-size: 100%;
   }
 }

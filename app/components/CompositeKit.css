@@ -71,7 +71,7 @@
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 480px) {
   .composite-kit__cards {
     grid-template-columns: minmax(0, 1fr);
   }

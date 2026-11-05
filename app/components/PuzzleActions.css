@@ -1,20 +1,33 @@
 .kit-puzzle-actions.puzzle-actions {
+  container-type: inline-size;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-3);
+  justify-content: flex-start;
+  gap: var(--space-2);
   margin: var(--space-4) 0;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .kit-puzzle-actions > .kit-button {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
+  padding-inline: var(--space-3);
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+@container (max-width: 340px) {
+  .kit-puzzle-actions > .kit-button {
+    flex: 1 1 100%;
+  }
 }
 
 .kit-puzzle-actions .kit-puzzle-actions__remove {
+  --kit-button-bg: transparent;
+  --kit-button-border: transparent;
   --kit-button-fg: var(--color-error);
   color: var(--kit-button-fg);
+  font-weight: 500;
 }
 
 .kit-puzzle-actions .kit-puzzle-actions__remove:disabled {

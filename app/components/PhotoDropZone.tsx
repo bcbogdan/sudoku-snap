@@ -78,7 +78,10 @@ export function PhotoDropZone({ busy, onUpload, invalid = false }: PhotoDropZone
             {busy ? 'Reading your photo…' : 'Choose a Sudoku photo'}
           </span>
           <span className="kit-photo-drop__description" id={`${id}-description`}>
-            or drop or paste an image · up to 20 MB
+            <span>or drop or paste an image</span>{' '}
+            <span>
+              up{'\u00a0'}to{'\u00a0'}20{'\u00a0'}MB
+            </span>
           </span>
         </label>
       </CornerFrame>

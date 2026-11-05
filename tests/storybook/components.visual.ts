@@ -52,10 +52,10 @@ for (const scenario of ['empty', 'populated (long names on phones)']) {
       ).toBeVisible();
     }
     if (state !== 'empty') {
-      const previews = await page.locator('.mini-board').evaluateAll((boards) =>
+      const previews = await page.locator('.kit-board-preview').evaluateAll((boards) =>
         boards.map((board) => {
           const preview = board.getBoundingClientRect();
-          const card = board.closest('.puzzle-card')!.getBoundingClientRect();
+          const card = board.closest('.kit-puzzle-card')!.getBoundingClientRect();
           return {
             square: Math.abs(preview.width - preview.height) <= 1,
             contained:

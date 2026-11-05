@@ -43,7 +43,7 @@ Independent foundation review found one custom-tint precedence issue in CSS-only
 - [ ] Responsive, persistence, interaction, and accessibility regressions checked.
 - [ ] Real iOS/Android device verification (requires hardware).
 
-The component gate has passed. Page composition remains unmigrated; shared fonts, colors, and component updates affect existing pages, but their layout is not yet the reference design.
+The component gate passed before the subsequent refinement wave. Library/create/detail/play now use improved shared-kit presentation, but the full six-screen migration and its data integration remain incomplete. Updated screenshot baselines and a clean final-source visual rerun are pending.
 
 ## Stage 2 — core primitives (approved)
 
@@ -119,7 +119,23 @@ Final composite gate:
 - Coordinator inspected final PDF comparisons for cards, attempts, and replay; dark composition, contextual navigation, original-photo zoom/error, and actual toast captures.
 - Final evidence: `/tmp/opencode/sudoku-composite-review/verification.json`, final contact sheets/PDF comparisons/hash manifests; report: `storybook-report/index.html`.
 
-Component gate approved. Composite-wave changes remain uncommitted. Next: migrate the six screens using the data-access constraints below, then run full-screen responsive/theme and persistence regressions. Real-device iOS/Android verification remains outstanding.
+Composite checkpoint committed as `f7784b5`. The verification above describes that checkpoint, not the subsequent refinements below.
+
+## UI refinement — presentation integrated; remaining screen work
+
+- Improved actual library/create/detail/play composition with shared cards, upload frame/scan guidance, attempt rows, contextual headers, board-aligned controls, calmer toggles, grouped actions, and visible focus.
+- Added narrow-screen layout/focus regressions; existing navigation, storage, OCR, timers, sharing, history, and cancellation semantics remain intact.
+- Final refinement verification: production/Storybook builds and typecheck pass; 138 core, 29 app E2E, 216 interaction/axe, and 14 environment tests pass. Eight actual-app 320px overflow checks pass.
+- Final-source guarded baseline update and clean visual comparison remain pending. Port 6007 was occupied by another task's server; it was not stopped or bypassed. The earlier 639-pass result applies only to the composite checkpoint.
+
+Remaining main-plan work:
+
+1. Finish collection counts/filter integration and real attempt-progress previews using bounded projections, not complete histories/photos.
+2. Complete review-clues composition/state coverage and all-attempts preview/completion/stats/mistake/progress integration using fresh timer records.
+3. Introduce the explicit move-history screen state, current-move highlighting/details, and read-only latest/zero-move replay. Preserve existing focused-time semantics and return-to-live behavior.
+4. Finish responsive screen layouts, including collection column behavior and wide-screen supporting controls. Remove superseded legacy presentation only after replacement verification.
+5. Add full-screen light/dark regressions for all six screens, empty/error/saving states, replay boundaries, and the complete upload/manual → review → play → replay → attempts/reload flow. Finish guarded baseline review and clean non-update comparison once the required port is available.
+6. Verify on real iOS/Android hardware: safe areas, software keyboard, zoom, long press/touch, and landscape. Optional completion sweep/haptics remain separate follow-ups, not blockers.
 
 ## Screen-data audit — later handoff
 

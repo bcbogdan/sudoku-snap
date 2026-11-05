@@ -1,4 +1,7 @@
 import type { ReactNode } from 'react';
+import AttemptRow from './AttemptRow';
+import { Button } from './Button';
+import { Icon } from './Icon';
 
 export interface AttemptRowModel {
   readonly id: string;
@@ -30,33 +33,24 @@ export default function PuzzleDetail({
   onBegin,
 }: PuzzleDetailProps) {
   return (
-    <section className="library">
-      <a className="back" href="/">
-        ← My puzzles
-      </a>
+    <section className="library puzzle-detail">
       <div className="section-heading">
         <div>
           <p className="eyebrow">{createdLabel}</p>
           {title}
           <p>{clueCount} original clues</p>
         </div>
-        <button className="primary" disabled={busy} onClick={onBegin}>
-          ＋ New attempt
-        </button>
       </div>
       {actions}
-      <h2>Attempts</h2>
+      <div className="puzzle-detail__attempts-heading">
+        <h2>Attempts</h2>
+        <Button variant="flash" disabled={busy} onClick={onBegin}>
+          <Icon name="plus" /> New attempt
+        </Button>
+      </div>
       <div className="attempt-list">
         {attempts.map((attempt) => (
-          <a href={attempt.href} key={attempt.id} className="attempt-row">
-            <div>
-              <strong>Attempt {attempt.number}</strong>
-              <p>Started {attempt.startedLabel}</p>
-            </div>
-            <span className="badge">{attempt.complete ? 'Completed' : 'In progress'}</span>
-            <span>{attempt.moveCount} moves</span>
-            <span>{attempt.durationLabel !== null ? attempt.durationLabel : 'Resume →'}</span>
-          </a>
+          <AttemptRow key={attempt.id} attempt={attempt} />
         ))}
       </div>
       {!attempts.length ? <p>No attempts yet. Start a fresh one whenever you’re ready.</p> : null}

@@ -1,0 +1,295 @@
+.sudoku-app {
+  max-width: 1120px;
+  padding-inline-start: max(var(--page-gutter), env(safe-area-inset-left));
+  padding-inline-end: max(var(--page-gutter), env(safe-area-inset-right));
+}
+
+.sudoku-app .primary {
+  min-height: var(--control-height);
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font: var(--text-body);
+  font-weight: 600;
+}
+
+.sudoku-app .puzzle-library .primary {
+  background: var(--color-button-flash-bg);
+  color: var(--color-button-flash-text);
+  border-color: transparent;
+}
+
+.sudoku-app .library {
+  padding-block: var(--space-8);
+}
+
+.sudoku-app .section-heading {
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.sudoku-app .eyebrow {
+  font: var(--text-meta);
+  letter-spacing: 0.1em;
+}
+
+.sudoku-app .puzzle-list {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-6);
+}
+
+.sudoku-app .kit-puzzle-card {
+  max-inline-size: none;
+}
+
+.sudoku-app .create-screen {
+  max-width: 560px;
+  margin: var(--space-8) auto;
+  text-align: left;
+}
+
+.sudoku-app .create-screen > h1 {
+  margin-block: var(--space-3);
+}
+
+.sudoku-app .create-screen > p:not(.eyebrow) {
+  margin-block: var(--space-3) var(--space-6);
+}
+
+.sudoku-app .create-screen .kit-photo-drop {
+  margin-top: var(--space-8);
+}
+
+.sudoku-app .create-actions {
+  justify-content: flex-start;
+  margin-block: var(--space-4);
+}
+
+.sudoku-app .create-screen .kit-scan-tips {
+  margin-top: var(--space-8);
+}
+
+.sudoku-app .play-surface,
+.sudoku-app.board-screen > .puzzle-actions {
+  width: min(100%, 540px);
+  margin-inline: auto;
+}
+
+.sudoku-app .play-surface {
+  padding-block: var(--space-2) var(--space-3);
+}
+
+.theme-settings {
+  max-width: 1120px;
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-8);
+}
+
+.sudoku-app .play-heading {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.sudoku-app:not(.sudoku-app--library) > .kit-app-header {
+  min-height: 64px;
+  padding-block: var(--space-2);
+}
+
+.sudoku-app .create-screen {
+  margin-block: var(--space-4);
+}
+
+.sudoku-app--play > .kit-app-header,
+.sudoku-app--review > .kit-app-header {
+  max-width: 540px;
+  margin-inline: auto;
+  gap: var(--space-2);
+}
+
+.sudoku-app--create > .kit-app-header {
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.sudoku-app--detail > .kit-app-header {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.sudoku-app .play-heading .back {
+  margin-bottom: var(--space-3);
+}
+
+.sudoku-app .play-meta {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.sudoku-app .save-state {
+  margin-block: var(--space-2) var(--space-4);
+  text-align: right;
+  font: var(--text-meta);
+}
+
+.sudoku-app .kit-game-toolbar__status .save-state {
+  margin: 0;
+  text-align: left;
+}
+
+.sudoku-app .kit-game-toolbar {
+  margin-bottom: var(--space-4);
+}
+
+.sudoku-app .kit-game-toolbar__mistakes {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+.sudoku-app .board-wrap {
+  width: 100%;
+  max-width: none;
+}
+
+.sudoku-app .history.kit-attempt-history {
+  max-width: none;
+}
+
+.sudoku-app .kit-puzzle-actions.puzzle-actions {
+  justify-content: flex-start;
+  margin-block: var(--space-4) var(--space-6);
+  gap: var(--space-2);
+}
+
+.sudoku-app .puzzle-detail {
+  max-width: 760px;
+  margin-inline: auto;
+  padding-top: var(--space-4);
+}
+
+.sudoku-app .puzzle-detail .section-heading {
+  margin-top: 0;
+  margin-bottom: var(--space-4);
+}
+
+.sudoku-app .puzzle-detail .section-heading > div {
+  flex: 1;
+}
+
+.sudoku-app .puzzle-detail__attempts-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-block: var(--space-8) var(--space-3);
+}
+
+.sudoku-app .puzzle-detail__attempts-heading > h2 {
+  margin: 0;
+  font: var(--text-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sudoku-app .attempt-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.sudoku-app .attempt-list > :first-child .kit-attempt-row {
+  border-start-start-radius: var(--radius-lg);
+  border-start-end-radius: var(--radius-lg);
+}
+
+.sudoku-app .attempt-list > :last-child .kit-attempt-row {
+  border-bottom: 0;
+  border-end-start-radius: var(--radius-lg);
+  border-end-end-radius: var(--radius-lg);
+}
+
+@media (max-width: 600px) {
+  .sudoku-app .puzzle-detail .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .sudoku-app .puzzle-detail .section-heading > div {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .sudoku-app .puzzle-title h1 {
+    font-size: 24px;
+  }
+
+  .sudoku-app .create-actions > .kit-button {
+    flex: 1 1 180px;
+  }
+
+  .sudoku-app .puzzle-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sudoku-app .puzzle-list .kit-puzzle-card {
+    display: grid;
+    grid-template-columns: minmax(88px, 112px) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+
+  .sudoku-app .puzzle-list .kit-puzzle-card__body {
+    padding: 0;
+  }
+
+  .sudoku-app .puzzle-library .section-heading {
+    align-items: flex-start;
+  }
+
+  .sudoku-app .puzzle-library .section-heading > div {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .sudoku-app .puzzle-detail__attempts-heading > .kit-button {
+    width: 100%;
+  }
+
+  .sudoku-app .puzzle-list .kit-puzzle-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+}
+
+.sudoku-app--play .puzzle-console {
+  margin-bottom: var(--space-4);
+}
+
+.sudoku-app--play .puzzle-console .kit-game-toolbar__status {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-content: center;
+  justify-items: end;
+  gap: var(--space-1);
+}
+
+.sudoku-app--play .kit-game-toolbar__status > .kit-attempt-timer {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.sudoku-app--play .kit-game-toolbar__status > .save-state {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.sudoku-app--play .kit-game-toolbar__status > .kit-game-toolbar__mistakes {
+  grid-column: 2;
+  grid-row: 2;
+}

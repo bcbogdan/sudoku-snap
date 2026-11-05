@@ -29,8 +29,10 @@ export function AttemptRow({ attempt, mistakes, progress }: AttemptRowProps) {
         <span className="kit-attempt-row__details">
           <strong className="kit-attempt-row__title">Attempt {attempt.number}</strong>
           <span className="kit-attempt-row__meta">
-            Started {attempt.startedLabel}
-            {mistakes != null ? ` · Mistakes ${mistakes}` : ''}
+            <span className="kit-attempt-row__date">Started {attempt.startedLabel}</span>
+            {mistakes != null ? (
+              <span className="kit-attempt-row__mistakes">Mistakes {mistakes}</span>
+            ) : null}
           </span>
           <span className="kit-attempt-row__meta">
             {attempt.moveCount} {attempt.moveCount === 1 ? 'move' : 'moves'}
@@ -38,8 +40,9 @@ export function AttemptRow({ attempt, mistakes, progress }: AttemptRowProps) {
         </span>
         <span className="kit-attempt-row__result">
           <span className="kit-attempt-row__duration">
-            <Icon name="clock" size={16} />
-            {attempt.durationLabel ?? '—'}
+            {attempt.durationLabel !== null ? <Icon name="clock" size={16} /> : null}
+            {attempt.durationLabel ?? (attempt.complete ? 'View moves' : 'Resume')}
+            {attempt.durationLabel === null ? <Icon name="arrow-right" size={16} /> : null}
           </span>
           <Badge kind={attempt.complete ? 'completed' : 'in-progress'}>
             {attempt.complete ? 'Completed' : 'In progress'}

@@ -54,7 +54,7 @@ export const MissingData: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.queryByRole('progressbar')).not.toBeInTheDocument();
     await expect(canvas.queryByText(/Mistakes/)).not.toBeInTheDocument();
-    await expect(canvas.getByText('—')).toBeVisible();
+    await expect(canvas.getByText('Resume')).toBeVisible();
   },
 };
 export const ZeroValues: Story = {
@@ -115,7 +115,7 @@ export const Compact390: Story = {
   parameters: { frameWidth: 390 },
   play: async ({ canvasElement }) => {
     const row = canvasElement.querySelector('.kit-attempt-row')!;
-    const details = row.querySelector('.kit-attempt-row__details')!;
+    const details = row.querySelector('.kit-attempt-row__title')!;
     const result = row.querySelector('.kit-attempt-row__result')!;
     const detailsBox = details.getBoundingClientRect();
     const resultBox = result.getBoundingClientRect();

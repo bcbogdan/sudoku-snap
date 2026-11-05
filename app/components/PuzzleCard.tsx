@@ -34,8 +34,8 @@ export default function PuzzleCard({ item, preview }: PuzzleCardProps) {
         </div>
         <p className="kit-puzzle-card__meta">
           <span>{item.clues.filter(Boolean).length} clues</span>
-          <span aria-hidden="true"> · </span>
           <span>
+            <span aria-hidden="true"> · </span>
             {item.attemptCount} {item.attemptCount === 1 ? 'attempt' : 'attempts'}
           </span>
         </p>

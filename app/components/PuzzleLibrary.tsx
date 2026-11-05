@@ -1,3 +1,6 @@
+import PuzzleCard from './PuzzleCard';
+import { Icon } from './Icon';
+
 export interface PuzzleCardModel {
   readonly id: string;
   readonly name: string;
@@ -15,14 +18,14 @@ export interface PuzzleLibraryProps {
 
 export default function PuzzleLibrary({ items }: PuzzleLibraryProps) {
   return (
-    <section className="library">
+    <section className="library puzzle-library">
       <div className="section-heading">
         <div>
           <p className="eyebrow">YOUR COLLECTION</p>
           <h1>My puzzles</h1>
         </div>
         <a className="primary" href="/?new">
-          ＋ New puzzle
+          <Icon name="plus" /> New puzzle
         </a>
       </div>
       {items.length === 0 ? (
@@ -37,27 +40,7 @@ export default function PuzzleLibrary({ items }: PuzzleLibraryProps) {
       ) : (
         <div className="puzzle-list">
           {items.map((item) => (
-            <a className="puzzle-card" key={item.id} href={item.href}>
-              <div className="mini-board" aria-hidden="true">
-                {item.clues.map((value, index) => (
-                  <span key={index}>{value || ''}</span>
-                ))}
-              </div>
-              <div>
-                <span className="badge">
-                  {item.status === 'draft' ? 'Draft' : `${item.completedCount} completed`}
-                </span>
-                <h2>{item.name}</h2>
-                <p>{item.createdLabel}</p>
-                <p>
-                  {item.clues.filter(Boolean).length} clues · {item.attemptCount}{' '}
-                  {item.attemptCount === 1 ? 'attempt' : 'attempts'}
-                </p>
-              </div>
-              <span className="card-arrow" aria-hidden="true">
-                ↗
-              </span>
-            </a>
+            <PuzzleCard key={item.id} item={item} />
           ))}
         </div>
       )}

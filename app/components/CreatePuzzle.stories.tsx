@@ -38,7 +38,7 @@ export const Saving: Story = {
   args: { busy: true },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByLabelText('Choose a Sudoku photo', { exact: true })).toBeDisabled();
+    await expect(canvas.getByLabelText('Reading your photo…', { exact: true })).toBeDisabled();
     for (const button of canvas.getAllByRole('button')) {
       await expect(button).toBeDisabled();
       await userEvent.click(button);
