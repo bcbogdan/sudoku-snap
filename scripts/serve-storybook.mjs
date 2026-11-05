@@ -3,6 +3,7 @@ import { realpath, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { storybookAddress } from './storybook-address.mjs';
 
 const root = await realpath(fileURLToPath(new URL('../storybook-static/', import.meta.url)));
 const contentTypes = {
@@ -64,7 +65,7 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(6007, '127.0.0.1');
+server.listen(storybookAddress().port, '127.0.0.1');
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => server.close());
 }

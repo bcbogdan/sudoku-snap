@@ -46,7 +46,7 @@ async function preprocess(
   file: File,
   progress: (message: string, stage?: 'processing') => void,
 ): Promise<{
-  cells: { index: number; image: Uint8Array; deslanted: Uint8Array }[];
+  cells: { index: number; image: Uint8Array; deslanted: Uint8Array; condensed: Uint8Array }[];
   uncertain: number[];
 }> {
   progress('Loading the local image reader…');
@@ -103,7 +103,12 @@ async function preprocess(
       31,
       12,
     );
-    const cells: { index: number; image: Uint8Array; deslanted: Uint8Array }[] = [];
+    const cells: {
+      index: number;
+      image: Uint8Array;
+      deslanted: Uint8Array;
+      condensed: Uint8Array;
+    }[] = [];
     const uncertain: number[] = [];
     let recoveryInk: CV.Mat | undefined;
     const recoverInk = () => {
@@ -147,10 +152,18 @@ async function preprocess(
       dctx.transform(1, 0, -0.2, 1, 0, 0);
       dctx.drawImage(normalized, -80, -80);
       const alternate = await deslanted.convertToBlob({ type: 'image/png' });
+      // Preserve the accepted de-slanted read; modest width normalization is
+      // only a final fallback when both earlier OCR views remain weak.
+      dctx.resetTransform();
+      dctx.fillRect(0, 0, 160, 160);
+      dctx.setTransform(0.8, 0, -0.2, 1, 80, 80);
+      dctx.drawImage(normalized, -80, -80);
+      const condensed = await deslanted.convertToBlob({ type: 'image/png' });
       cells.push({
         index,
         image: new Uint8Array(await blob.arrayBuffer()),
         deslanted: new Uint8Array(await alternate.arrayBuffer()),
+        condensed: new Uint8Array(await condensed.arrayBuffer()),
       });
     }
     return { cells, uncertain };
@@ -168,9 +181,10 @@ self.onmessage = async ({ data }: MessageEvent<PreprocessRequest>) => {
     );
     send(
       { type: 'result', ...result },
-      result.cells.flatMap(({ image, deslanted }) => [
+      result.cells.flatMap(({ image, deslanted, condensed }) => [
         image.buffer as ArrayBuffer,
         deslanted.buffer as ArrayBuffer,
+        condensed.buffer as ArrayBuffer,
       ]),
     );
   } catch (error) {

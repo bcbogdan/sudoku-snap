@@ -6,7 +6,7 @@ export type PreprocessResponse =
   | { type: 'progress'; message: string; stage?: 'processing' }
   | {
       type: 'result';
-      cells: { index: number; image: Uint8Array; deslanted?: Uint8Array }[];
+      cells: { index: number; image: Uint8Array; deslanted?: Uint8Array; condensed?: Uint8Array }[];
       uncertain?: number[];
     }
   | { type: 'error'; message: string };

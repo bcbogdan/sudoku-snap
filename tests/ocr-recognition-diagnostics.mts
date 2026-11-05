@@ -5,6 +5,9 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 
+const sourceHash = createHash('sha256')
+  .update(await readFile(new URL(import.meta.url)))
+  .digest('hex');
 const directory = process.argv[2] ?? '/tmp/opencode/ocr-followup-capture';
 const suite = process.env.OCR_GLYPH_DIAGNOSTICS_SUITE ?? 'deslant';
 const files = (await readdir(directory)).filter((file) =>
@@ -60,7 +63,7 @@ try {
           params: { tessedit_char_whitelist: '123456789', tessedit_pageseg_mode: '8' },
         });
         const results = [];
-        const experiments = [
+        const legacyExperiments = [
           { name: 'baseline', shear: 0, size: 110, psm: '8', whitelist: '123456789' },
           ...(suite === 'initial' ? [-0.4, -0.2, 0.2, 0.4] : [-0.15, -0.25, -0.3]).map((shear) => ({
             name: `shear-${shear}`,
@@ -85,8 +88,46 @@ try {
             whitelist: '123456789',
           })),
         ];
+        const experiments =
+          suite === 'final-pass'
+            ? [
+                { name: 'baseline', shear: 0, size: 110, psm: '8', whitelist: '123456789' },
+                ...[-0.2, -0.3, -0.4, -0.5, -0.6].flatMap((shear) =>
+                  [0.8, 1, 1.2].map((aspect) => ({
+                    name: `shear-${shear}-aspect-${aspect}`,
+                    shear,
+                    aspect,
+                    size: 110,
+                    psm: '8',
+                    whitelist: '123456789',
+                  })),
+                ),
+                ...[-6, -3, 3, 6].map((rotation) => ({
+                  name: `rotation-${rotation}`,
+                  rotation,
+                  shear: -0.2,
+                  size: 110,
+                  psm: '8',
+                  whitelist: '123456789',
+                })),
+                ...[-1, 1].flatMap((stroke) =>
+                  [0, -0.2].map((shear) => ({
+                    name: `stroke-${stroke}-shear-${shear}`,
+                    stroke,
+                    shear,
+                    size: 110,
+                    psm: '8',
+                    whitelist: '123456789',
+                  })),
+                ),
+              ]
+            : legacyExperiments;
         for (const file of files) {
-          const bitmap = await createImageBitmap(await (await fetch(`/${file}`)).blob());
+          const bitmap = await createImageBitmap(await (await fetch(`/${file}`)).blob()).catch(
+            (error) => {
+              throw new Error(`Cannot decode ${file}: ${error}`);
+            },
+          );
           const trials = [];
           for (const experiment of experiments) {
             const canvas = new OffscreenCanvas(160, 160);
@@ -94,11 +135,40 @@ try {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, 160, 160);
             ctx.translate(80, 80);
-            ctx.transform(experiment.size / 110, 0, experiment.shear, experiment.size / 110, 0, 0);
+            if ('rotation' in experiment) ctx.rotate((Number(experiment.rotation) * Math.PI) / 180);
+            ctx.transform(
+              (experiment.size / 110) * ('aspect' in experiment ? Number(experiment.aspect) : 1),
+              0,
+              experiment.shear,
+              experiment.size / 110,
+              0,
+              0,
+            );
             ctx.drawImage(bitmap, -80, -80);
+            if ('stroke' in experiment) {
+              const input = ctx.getImageData(0, 0, 160, 160);
+              const output = ctx.createImageData(160, 160);
+              for (let y = 0; y < 160; y++)
+                for (let x = 0; x < 160; x++) {
+                  let value = experiment.stroke === 1 ? 255 : 0;
+                  for (let dy = -1; dy <= 1; dy++)
+                    for (let dx = -1; dx <= 1; dx++) {
+                      const sample =
+                        x + dx < 0 || x + dx >= 160 || y + dy < 0 || y + dy >= 160
+                          ? 255
+                          : input.data[((y + dy) * 160 + x + dx) * 4];
+                      value =
+                        experiment.stroke === 1 ? Math.min(value, sample) : Math.max(value, sample);
+                    }
+                  const offset = (y * 160 + x) * 4;
+                  output.data.set([value, value, value, 255], offset);
+                }
+              ctx.putImageData(output, 0, 0);
+            }
             const image = new Uint8Array(
               await (await canvas.convertToBlob({ type: 'image/png' })).arrayBuffer(),
             );
+            const start = performance.now();
             const result = await run('recognize', {
               image,
               options: {
@@ -111,6 +181,7 @@ try {
               experiment: experiment.name,
               text: result.text.trim(),
               confidence: result.confidence,
+              totalMs: performance.now() - start,
             });
           }
           bitmap.close();
@@ -135,7 +206,7 @@ try {
   );
   await writeFile(
     process.argv[3] ?? '/tmp/opencode/ocr-glyph-diagnostics.json',
-    `${JSON.stringify({ browser: browser.version(), measuredAt: new Date().toISOString(), suite, imageHashes, results }, null, 2)}\n`,
+    `${JSON.stringify({ browser: browser.version(), measuredAt: new Date().toISOString(), suite, sourceHash, imageHashes, results }, null, 2)}\n`,
   );
   console.log(`Measured ${results.length} glyphs × ${results[0]?.trials.length} experiments`);
 } finally {

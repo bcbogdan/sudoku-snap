@@ -1,6 +1,6 @@
 import type { Board } from './sudoku';
 import type { OcrResponse, PreprocessResponse } from './sudoku-reader-protocol';
-import { needsDeslant, selectDigit } from './digit-recognition';
+import { needsCondensed, needsDeslant, selectDigit } from './digit-recognition';
 
 export async function readSudoku(
   file: File,
@@ -140,14 +140,18 @@ export async function readSudoku(
     await initialize();
     const board: Board = Array(81).fill(0);
     const uncertain = new Set(extractionUncertain);
-    for (const { index, image, deslanted } of cells) {
+    for (const { index, image, deslanted, condensed } of cells) {
       progress(`Reading cells… ${index + 1} / 81`);
       const result = await run('recognize', { image, options: {}, output: { text: true } });
       const alternative =
         deslanted && needsDeslant(result)
           ? await run('recognize', { image: deslanted, options: {}, output: { text: true } })
           : undefined;
-      const selected = selectDigit(result, alternative);
+      const fallback =
+        condensed && needsCondensed(result, alternative)
+          ? await run('recognize', { image: condensed, options: {}, output: { text: true } })
+          : undefined;
+      const selected = selectDigit(result, alternative, fallback);
       board[index] = selected.digit;
       if (selected.uncertain) uncertain.add(index);
     }

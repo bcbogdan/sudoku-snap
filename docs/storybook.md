@@ -42,6 +42,15 @@ Vite 8's `resolve.tsconfigPaths`. Module aliases come from the repository's
 `tsconfig.json`; no separate `@` mapping or machine-specific absolute path is
 maintained for stories or browser tests.
 
+The Vitest Storybook browser project deliberately sets `browser.fileParallelism:
+false`. `maxWorkers: 1` alone does not serialize browser files; concurrent pages
+can exhaust constrained hosts before browser-server connections complete. This
+does not skip stories, interactions or accessibility checks. Run expensive app,
+OCR and visual suites sequentially. If `/tmp` reports `EDQUOT`, use a writable,
+task-owned `TMPDIR`; free space reported by `df` does not establish user quota.
+See `docs/final-verification-followup.md` for the reproduced failure and limits
+of its diagnosis.
+
 Only `public/fonts` is mounted at `/fonts`; Vite's `publicDir: false` deliberately
 prevents serving or copying the rest of `public`, especially `public/vendor`,
 into Storybook. `npm ci` still runs the app's existing
@@ -52,6 +61,13 @@ Visual tests live in `tests/storybook/*.visual.ts`, outside the existing root
 6007, serves only regular files inside the real build directory, rejects path
 escapes and accepts only GET/HEAD. It does not fall back to app routes or reuse
 an existing server. No Next server, database or OCR worker is required.
+
+If 6007 belongs to another job, preserve it and choose a free dedicated port:
+`STORYBOOK_TEST_PORT=6008 npm run test:visual`. The runner and server share the
+same validated loopback address; server reuse remains disabled and the canonical
+environment guard remains mandatory. Ports below 1024 or above 65535, malformed
+values and host strings are rejected. `test:visual:environment` also runs the
+port/configuration regression tests.
 
 ## Reviewing visual changes
 
@@ -416,3 +432,15 @@ Baselines live in `tests/screens/__screenshots__/`; generated artifacts/report
 live in ignored `screen-test-results/` and `screen-report/`. Neither snapshot
 regeneration nor browser emulation substitutes for visual inspection or real
 iOS/Android verification.
+
+## Final verification follow-up
+
+`docs/final-verification-followup.md` records the reproduced full-suite timeout,
+browser-file serialization fix, narrowly scoped badge-containment repair and
+final-source verification: **226 interactions/axe**, **643 guarded visual
+comparisons**, **116 production browser tests**, **26 guarded production-screen
+comparisons**, **179 units**, and **18 environment/config regressions** passed.
+Fifty Storybook and 86 application PNGs were deliberately inspected/refreshed for
+the reviewed UI changes, followed by complete no-update comparisons. Environment
+metadata and guard remain unchanged. Physical-device/AT/other-engine checks are
+still human release gates, not inferred from automated Chromium results.

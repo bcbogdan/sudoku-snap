@@ -135,7 +135,10 @@ test('photo reader owns workers throughout initialization, recognition and cance
     let recognized = 0;
     respond = (worker, payload) => {
       if (payload.file)
-        worker.reply({ type: 'result', cells: [{ ...cells[0], deslanted: new Uint8Array([2]) }] });
+        worker.reply({
+          type: 'result',
+          cells: [{ ...cells[0], deslanted: new Uint8Array([2]), condensed: new Uint8Array([3]) }],
+        });
       else {
         if (payload.action === 'recognize') recognized++;
         worker.reply({
@@ -151,33 +154,71 @@ test('photo reader owns workers throughout initialization, recognition and cance
     assert.equal(recognized, 1);
   });
 
-  for (const failure of ['abort', 'reject'])
-    await t.test(`${failure} during alternate recognition releases both workers`, async () => {
-      const controller = new AbortController();
-      let recognized = 0;
-      respond = (worker, payload) => {
-        if (payload.file)
-          worker.reply({
-            type: 'result',
-            cells: [{ ...cells[0], deslanted: new Uint8Array([2]) }],
-          });
-        else if (payload.action === 'recognize' && ++recognized === 2) {
-          if (failure === 'abort') controller.abort();
-          else worker.reply({ jobId: payload.jobId, status: 'reject', data: 'alternate failed' });
-        } else
-          worker.reply({
-            jobId: payload.jobId,
-            status: 'resolve',
-            data: { text: '', confidence: 0 },
-          });
-      };
-      await assert.rejects(
-        readSudoku(file, noop, { signal: controller.signal }),
-        failure === 'abort' ? { name: 'AbortError' } : /alternate failed/,
-      );
-      assert.equal(recognized, 2);
-      assert.ok(workers.every((worker) => worker.terminated));
-    });
+  await t.test(
+    'one condensed fallback recovers unresolved text without replacing accepted reads',
+    async () => {
+      for (const accepted of [false, true]) {
+        const image = new Uint8Array([1]),
+          deslanted = new Uint8Array([2]),
+          condensed = new Uint8Array([3]);
+        const recognized: Uint8Array[] = [];
+        respond = (worker, payload) => {
+          if (payload.file)
+            worker.reply({ type: 'result', cells: [{ index: 3, image, deslanted, condensed }] });
+          else {
+            const view = payload.payload?.image;
+            if (payload.action === 'recognize') recognized.push(view);
+            worker.reply({
+              jobId: payload.jobId,
+              status: 'resolve',
+              data:
+                view === condensed
+                  ? { text: '7', confidence: 91 }
+                  : view === deslanted
+                    ? { text: '4', confidence: accepted ? 85 : 72 }
+                    : { text: '', confidence: 0 },
+            });
+          }
+        };
+        const result = await readSudoku(file, noop);
+        assert.equal(result.board[3], accepted ? 4 : 7);
+        assert.deepEqual(result.uncertain, [3]);
+        assert.deepEqual(recognized, accepted ? [image, deslanted] : [image, deslanted, condensed]);
+        assert.ok(workers.every((worker) => worker.terminated));
+      }
+    },
+  );
+
+  for (const call of [2, 3])
+    for (const failure of ['abort', 'reject'])
+      await t.test(`${failure} during recognition call ${call} releases both workers`, async () => {
+        const controller = new AbortController();
+        let recognized = 0;
+        respond = (worker, payload) => {
+          if (payload.file)
+            worker.reply({
+              type: 'result',
+              cells: [
+                { ...cells[0], deslanted: new Uint8Array([2]), condensed: new Uint8Array([3]) },
+              ],
+            });
+          else if (payload.action === 'recognize' && ++recognized === call) {
+            if (failure === 'abort') controller.abort();
+            else worker.reply({ jobId: payload.jobId, status: 'reject', data: 'alternate failed' });
+          } else
+            worker.reply({
+              jobId: payload.jobId,
+              status: 'resolve',
+              data: { text: '', confidence: 0 },
+            });
+        };
+        await assert.rejects(
+          readSudoku(file, noop, { signal: controller.signal }),
+          failure === 'abort' ? { name: 'AbortError' } : /alternate failed/,
+        );
+        assert.equal(recognized, call);
+        assert.ok(workers.every((worker) => worker.terminated));
+      });
 
   await t.test(
     'initializes OCR before preprocessing finishes without changing uncertain clues',

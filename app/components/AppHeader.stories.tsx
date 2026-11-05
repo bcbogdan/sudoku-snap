@@ -22,11 +22,9 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole('link', { name: 'My puzzles' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
-    await expect(canvas.getByRole('link', { name: 'New puzzle' })).toHaveAttribute('href', '/?new');
+    await expect(canvas.getByRole('link', { name: 'Sudoku Snap' })).toHaveAttribute('href', '/');
+    await expect(canvas.queryByRole('navigation')).not.toBeInTheDocument();
+    await expect(canvas.getAllByRole('link')).toHaveLength(1);
   },
 };
 export const Create: Story = { args: { screen: 'create' } };
@@ -61,6 +59,7 @@ export const ReviewStatus: Story = {
   parameters: { frameWidth: 320 },
 };
 export const KeyboardFocus: Story = {
+  args: { screen: 'create' },
   parameters: { frameWidth: 320 },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -69,5 +68,9 @@ export const KeyboardFocus: Story = {
     await expect(canvas.getByRole('link', { name: 'My puzzles' })).toHaveFocus();
     await userEvent.tab();
     await expect(canvas.getByRole('link', { name: 'New puzzle' })).toHaveFocus();
+    await expect(canvas.getByRole('link', { name: 'New puzzle' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   },
 };

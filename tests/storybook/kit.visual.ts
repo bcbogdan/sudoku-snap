@@ -346,10 +346,67 @@ for (const { id, region: selector, kind } of specimens) {
       );
       await expect(region.locator('[aria-live], [role="status"], [role="alert"]')).toHaveCount(0);
       await assertTextContrast(region.locator('.kit-mistake-counter__text'));
+      const containment = await region.locator('.kit-mistake-counter').evaluate((badge) => {
+        const bounds = badge.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(badge.querySelector('.kit-mistake-counter__text')!);
+        const text = range.getBoundingClientRect();
+        return {
+          rightOverflow: text.right - bounds.right,
+          bottomOverflow: text.bottom - bounds.bottom,
+        };
+      });
+      expect(
+        containment.rightOverflow,
+        'mistake text stays inside badge background',
+      ).toBeLessThanOrEqual(1);
+      expect(
+        containment.bottomOverflow,
+        'mistake text stays inside badge background',
+      ).toBeLessThanOrEqual(1);
     }
     await expect(region).toHaveScreenshot(`${id}.png`);
   });
 }
+
+test('ordinary mistake labels stay whole at phone widths and 200% CSS layout zoom', async ({
+  page,
+  openStory,
+}) => {
+  for (const width of [320, 390]) {
+    for (const zoom of [1, 2]) {
+      await page.setViewportSize({ width: width * zoom, height: 844 * zoom });
+      for (const [story, count] of [
+        ['zero', 0],
+        ['one', 1],
+        ['ten', 10],
+      ] as const) {
+        await openStory(`kit-mistakecounter--${story}`);
+        await page.evaluate((zoom) => {
+          document.documentElement.style.zoom = String(zoom);
+        }, zoom);
+        const badge = page.locator('.kit-mistake-counter');
+        await expect(badge).toHaveText(`Mistakes ${count}`);
+        const geometry = await badge.evaluate((element) => {
+          const text = element.querySelector('.kit-mistake-counter__text')!;
+          const range = document.createRange();
+          range.selectNodeContents(text);
+          const lines = new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top)));
+          const bounds = element.getBoundingClientRect();
+          return {
+            lines: lines.size,
+            right: bounds.right,
+            viewport: innerWidth,
+            documentOverflow: document.documentElement.scrollWidth - innerWidth,
+          };
+        });
+        expect(geometry.lines, `Mistakes ${count} remains one whole line`).toBe(1);
+        expect(geometry.right).toBeLessThanOrEqual(geometry.viewport + 1);
+        expect(geometry.documentOverflow).toBeLessThanOrEqual(1);
+      }
+    }
+  }
+});
 
 for (const state of [
   'clues-and-entries',
@@ -394,7 +451,7 @@ for (const state of [
     }
     if (state.endsWith('and-focused')) {
       await page.keyboard.press('Tab');
-      const selected = board.locator('.selected');
+      const selected = board.locator('[tabindex="0"]');
       await expect(selected).toBeFocused();
       if (state === 'wrong-unclear-selected-and-focused')
         await expect(selected).toHaveClass(/wrong/);
@@ -403,6 +460,7 @@ for (const state of [
       await expect(selected).not.toHaveCSS('box-shadow', 'none');
     }
     if (state === 'current-replay' || state.startsWith('replay-')) {
+      await expect(board.locator('.selected, .peer, .match')).toHaveCount(0);
       const replay = board.locator('[aria-current="step"]');
       await expect(replay).toHaveCount(1);
       await expect(replay).toHaveAccessibleDescription(/Current replay move\./);

@@ -18,5 +18,6 @@
 }
 
 .kit-mistake-counter__text {
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: normal;
 }

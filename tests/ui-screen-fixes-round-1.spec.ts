@@ -8,14 +8,14 @@ const acceptedName =
 test.describe('round-1 F1 · unavailable puzzle link', () => {
   test('a missing link shows the real collection, an explanation and keyboard recovery', async ({
     page,
-  }) => {
+  }, testInfo) => {
     await seedDesignScreens(page);
     await page.goto('/?puzzle=not-in-this-browser');
     await expect(page.getByRole('heading', { name: 'My puzzles', exact: true })).toBeVisible();
     await expect(page.locator('.kit-puzzle-card')).toHaveCount(4);
     await expect(page.getByText(/isn.t saved in this browser/i)).toBeVisible();
     await page.screenshot({
-      path: '/tmp/opencode/ui-fixes-round-1-unavailable.png',
+      path: testInfo.outputPath('unavailable.png'),
       fullPage: true,
     });
     const recovery = page.getByRole('link', { name: 'Go to My puzzles' });
@@ -31,7 +31,7 @@ test.describe('round-1 F1 · unavailable puzzle link', () => {
 
   test('a missing link with a genuinely empty collection keeps the real empty state', async ({
     page,
-  }) => {
+  }, testInfo) => {
     await seedDesignScreens(page, 'empty');
     await page.goto('/?puzzle=not-in-this-browser');
     await expect(page.getByRole('heading', { name: 'My puzzles', exact: true })).toBeVisible();
@@ -39,7 +39,7 @@ test.describe('round-1 F1 · unavailable puzzle link', () => {
     await expect(page.locator('.kit-puzzle-card')).toHaveCount(0);
     await expect(page.getByText(/isn.t saved in this browser/i)).toBeVisible();
     await page.screenshot({
-      path: '/tmp/opencode/ui-fixes-round-1-unavailable-empty.png',
+      path: testInfo.outputPath('unavailable-empty.png'),
       fullPage: true,
     });
   });
@@ -47,7 +47,9 @@ test.describe('round-1 F1 · unavailable puzzle link', () => {
 
 test.describe('round-1 F2 · denied share fallback focus', () => {
   for (const screen of ['review', 'play', 'history', 'detail'] as const) {
-    test(`closing the fallback returns focus to Share puzzle on ${screen}`, async ({ page }) => {
+    test(`closing the fallback returns focus to Share puzzle on ${screen}`, async ({
+      page,
+    }, testInfo) => {
       await seedDesignScreens(page);
       await page.goto(
         designURL(
@@ -87,7 +89,7 @@ test.describe('round-1 F2 · denied share fallback focus', () => {
       await expect(share).toBeFocused();
       expect(await share.evaluate((element) => element.matches(':focus-visible'))).toBe(true);
       await page.screenshot({
-        path: `/tmp/opencode/ui-fixes-round-1-share-focus-${screen}.png`,
+        path: testInfo.outputPath(`share-focus-${screen}.png`),
       });
       await page.keyboard.press('Tab');
       expect(await page.evaluate(() => document.activeElement?.tagName)).not.toBe('BODY');
@@ -111,7 +113,7 @@ test.describe('round-1 F3 · detail title reflow', () => {
   for (const width of [320, 360, 390]) {
     test(`accepted 80-character title uses at most six 28px lines at ${width}px`, async ({
       page,
-    }) => {
+    }, testInfo) => {
       await page.setViewportSize({ width, height: 844 });
       await seedDesignScreens(page);
       await page.goto(designURL(screenIds.mixed));
@@ -148,7 +150,7 @@ test.describe('round-1 F3 · detail title reflow', () => {
         true,
       );
       await page.screenshot({
-        path: `/tmp/opencode/ui-fixes-round-1-${width}-detail-title.png`,
+        path: testInfo.outputPath(`${width}-detail-title.png`),
         fullPage: true,
       });
     });

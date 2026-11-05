@@ -103,7 +103,9 @@ test('completion announces once without stealing focus or announcing on reload',
 
 for (const width of [320, 390]) {
   for (const theme of ['light', 'dark']) {
-    test(`compact collection, detail and play at ${width}px in ${theme}`, async ({ page }) => {
+    test(`compact collection, detail and play at ${width}px in ${theme}`, async ({
+      page,
+    }, testInfo) => {
       await page.setViewportSize({ width, height: 844 });
       await page.emulateMedia({ colorScheme: theme as 'light' | 'dark', reducedMotion: 'reduce' });
       const { puzzles } = await seedDesignScreens(page);
@@ -119,7 +121,7 @@ for (const width of [320, 390]) {
         ),
       ).toBe(true);
       await page.screenshot({
-        path: `/tmp/opencode/ui-fixes-${width}-${theme}-library.png`,
+        path: testInfo.outputPath(`${width}-${theme}-library.png`),
         fullPage: true,
       });
       for (const id of [screenIds.mixed, screenIds.ready, screenIds.completed]) {
@@ -130,7 +132,7 @@ for (const width of [320, 390]) {
           await expect(continuation).toBeVisible();
           expect((await continuation.boundingBox())!.y).toBeLessThan(600);
           await page.screenshot({
-            path: `/tmp/opencode/ui-fixes-${width}-${theme}-detail.png`,
+            path: testInfo.outputPath(`${width}-${theme}-detail.png`),
             fullPage: true,
           });
         }
@@ -148,7 +150,7 @@ for (const width of [320, 390]) {
       expect(history!.height).toBeGreaterThanOrEqual(44);
       await expect(page.getByRole('button', { name: 'Remove puzzle' })).toHaveCount(0);
       await page.screenshot({
-        path: `/tmp/opencode/ui-fixes-${width}-${theme}-play.png`,
+        path: testInfo.outputPath(`${width}-${theme}-play.png`),
         fullPage: true,
       });
       await page.addStyleTag({ content: 'html { font-size: 200%; }' });

@@ -73,7 +73,7 @@ export const FullPresentation: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole('link', { name: 'Continue' })).toHaveAttribute(
+    await expect(canvas.getByRole('link', { name: 'Continue attempt 2' })).toHaveAttribute(
       'href',
       attemptRows[0].href,
     );
@@ -99,7 +99,7 @@ export const CompletedOnly: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.queryByRole('link', { name: 'Continue' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('link', { name: /Continue attempt/ })).not.toBeInTheDocument();
     await expect(canvas.getByRole('link', { name: /Attempt 1/ })).toHaveAttribute(
       'href',
       attemptRows[1].href,
@@ -119,7 +119,9 @@ export const FullPresentationMobile: Story = {
   play: async ({ canvasElement }) => {
     const detail = canvasElement.querySelector('.puzzle-detail')!;
     await expect(detail.scrollWidth).toBeLessThanOrEqual(detail.clientWidth);
-    await expect(within(canvasElement).getByRole('link', { name: 'Continue' })).toBeVisible();
+    await expect(
+      within(canvasElement).getByRole('link', { name: 'Continue attempt 2' }),
+    ).toBeVisible();
     await expect(canvasElement.querySelectorAll('.kit-board-preview__cell')).toHaveLength(81);
   },
 };

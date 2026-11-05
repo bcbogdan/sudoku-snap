@@ -129,7 +129,7 @@ for (const theme of ['light', 'dark'] as const) {
     for (const invalid of ['blank', 'too-few', 'contradictory'] as const) {
       test(`${invalid} confirmation is visible and correctable at 320px in ${theme}, motion ${reducedMotion}`, async ({
         page,
-      }) => {
+      }, testInfo) => {
         await page.setViewportSize({ width: 320, height: 740 });
         await page.emulateMedia({ colorScheme: theme, reducedMotion });
         await page.goto('/?new');
@@ -161,7 +161,7 @@ for (const theme of ['light', 'dark'] as const) {
         await expect(error).toBeFocused();
         expect(await boardState(page)).toEqual(before);
         await page.screenshot({
-          path: `/tmp/opencode/quality-${theme}-${reducedMotion}-${invalid}.png`,
+          path: testInfo.outputPath(`quality-${theme}-${reducedMotion}-${invalid}.png`),
         });
         await page.getByRole('button', { name: 'Confirm clues & play' }).click();
         await expect(error).toBeFocused();
@@ -176,7 +176,9 @@ for (const theme of ['light', 'dark'] as const) {
     }
   }
   for (const width of [320, 390]) {
-    test(`mistake counts 0, 1 and 10 stay whole at ${width}px in ${theme}`, async ({ page }) => {
+    test(`mistake counts 0, 1 and 10 stay whole at ${width}px in ${theme}`, async ({
+      page,
+    }, testInfo) => {
       await page.setViewportSize({ width, height: width === 320 ? 740 : 844 });
       await page.emulateMedia({ colorScheme: theme });
       await seedDesignScreens(page);
@@ -204,7 +206,7 @@ for (const theme of ['light', 'dark'] as const) {
             await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           ).toBe(true);
           await page.screenshot({
-            path: `/tmp/opencode/quality-${width}-${theme}-mistakes-${count}.png`,
+            path: testInfo.outputPath(`quality-${width}-${theme}-mistakes-${count}.png`),
           });
         }
         if (count && count < 10) {

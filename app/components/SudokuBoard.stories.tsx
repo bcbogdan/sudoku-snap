@@ -168,10 +168,15 @@ export const Default: Story = {
     await expect(cells[0]).toHaveFocus();
     await userEvent.click(cells[8]);
     await userEvent.keyboard('{ArrowRight}');
-    await expect(cells[9]).toHaveFocus();
-    await expect(cells[9]).toHaveAttribute('aria-pressed', 'true');
+    await expect(cells[8]).toHaveFocus();
+    await expect(cells[8]).toHaveAttribute('aria-pressed', 'true');
     await expect(cells.filter((cell) => cell.tabIndex === 0)).toHaveLength(1);
     await userEvent.keyboard('{ArrowDown}{ArrowUp}');
+    await expect(cells[8]).toHaveFocus();
+    await userEvent.keyboard('{ArrowLeft}');
+    await expect(cells[7]).toHaveFocus();
+    await userEvent.click(cells[9]);
+    await userEvent.keyboard('{ArrowLeft}');
     await expect(cells[9]).toHaveFocus();
     await userEvent.click(cells[80]);
     await userEvent.keyboard('{ArrowRight}');

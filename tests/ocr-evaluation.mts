@@ -60,7 +60,9 @@ for (const id of ['original', 'dark-highlighted'])
 for (const id of ['blank', 'text-only'])
   cases.push({ id, file: '', expected: [], group: 'synthetic-negative', variants: ['identity'] });
 
-const output = await mkdtemp('/tmp/opencode/ocr-evaluation-');
+const output = await mkdtemp(
+  path.join(process.env.OCR_EVALUATION_TEMP_DIR ?? '/tmp/opencode', 'ocr-evaluation-'),
+);
 await build({
   configFile: false,
   publicDir: false,
@@ -130,7 +132,14 @@ try {
         async ({ image, variant, id, capture }) => {
           const extracted: number[] = [];
           let extractionUncertain: number[] = [];
-          const digits: { index: number; view: string; text: string; confidence: number }[] = [];
+          const digits: {
+            index: number;
+            view: string;
+            text: string;
+            confidence: number;
+            totalMs: number;
+          }[] = [];
+          const encodedBytes = { primary: 0, deslanted: 0, condensed: 0 };
           const imageCells = new WeakMap<Uint8Array, { index: number; view: string }>();
           const progress: string[] = [];
           const images: { index: number; base64: string }[] = [];
@@ -142,7 +151,10 @@ try {
           };
           const NativeWorker = window.Worker;
           window.Worker = class extends NativeWorker {
-            private jobs = new Map<string, { action?: string; index?: number; view?: string }>();
+            private jobs = new Map<
+              string,
+              { action?: string; index?: number; view?: string; startedAt: number }
+            >();
             constructor(url: string | URL, options?: WorkerOptions) {
               super(url, options);
               // Register before production assigns onmessage: final responses may terminate the worker.
@@ -152,9 +164,14 @@ try {
                   extracted.push(...data.cells.map((cell: { index: number }) => cell.index));
                   extractionUncertain = data.uncertain ?? [];
                   for (const cell of data.cells) {
+                    encodedBytes.primary += cell.image.byteLength;
+                    encodedBytes.deslanted += cell.deslanted?.byteLength ?? 0;
+                    encodedBytes.condensed += cell.condensed?.byteLength ?? 0;
                     imageCells.set(cell.image, { index: cell.index, view: 'primary' });
                     if (cell.deslanted)
                       imageCells.set(cell.deslanted, { index: cell.index, view: 'deslanted' });
+                    if (cell.condensed)
+                      imageCells.set(cell.condensed, { index: cell.index, view: 'condensed' });
                   }
                   if (capture)
                     images.push(
@@ -172,6 +189,7 @@ try {
                       view: job.view ?? 'primary',
                       text: data.data.text,
                       confidence: data.data.confidence,
+                      totalMs: performance.now() - job.startedAt,
                     });
                   this.jobs.delete(data.jobId);
                 }
@@ -182,6 +200,7 @@ try {
                 this.jobs.set(payload.jobId, {
                   ...payload,
                   ...imageCells.get(payload.payload?.image),
+                  startedAt: performance.now(),
                 });
               super.postMessage(payload, ...(rest as [Transferable[]]));
             }
@@ -237,6 +256,7 @@ try {
               totalMs: performance.now() - start,
               extracted,
               extractionUncertain,
+              encodedBytes,
               digits,
               progress,
               images,
@@ -250,6 +270,7 @@ try {
               totalMs: performance.now() - start,
               extracted,
               extractionUncertain,
+              encodedBytes,
               digits,
               progress,
               images,
@@ -286,11 +307,16 @@ try {
           result.extracted,
           'one primary response per extracted cell',
         );
-        for (const index of result.extracted)
+        for (const index of result.extracted) {
           assert.ok(
-            result.digits.filter((digit) => digit.index === index).length <= 2,
-            'at most one bounded retry',
+            result.digits.filter((digit) => digit.index === index).length <= 3,
+            'at most two bounded retries',
           );
+          const views: string[] = result.digits
+            .filter((digit) => digit.index === index)
+            .map(({ view }) => view);
+          assert.equal(new Set(views).size, views.length, 'each rendering recognized at most once');
+        }
         assert.ok(
           result.digits.every(({ index }) => result.extracted.includes(index)),
           'every OCR response has an extracted cell',

@@ -20,6 +20,8 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
+            // Browser files otherwise open concurrent pages regardless of maxWorkers.
+            fileParallelism: false,
             provider: playwright(),
             instances: [{ browser: 'chromium' }],
           },

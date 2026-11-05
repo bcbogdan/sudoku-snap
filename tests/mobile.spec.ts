@@ -4,7 +4,7 @@ import clues from './fixtures/expected.json';
 
 test('editable names persist and mobile layouts follow live system theme changes', async ({
   page,
-}) => {
+}, testInfo) => {
   await page.goto('/?new');
   await page.getByRole('button', { name: 'Enter clues by hand' }).click();
   await expect(page.getByRole('button', { name: 'Rename puzzle' })).toBeVisible();
@@ -45,7 +45,7 @@ test('editable names persist and mobile layouts follow live system theme changes
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 23, 34)');
   await expect(page.locator('#cell-1')).toHaveCSS('background-color', 'rgb(38, 52, 73)');
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: 'test-results/mobile-dark.png', fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath('mobile-dark.png'), fullPage: true });
   await page.goto('/');
   await expect(page.locator('.kit-puzzle-card h2')).toHaveText('WeekendPuzzle'.repeat(6));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(

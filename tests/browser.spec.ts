@@ -5,7 +5,7 @@ import { solve } from '../lib/sudoku';
 
 test('photo → saved draft → persistent attempts, history and independent replay', async ({
   page,
-}) => {
+}, testInfo) => {
   const errors: string[] = [],
     uploads: string[] = [],
     external: string[] = [];
@@ -84,7 +84,7 @@ test('photo → saved draft → persistent attempts, history and independent rep
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  await page.screenshot({ path: 'test-results/mobile-persistent.png', fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath('mobile-persistent.png'), fullPage: true });
   expect(errors).toEqual([]);
 });
 

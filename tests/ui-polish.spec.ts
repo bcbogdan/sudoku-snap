@@ -16,7 +16,7 @@ async function fitsContent(page: Page) {
 
 test('review and collection pluralize zero, one and two clues; rejection stays actionable', async ({
   page,
-}) => {
+}, testInfo) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto('/?new');
   await page.getByRole('button', { name: 'Enter clues by hand' }).click();
@@ -26,7 +26,7 @@ test('review and collection pluralize zero, one and two clues; rejection stays a
   await page.keyboard.press('1');
   await expect(toolbar).toContainText('1 clue ·');
   await page.screenshot({
-    path: '/tmp/opencode/sudoku-ui-polish/one-clue-review.png',
+    path: testInfo.outputPath('one-clue-review.png'),
     fullPage: true,
   });
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
@@ -45,7 +45,7 @@ test('review and collection pluralize zero, one and two clues; rejection stays a
 
 for (const width of [320, 360, 390, 1280]) {
   for (const colorScheme of ['light', 'dark'] as const) {
-    test(`worst realistic data fits ${width}px ${colorScheme}`, async ({ page }) => {
+    test(`worst realistic data fits ${width}px ${colorScheme}`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
       await seedDesignScreens(page, 'worst-case');
@@ -69,7 +69,7 @@ for (const width of [320, 360, 390, 1280]) {
           await expect(page.locator('.review-toolbar')).toContainText('1 cell needs review.');
         await fitsContent(page);
         await page.screenshot({
-          path: `/tmp/opencode/sudoku-ui-polish/after-${width}-${colorScheme}-${name}.png`,
+          path: testInfo.outputPath(`after-${width}-${colorScheme}-${name}.png`),
           fullPage: true,
         });
         if (name === 'play') {

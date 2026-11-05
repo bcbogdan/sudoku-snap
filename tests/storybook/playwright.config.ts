@@ -1,5 +1,8 @@
 import { defineConfig } from '@playwright/test';
 import { resolve } from 'node:path';
+import { storybookAddress } from '../../scripts/storybook-address.mjs';
+
+const { url } = storybookAddress();
 
 export default defineConfig({
   testDir: '.',
@@ -17,7 +20,7 @@ export default defineConfig({
     toHaveScreenshot: { animations: 'disabled', caret: 'hide', scale: 'css' },
   },
   use: {
-    baseURL: 'http://127.0.0.1:6007',
+    baseURL: url,
     browserName: 'chromium',
     headless: true,
     locale: 'en-US',
@@ -60,7 +63,7 @@ export default defineConfig({
   webServer: {
     command: 'node scripts/serve-storybook.mjs',
     cwd: resolve(__dirname, '../..'),
-    url: 'http://127.0.0.1:6007',
+    url,
     reuseExistingServer: false,
     timeout: 15000,
   },
