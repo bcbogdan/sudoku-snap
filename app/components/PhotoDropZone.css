@@ -1,0 +1,90 @@
+.kit-photo-drop {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--space-3);
+  border: var(--border-thin) dashed var(--color-text-secondary);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.kit-photo-drop[data-dragging='true'] {
+  border-style: solid;
+  border-color: var(--color-text);
+  background: var(--color-cell-unclear);
+}
+
+.kit-photo-drop:focus-within {
+  outline: var(--border-frame) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.kit-photo-drop__target {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-block-size: 264px;
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  cursor: pointer;
+}
+
+.kit-photo-drop__input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.kit-photo-drop__camera {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 64px;
+  block-size: 64px;
+  border-radius: 50%;
+  background: var(--color-button-flash-bg);
+  color: var(--color-button-flash-text);
+}
+
+.kit-photo-drop[data-invalid='true'] .kit-photo-drop__camera {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.kit-photo-drop__label {
+  max-inline-size: 100%;
+  font: var(--text-title);
+  overflow-wrap: anywhere;
+}
+
+.kit-photo-drop__description {
+  max-inline-size: 100%;
+  color: var(--color-text-secondary);
+  font: var(--text-body);
+  overflow-wrap: anywhere;
+}
+
+.kit-photo-drop[aria-busy='true'] .kit-photo-drop__target,
+.kit-photo-drop__input:disabled {
+  cursor: progress;
+}
+
+.kit-photo-drop-story {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 640px;
+  padding: var(--page-gutter);
+  background: var(--color-background);
+}
+
+.kit-photo-drop-story[data-narrow='true'] {
+  max-inline-size: 320px;
+}

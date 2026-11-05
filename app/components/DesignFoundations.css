@@ -1,0 +1,179 @@
+.design-foundations {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  margin: 0;
+  padding: var(--space-6) var(--page-gutter) var(--space-8);
+  color: var(--ink);
+  background: var(--paper);
+  font: var(--text-body);
+}
+
+.design-foundations *,
+.design-foundations *::before,
+.design-foundations *::after {
+  box-sizing: border-box;
+}
+
+.design-foundations .foundation-intro,
+.design-foundations section {
+  max-width: 900px;
+  margin: 0 auto var(--space-8);
+}
+.design-foundations h1,
+.design-foundations h2,
+.design-foundations h3,
+.design-foundations p,
+.design-foundations figure {
+  margin: 0;
+  color: inherit;
+  font-family: inherit;
+}
+.design-foundations h1,
+.design-foundations .foundation-heading {
+  margin: var(--space-2) 0 var(--space-4);
+  font: var(--text-heading);
+  letter-spacing: -1px;
+}
+.design-foundations h2 {
+  margin-bottom: var(--space-4);
+  font: var(--text-title);
+}
+.design-foundations h3 {
+  margin: var(--space-6) 0 var(--space-3);
+  font: var(--text-body);
+  font-weight: 600;
+}
+.design-foundations .foundation-meta,
+.design-foundations code,
+.design-foundations figcaption,
+.design-foundations .foundation-pair span {
+  font: var(--text-meta);
+}
+.design-foundations .foundation-meta {
+  color: var(--ink-2);
+}
+.design-foundations .foundation-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--space-4);
+}
+.design-foundations .foundation-swatch {
+  height: 64px;
+  border: var(--border-thin) solid var(--line);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-2);
+}
+.design-foundations .foundation-title {
+  font: var(--text-title);
+  margin-bottom: var(--space-4);
+}
+.design-foundations .foundation-body {
+  max-width: 540px;
+  margin-bottom: var(--space-6);
+  font: var(--text-body);
+}
+.design-foundations .foundation-digit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: var(--space-4) 0;
+}
+.design-foundations .foundation-clue {
+  font: var(--text-clue);
+}
+.design-foundations .foundation-entered {
+  color: var(--pencil);
+  font: var(--text-digit);
+}
+.design-foundations .foundation-timer {
+  font: var(--text-timer);
+  margin-bottom: var(--space-4);
+}
+.design-foundations .foundation-spacing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: var(--space-6);
+}
+.design-foundations .foundation-spacing div {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+.design-foundations .foundation-spacing span {
+  display: block;
+  background: var(--pencil);
+}
+.design-foundations .foundation-radii {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+.design-foundations .foundation-radii div {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border: var(--border-box) solid var(--ink);
+  background: var(--card);
+}
+.design-foundations .foundation-strokes {
+  display: grid;
+  gap: var(--space-4);
+}
+.design-foundations .foundation-strokes div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.design-foundations .foundation-strokes span {
+  width: 96px;
+  border-top-style: solid;
+  border-top-color: var(--ink);
+}
+.design-foundations .foundation-targets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+.design-foundations .foundation-targets span {
+  padding: 0 var(--space-3);
+  display: grid;
+  place-items: center;
+  border: var(--border-thin) solid var(--ink);
+  min-height: var(--control-min);
+}
+.design-foundations .foundation-targets span + span {
+  min-height: var(--control-height);
+}
+.design-foundations .foundation-pairs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.design-foundations .foundation-pair {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: var(--border-thin) solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.design-foundations .foundation-focus {
+  margin-top: var(--space-6);
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-box) solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  font: var(--text-body);
+  font-weight: 600;
+}
+.design-foundations .foundation-focus:focus-visible {
+  outline: var(--border-frame) solid var(--pencil);
+  outline-offset: var(--space-1);
+}

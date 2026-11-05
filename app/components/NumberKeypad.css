@@ -1,0 +1,64 @@
+.keypad.kit-keypad {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.keypad.kit-keypad .kit-keypad__key {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: var(--control-height);
+  padding: var(--space-2);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: var(--text-timer);
+  line-height: 1;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keypad.kit-keypad .kit-keypad__key[data-exhausted] {
+  background: var(--peer);
+  color: var(--color-text-secondary);
+}
+
+.keypad.kit-keypad .kit-keypad__key:active:not(:disabled),
+.keypad.kit-keypad .kit-keypad__key[aria-pressed='true'] {
+  background: var(--color-cell-selected);
+  color: var(--color-cell-entry);
+  box-shadow: inset 0 0 0 var(--border-box) var(--color-focus);
+}
+
+.keypad.kit-keypad .kit-keypad__key:focus-visible {
+  outline: var(--border-frame) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.keypad.kit-keypad .kit-keypad__key:disabled {
+  color: var(--color-text-secondary);
+  background: var(--peer);
+  opacity: 1;
+  cursor: default;
+}
+
+.keypad.kit-keypad .kit-keypad__count {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-2);
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+  line-height: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .keypad.kit-keypad .kit-keypad__key:hover:not(:disabled) {
+    border-color: var(--color-focus);
+  }
+}

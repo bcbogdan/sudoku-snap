@@ -1,0 +1,21 @@
+.kit-alert {
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  font: var(--text-body);
+  font-weight: 600;
+}
+
+.kit-alert__icon {
+  flex: none;
+}
+
+.kit-alert__content {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}

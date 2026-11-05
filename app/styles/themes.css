@@ -1,0 +1,139 @@
+/* Palette seeds. Explicit tints preserve the reference rather than approximating it. */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --palette-paper: #f3f5f7;
+  --palette-card: #ffffff;
+  --palette-ink: #0e1a2b;
+  --palette-ink-2: #4a576a;
+  --palette-line: #d5dbe3;
+  --palette-peer: #e9eef5;
+  --palette-pencil: #2447d6;
+  --palette-pencil-soft: #dce6ff;
+  --palette-same-digit: #c7d7ff;
+  --palette-flash: #ffd43b;
+  --palette-flash-soft: #fff3bf;
+  --palette-completed: #08694f;
+  --palette-completed-soft: #d6f2e8;
+  --palette-mistake: #a8281a;
+  --palette-mistake-soft: #fce0da;
+}
+
+/* CSS-only OS fallback also covers Storybook and disabled JavaScript. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light']):not([data-theme='dark'])) {
+    color-scheme: dark;
+    --palette-paper: #101722;
+    --palette-card: #192333;
+    --palette-ink: #f0f4fa;
+    --palette-ink-2: #b5c2d5;
+    --palette-line: #495a70;
+    --palette-peer: #263449;
+    --palette-pencil: #a6bdff;
+    --palette-pencil-soft: #293e68;
+    --palette-same-digit: #314a7c;
+    --palette-flash: #ffd43b;
+    --palette-flash-soft: #493d1b;
+    --palette-completed: #84ddba;
+    --palette-completed-soft: #173d34;
+    --palette-mistake: #ffb4a5;
+    --palette-mistake-soft: #512c2b;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --palette-paper: #101722;
+  --palette-card: #192333;
+  --palette-ink: #f0f4fa;
+  --palette-ink-2: #b5c2d5;
+  --palette-line: #495a70;
+  --palette-peer: #263449;
+  --palette-pencil: #a6bdff;
+  --palette-pencil-soft: #293e68;
+  --palette-same-digit: #314a7c;
+  --palette-flash: #ffd43b;
+  --palette-flash-soft: #493d1b;
+  --palette-completed: #84ddba;
+  --palette-completed-soft: #173d34;
+  --palette-mistake: #ffb4a5;
+  --palette-mistake-soft: #512c2b;
+}
+
+/* Opt into derived tints, then override seeds on the root. Keep pencil/success/error
+   readable on card and their soft tints; keep Flash light enough for dark ink. */
+:root[data-palette='custom'] {
+  --palette-peer: color-mix(in srgb, var(--palette-ink) 5%, var(--palette-card));
+  --palette-line: color-mix(in srgb, var(--palette-ink) 24%, var(--palette-card));
+  --palette-pencil-soft: color-mix(in srgb, var(--palette-pencil) 14%, var(--palette-card));
+  --palette-same-digit: color-mix(in srgb, var(--palette-pencil) 23%, var(--palette-card));
+  --palette-flash-soft: color-mix(in srgb, var(--palette-flash) 24%, var(--palette-card));
+  --palette-completed-soft: color-mix(in srgb, var(--palette-completed) 12%, var(--palette-card));
+  --palette-mistake-soft: color-mix(in srgb, var(--palette-mistake) 12%, var(--palette-card));
+}
+
+:root {
+  --color-background: var(--palette-paper);
+  --color-surface: var(--palette-card);
+  --color-text: var(--palette-ink);
+  --color-text-secondary: var(--palette-ink-2);
+  --color-border: var(--palette-line);
+  --color-focus: var(--palette-pencil);
+  --color-link: var(--palette-pencil);
+  --color-button-primary-bg: var(--palette-ink);
+  --color-button-primary-text: var(--palette-card);
+  --color-button-flash-bg: var(--palette-flash);
+  /* Fixed dark ink keeps Flash actions legible in both supplied themes. */
+  --color-button-flash-text: #0e1a2b;
+  --color-cell-bg: var(--palette-card);
+  --color-cell-clue: var(--palette-ink);
+  --color-cell-entry: var(--palette-pencil);
+  --color-cell-notes: var(--palette-ink-2);
+  --color-cell-peer: var(--palette-peer);
+  --color-cell-selected: var(--palette-pencil-soft);
+  --color-cell-match: var(--palette-same-digit);
+  --color-cell-error: var(--palette-mistake);
+  --color-cell-error-bg: var(--palette-mistake-soft);
+  --color-cell-unclear: var(--palette-flash-soft);
+  --color-replay-current: var(--palette-flash);
+  /* Flash stays light in dark mode, so its indicators need dark on-color roles. */
+  --color-replay-text: var(--color-button-flash-text);
+  --color-replay-error: color-mix(in srgb, var(--palette-mistake) 25%, var(--color-replay-text));
+  --color-replay-focus: color-mix(in srgb, var(--palette-pencil) 25%, var(--color-replay-text));
+  --color-success: var(--palette-completed);
+  --color-success-bg: var(--palette-completed-soft);
+  --color-error: var(--palette-mistake);
+  --color-error-bg: var(--palette-mistake-soft);
+
+  --card: var(--palette-card);
+  --ink-2: var(--palette-ink-2);
+  --pencil: var(--palette-pencil);
+  --pencil-soft: var(--palette-pencil-soft);
+  --same-digit: var(--palette-same-digit);
+  --flash: var(--palette-flash);
+  --flash-soft: var(--palette-flash-soft);
+  --completed: var(--palette-completed);
+  --completed-soft: var(--palette-completed-soft);
+  --mistake: var(--palette-mistake);
+  --mistake-soft: var(--palette-mistake-soft);
+
+  /* Transitional aliases for components not yet migrated to semantic roles. */
+  --paper: var(--color-background);
+  --surface: var(--color-surface);
+  --ink: var(--color-text);
+  --muted: var(--color-text-secondary);
+  --line: var(--color-border);
+  --border: var(--color-border);
+  --accent: var(--palette-pencil-soft);
+  --focus: var(--color-focus);
+  --peer: var(--color-cell-peer);
+  --match: var(--color-cell-match);
+  --badge: var(--palette-pencil-soft);
+  --soft: var(--palette-peer);
+  --entry: var(--color-cell-entry);
+  --error: var(--color-error);
+  --error-bg: var(--color-error-bg);
+  --warning: var(--palette-mistake);
+  --notes: var(--color-cell-notes);
+  --on-primary: var(--color-button-primary-text);
+}

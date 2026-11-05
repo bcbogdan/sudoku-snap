@@ -1,0 +1,94 @@
+.kit-button {
+  --kit-button-bg: var(--color-surface);
+  --kit-button-fg: var(--color-text);
+  --kit-button-border: var(--color-text);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--control-height);
+  min-height: var(--control-height);
+  max-width: 100%;
+  padding: var(--space-3) var(--space-6);
+  border: var(--border-thin) solid var(--kit-button-border);
+  border-radius: var(--radius-md);
+  background: var(--kit-button-bg);
+  color: var(--kit-button-fg);
+  font: var(--text-body);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background-color var(--duration-entry) var(--ease-out);
+}
+
+.kit-button[data-variant='ink'] {
+  --kit-button-bg: var(--color-button-primary-bg);
+  --kit-button-fg: var(--color-button-primary-text);
+  --kit-button-border: var(--color-button-primary-bg);
+}
+
+.kit-button[data-variant='flash'] {
+  --kit-button-bg: var(--color-button-flash-bg);
+  --kit-button-fg: var(--color-button-flash-text);
+  --kit-button-border: var(--color-button-flash-bg);
+}
+
+.kit-button[data-variant='quiet'] {
+  --kit-button-bg: transparent;
+  --kit-button-fg: var(--color-text-secondary);
+  --kit-button-border: transparent;
+}
+
+.kit-button[data-icon-only='true'] {
+  width: var(--control-height);
+  height: var(--control-height);
+  padding: 0;
+}
+
+.kit-button:focus-visible {
+  outline: var(--border-frame) solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .kit-button:not(:disabled):not([aria-disabled='true']):hover {
+    background: color-mix(in srgb, var(--kit-button-fg) 7%, var(--kit-button-bg));
+  }
+}
+
+.kit-button:not(:disabled):not([aria-disabled='true']):active {
+  background: color-mix(in srgb, var(--kit-button-fg) 12%, var(--kit-button-bg));
+  transition-duration: 0ms;
+}
+
+/* Override the legacy global disabled opacity; text must remain readable. */
+.kit-button:disabled {
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+  opacity: 1;
+  cursor: default;
+}
+
+.kit-button[aria-busy='true'] {
+  cursor: progress;
+  border-color: var(--kit-button-fg);
+  border-style: dashed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kit-button {
+    transition-duration: var(--duration-reduced);
+  }
+
+  .kit-button:not(:disabled):not([aria-disabled='true']):active {
+    transition-duration: var(--duration-reduced);
+  }
+}

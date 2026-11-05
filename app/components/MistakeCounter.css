@@ -1,0 +1,23 @@
+.kit-mistake-counter {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+
+.kit-mistake-counter[data-has-mistakes='true'] {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.kit-mistake-counter__text {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,16 @@
+.kit-button.kit-toggle {
+  gap: var(--space-1);
+  padding-inline: var(--space-4);
+}
+
+.kit-toggle[data-variant='outline'] {
+  --kit-button-border: var(--color-border);
+}
+
+.kit-toggle__label {
+  min-width: 0;
+}
+
+.kit-toggle__state {
+  flex: none;
+}

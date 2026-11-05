@@ -13,6 +13,7 @@ test('accepts an exact canonical environment regardless of JSON key order', () =
 });
 
 for (const [field, value] of Object.entries({
+  schemaVersion: canonical.schemaVersion + 1,
   os: { ID: 'ubuntu', VERSION_ID: '24.04' },
   architecture: 'arm64',
   node: 'v22.0.0',
@@ -23,6 +24,7 @@ for (const [field, value] of Object.entries({
   renderedFonts: { ...canonical.renderedFonts, sans: [] },
   renderedFontFiles: [],
   packages: [],
+  bundledFontFiles: [{ path: 'public/fonts/example.woff2', sha256: 'changed-font' }],
 })) {
   test(`rejects ${field} drift before snapshot comparisons or updates`, () => {
     assert.throws(

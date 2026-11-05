@@ -1,0 +1,67 @@
+.kit-status-story {
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 640px;
+  padding: var(--space-4);
+  color: var(--color-text);
+  background: var(--color-background);
+  font: var(--text-body);
+}
+
+.kit-status-story--narrow {
+  max-inline-size: 320px;
+}
+
+.kit-status-story__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.kit-status-story__frame {
+  padding: var(--space-4);
+}
+
+.kit-status-story__board {
+  aspect-ratio: 1;
+  border: var(--border-frame) solid var(--color-text);
+  background-color: var(--color-surface);
+  background-image:
+    linear-gradient(to right, var(--color-text) var(--border-box), transparent var(--border-box)),
+    linear-gradient(to bottom, var(--color-text) var(--border-box), transparent var(--border-box)),
+    linear-gradient(
+      to right,
+      var(--color-border) var(--border-thin),
+      transparent var(--border-thin)
+    ),
+    linear-gradient(
+      to bottom,
+      var(--color-border) var(--border-thin),
+      transparent var(--border-thin)
+    );
+  background-size:
+    33.333333% 100%,
+    100% 33.333333%,
+    11.111111% 100%,
+    100% 11.111111%;
+}
+
+.kit-status-story__placeholder {
+  display: grid;
+  place-items: center;
+  min-block-size: 160px;
+  padding: var(--space-4);
+  border: var(--border-thin) dashed var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.kit-status-story__placeholder--error {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}

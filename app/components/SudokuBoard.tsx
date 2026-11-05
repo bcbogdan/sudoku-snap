@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react';
 import { peers } from '../../lib/sudoku';
+import './SudokuBoard.css';
 
 export interface SudokuBoardProps {
   mode: 'review' | 'play';
@@ -13,6 +14,8 @@ export interface SudokuBoardProps {
   selected: number;
   readOnly: boolean;
   busy: boolean;
+  replayCurrentCell?: number;
+  completed?: boolean;
   onSelect: (cell: number) => void;
   onEnter: (value: number, cell: number) => void;
   onToggleNotes: () => void;
@@ -29,6 +32,8 @@ export default function SudokuBoard({
   selected,
   readOnly,
   busy,
+  replayCurrentCell,
+  completed = false,
   onSelect,
   onEnter,
   onToggleNotes,
@@ -51,9 +56,11 @@ export default function SudokuBoard({
   return (
     <div
       ref={boardElement}
-      className="board"
+      className="board kit-sudoku-board"
+      data-completed={completed}
       role="group"
       aria-label="Sudoku board"
+      aria-description={completed ? 'Completed board.' : undefined}
       onKeyDown={(event) => {
         if (/^[1-9]$/.test(event.key)) {
           event.preventDefault();
@@ -83,10 +90,12 @@ export default function SudokuBoard({
         const given = mode === 'play' && !!clues[index];
         const wrong = wrongCells.includes(index);
         const needsReview = mode === 'review' && uncertain.includes(index);
+        const replayCurrent = replayCurrentCell === index;
         const description = [
           !value && notes[index].length ? `Pencil notes: ${notes[index].join(', ')}.` : '',
           wrong ? 'Incorrect number.' : '',
           needsReview ? 'Needs review.' : '',
+          replayCurrent ? 'Current replay move.' : '',
         ]
           .filter(Boolean)
           .join(' ');
@@ -98,6 +107,11 @@ export default function SudokuBoard({
             data-value={value}
             data-given={given}
             data-wrong={wrong}
+            data-unclear={needsReview}
+            data-replay-current={replayCurrent}
+            data-peer={peers(selected, index)}
+            data-match={!!value && value === board[selected]}
+            aria-current={replayCurrent ? 'step' : undefined}
             aria-label={`Row ${Math.floor(index / 9) + 1} column ${(index % 9) + 1}, ${value || 'empty'}${given ? ', given' : ''}`}
             aria-description={description || undefined}
             aria-pressed={selected === index}
@@ -131,7 +145,9 @@ export default function SudokuBoard({
             }}
             onClick={() => onSelect(index)}
           >
-            {value || (
+            {value ? (
+              <span className="kit-sudoku-board__digit">{value}</span>
+            ) : (
               <span className="notes">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((number) => (
                   <span key={number}>{notes[index].includes(number) ? number : ''}</span>

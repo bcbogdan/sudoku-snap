@@ -4,6 +4,7 @@ import { playwright } from '@vitest/browser-playwright';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 
 export default defineConfig({
+  resolve: { tsconfigPaths: true },
   test: {
     projects: [
       {

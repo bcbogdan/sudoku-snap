@@ -1,0 +1,18 @@
+.kit-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+  vertical-align: middle;
+}
+
+.kit-save-status[data-state='error'] {
+  color: var(--color-error);
+}
+
+.kit-save-status__text {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}

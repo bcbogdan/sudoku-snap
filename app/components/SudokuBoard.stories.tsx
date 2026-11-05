@@ -226,7 +226,9 @@ export const Historical: Story = {
     await expect(canvasElement.querySelector('#cell-1')).toHaveFocus();
   },
 };
-export const Completed: Story = { args: { board: completedBoard, readOnly: true } };
+export const Completed: Story = {
+  args: { board: completedBoard, readOnly: true, completed: true, selected: -1 },
+};
 export const Saving: Story = {
   args: { busy: true },
   play: async ({ canvasElement, args }) => {
@@ -279,5 +281,122 @@ export const CancelledLongPress: Story = {
 export const Mobile: Story = {
   args: { board: mistakenBoard, notes: pencilNotes, wrongCells: [3] },
   parameters: { frameWidth: 320 },
+  globals: { viewport: { value: 'mobile1', isRotated: false } },
+};
+
+export const CluesAndEntries: Story = {
+  args: { board: mistakenBoard, selected: -1 },
+};
+
+export const SelectedEmpty: Story = { args: { selected: 0 } };
+
+export const SelectedClueAndMatchingDigits: Story = { args: { selected: 1 } };
+
+export const SelectedEntryAndPeers: Story = {
+  args: { board: mistakenBoard, selected: 3 },
+};
+
+export const AllNineNotes: Story = {
+  args: {
+    notes: emptyNotes.map((notes, index) => (index === 0 ? [1, 2, 3, 4, 5, 6, 7, 8, 9] : notes)),
+    selected: 0,
+  },
+};
+
+export const MistakeUnselected: Story = {
+  args: { board: mistakenBoard, wrongCells: [3], selected: 40 },
+};
+
+export const WrongSelected: Story = {
+  args: { board: mistakenBoard, wrongCells: [3], selected: 3 },
+  play: async ({ canvasElement }) => {
+    const cell = canvasElement.querySelector('#cell-3');
+    await expect(cell).toHaveClass('wrong', 'selected');
+    await expect(cell).toHaveAccessibleDescription('Incorrect number.');
+  },
+};
+
+export const UnclearUnselected: Story = {
+  args: { mode: 'review', uncertain: [1, 4, 9], selected: 40 },
+};
+
+export const UnclearSelected: Story = {
+  args: { mode: 'review', uncertain: [1, 4, 9], selected: 1 },
+  play: async ({ canvasElement }) => {
+    const cell = canvasElement.querySelector('#cell-1');
+    await expect(cell).toHaveClass('uncertain', 'selected');
+    await expect(cell).toHaveAccessibleDescription('Needs review.');
+  },
+};
+
+export const WrongUnclearSelectedAndFocused: Story = {
+  args: {
+    mode: 'review',
+    board: mistakenBoard,
+    uncertain: [3],
+    wrongCells: [3],
+    selected: 3,
+  },
+  play: async ({ canvasElement }) => {
+    const cell = within(canvasElement).getByRole('button', { name: 'Row 1 column 4, 2' });
+    cell.focus();
+    await expect(cell).toHaveFocus();
+    await expect(cell).toHaveClass('wrong', 'uncertain', 'selected');
+    await expect(cell).toHaveAccessibleDescription('Incorrect number. Needs review.');
+  },
+};
+
+export const CurrentReplay: Story = {
+  args: { board: mistakenBoard, readOnly: true, replayCurrentCell: 3, selected: -1 },
+  play: async ({ canvasElement }) => {
+    const cell = canvasElement.querySelector('#cell-3');
+    await expect(cell).toHaveAttribute('aria-current', 'step');
+    await expect(cell).toHaveAccessibleDescription('Current replay move.');
+  },
+};
+
+export const ReplayWrongUnclearSelected: Story = {
+  args: {
+    mode: 'review',
+    board: mistakenBoard,
+    readOnly: true,
+    replayCurrentCell: 3,
+    wrongCells: [3],
+    uncertain: [3],
+    selected: 3,
+  },
+};
+
+export const ReplayNotesUnclearSelectedAndFocused: Story = {
+  args: {
+    mode: 'review',
+    notes: pencilNotes,
+    readOnly: true,
+    replayCurrentCell: 2,
+    uncertain: [2],
+    selected: 2,
+  },
+  play: async ({ canvasElement }) => {
+    const cell = within(canvasElement).getByRole('button', { name: 'Row 1 column 3, empty' });
+    cell.focus();
+    await expect(cell).toHaveFocus();
+    await expect(cell).toHaveClass('uncertain', 'selected');
+    await expect(cell).toHaveAttribute('aria-current', 'step');
+    await expect(cell).toHaveAccessibleDescription(
+      'Pencil notes: 1, 4, 8. Needs review. Current replay move.',
+    );
+  },
+};
+
+export const NarrowCombinedStates: Story = {
+  args: {
+    mode: 'review',
+    board: mistakenBoard,
+    notes: pencilNotes,
+    uncertain: [3, 4],
+    wrongCells: [3],
+    selected: 3,
+  },
+  parameters: { frameWidth: 288 },
   globals: { viewport: { value: 'mobile1', isRotated: false } },
 };

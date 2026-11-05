@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "os": { "ID": "ubuntu", "VERSION_ID": "26.04" },
   "platform": "linux",
   "architecture": "x64",
@@ -20,9 +20,9 @@
     "fonts-ubuntu-console\t0.869+git20240321-0ubuntu2",
     "fonts-unifont\t1:16.0.04-1build1",
     "fonts-wqy-zenhei\t0.9.45-8build1",
-    "libc6:amd64\t2.43-2ubuntu2.3",
+    "libc6:amd64\t2.43-2ubuntu2.4",
     "libfontconfig1:amd64\t2.17.1-3ubuntu1",
-    "libfreetype6:amd64\t2.14.2+dfsg-1ubuntu0.1",
+    "libfreetype6:amd64\t2.14.2+dfsg-1ubuntu0.2",
     "libharfbuzz0b:amd64\t12.3.2-2",
     "xfonts-base\t1:1.0.5+nmu1build1",
     "xfonts-cyrillic\t1:1.0.5+nmu1build1",
@@ -82,6 +82,38 @@
         "isCustomFont": false,
         "glyphCount": 3
       }
+    ],
+    "interface": [
+      {
+        "familyName": "Bricolage Grotesque 96pt ExtraBold",
+        "postScriptName": "BricolageGrotesque96ptExtraBold-Regular",
+        "isCustomFont": true,
+        "glyphCount": 24
+      }
+    ],
+    "heading": [
+      {
+        "familyName": "Bricolage Grotesque 96pt ExtraBold",
+        "postScriptName": "BricolageGrotesque96ptExtraBold-Regular",
+        "isCustomFont": true,
+        "glyphCount": 10
+      }
+    ],
+    "mono": [
+      {
+        "familyName": "JetBrains Mono",
+        "postScriptName": "JetBrainsMono-Regular",
+        "isCustomFont": true,
+        "glyphCount": 15
+      }
+    ],
+    "digits": [
+      {
+        "familyName": "JetBrains Mono",
+        "postScriptName": "JetBrainsMono-Regular",
+        "isCustomFont": true,
+        "glyphCount": 9
+      }
     ]
   },
   "renderedFontFiles": [
@@ -104,6 +136,20 @@
     {
       "path": "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
       "sha256": "79c18ebe7b811951e8311bad7103ebeae8c337ed9988ea69e8a78a66cfe029b9"
+    }
+  ],
+  "bundledFontFiles": [
+    {
+      "path": "app/styles/fonts.css",
+      "sha256": "6d6bb02305262cbec344d559150d131783ba329428c263d18d38758d1f72e615"
+    },
+    {
+      "path": "public/fonts/bricolage-grotesque-latin-wght.woff2",
+      "sha256": "a97804dc9fbe5fc972a08018c5eda4dab7ef2346f64c57e61419d05e6de4ea1c"
+    },
+    {
+      "path": "public/fonts/jetbrains-mono-latin-wght.woff2",
+      "sha256": "83c005d49d8a6a50474c73a5a36ac0468076e9c4a29da7bdb14995d80560a5be"
     }
   ]
 }

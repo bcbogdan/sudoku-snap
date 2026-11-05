@@ -7,6 +7,11 @@ test('static server exposes only built Storybook files and read-only requests', 
   expect(index.ok()).toBe(true);
   expect((await index.json()).entries).toBeDefined();
 
+  const font = await request.get('/fonts/bricolage-grotesque-latin-wght.woff2');
+  expect(font.ok()).toBe(true);
+  expect(font.headers()['content-type']).toContain('font/woff2');
+  expect((await font.body()).subarray(0, 4).toString()).toBe('wOF2');
+
   for (const path of [
     '/vendor/opencv.js',
     '/vendor/worker.min.js',

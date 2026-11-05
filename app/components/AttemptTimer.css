@@ -1,0 +1,14 @@
+.kit-attempt-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-thin) solid var(--color-border);
+  border-radius: var(--control-height);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: var(--text-timer);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

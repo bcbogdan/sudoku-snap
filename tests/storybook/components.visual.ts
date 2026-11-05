@@ -18,6 +18,19 @@ for (const state of ['draft', 'notes-and-mistakes', 'historical', 'completed']) 
     const board = page.getByRole('group', { name: 'Sudoku board', exact: true });
     await expect(board).toBeVisible();
     await expect(board.getByRole('button')).toHaveCount(81);
+    if (state === 'notes-and-mistakes') {
+      const clippedNotes = await board.locator('.notes > span').evaluateAll((notes) =>
+        notes
+          .filter((note) => {
+            if (!note.textContent) return false;
+            const cell = note.closest('button')!.getBoundingClientRect();
+            const bounds = note.getBoundingClientRect();
+            return bounds.top < cell.top || bounds.bottom > cell.bottom;
+          })
+          .map((note) => note.textContent),
+      );
+      expect(clippedNotes, 'Every pencil note must fit inside its cell').toEqual([]);
+    }
     await expect(page).toHaveScreenshot(`board-${state}.png`, { fullPage: true });
   });
 }
@@ -37,6 +50,35 @@ for (const scenario of ['empty', 'populated (long names on phones)']) {
       await expect(
         page.getByRole('heading', { name: 'Weekend puzzle', exact: true }),
       ).toBeVisible();
+    }
+    if (state !== 'empty') {
+      const previews = await page.locator('.mini-board').evaluateAll((boards) =>
+        boards.map((board) => {
+          const preview = board.getBoundingClientRect();
+          const card = board.closest('.puzzle-card')!.getBoundingClientRect();
+          return {
+            square: Math.abs(preview.width - preview.height) <= 1,
+            contained:
+              preview.left >= card.left &&
+              preview.right <= card.right &&
+              preview.top >= card.top &&
+              preview.bottom <= card.bottom,
+            cellsContained: [...board.children].every((cell) => {
+              const bounds = cell.getBoundingClientRect();
+              return (
+                bounds.left >= preview.left &&
+                bounds.right <= preview.right + 1 &&
+                bounds.top >= preview.top &&
+                bounds.bottom <= preview.bottom + 1
+              );
+            }),
+          };
+        }),
+      );
+      expect(previews, 'Board previews must remain square and inside their cards').toEqual([
+        { square: true, contained: true, cellsContained: true },
+        { square: true, contained: true, cellsContained: true },
+      ]);
     }
     await expect(page).toHaveScreenshot(`library-${state}.png`, { fullPage: true });
   });

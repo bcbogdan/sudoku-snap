@@ -38,10 +38,10 @@ test('editable names persist and mobile layouts follow live system theme changes
     true,
   );
   await page.emulateMedia({ colorScheme: 'light' });
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(250, 248, 242)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(243, 245, 247)');
   await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(20, 28, 25)');
-  await expect(page.locator('#cell-1')).toHaveCSS('background-color', 'rgb(39, 55, 42)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 23, 34)');
+  await expect(page.locator('#cell-1')).toHaveCSS('background-color', 'rgb(38, 52, 73)');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: 'test-results/mobile-dark.png', fullPage: true });
   await page.goto('/');
@@ -50,8 +50,8 @@ test('editable names persist and mobile layouts follow live system theme changes
     true,
   );
   await page.goto('/?new');
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(20, 28, 25)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 23, 34)');
   await page.goto(draftURL);
   await page.emulateMedia({ colorScheme: 'light' });
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(250, 248, 242)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(243, 245, 247)');
 });

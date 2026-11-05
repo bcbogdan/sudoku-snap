@@ -1,0 +1,42 @@
+.kit-badge {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-inline-size: 100%;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-cell-peer);
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+  vertical-align: middle;
+}
+
+.kit-badge[data-kind='in-progress'] {
+  background: var(--color-cell-selected);
+  color: var(--color-cell-entry);
+}
+
+.kit-badge[data-kind='completed'] {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.kit-badge[data-kind='draft'] {
+  background: var(--color-cell-unclear);
+  color: var(--color-text);
+}
+
+.kit-badge[data-kind='replaying'] {
+  background: var(--color-button-flash-bg);
+  color: var(--color-button-flash-text);
+}
+
+.kit-badge__icon {
+  flex: none;
+}
+
+.kit-badge__content {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}

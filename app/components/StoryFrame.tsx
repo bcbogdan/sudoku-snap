@@ -7,7 +7,13 @@ export interface StoryFrameProps {
 
 export default function StoryFrame({ children, width = 1240 }: StoryFrameProps) {
   return (
-    <main style={{ width: '100%', maxWidth: width, paddingTop: 24, paddingBottom: 24 }}>
+    <main
+      style={{
+        width: '100%',
+        maxWidth: width,
+        padding: 'var(--space-6) var(--page-gutter)',
+      }}
+    >
       {children}
     </main>
   );

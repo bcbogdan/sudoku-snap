@@ -41,6 +41,23 @@ export const Historical: Story = {
   },
 };
 export const Saving: Story = { args: { disabled: true } };
+export const CountsAndSelection: Story = {
+  args: {
+    board: [1, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 9],
+    selectedDigit: 7,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('button', { name: 'Enter 7' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    const exhausted = canvas.getByRole('button', { name: 'Enter 5' });
+    await expect(exhausted).toHaveAttribute('data-exhausted', 'true');
+    await expect(exhausted).toHaveAttribute('aria-description', '0 remaining');
+    await expect(exhausted).toBeEnabled();
+  },
+};
 export const Mobile: Story = {
   parameters: { frameWidth: 320 },
   globals: { viewport: { value: 'mobile1', isRotated: false } },

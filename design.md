@@ -1,0 +1,7 @@
+- Use the design_language.pdf file as a reference in how the UI should look
+- fonts used Bricolage Grotesque for titles and interface text and JetBrains Mono for digits, timers and meta labels. Both are free on Google Fonts.
+- start by creating the design language tokens and the overall theme based on the pdf
+- then breakdown the individual components. create snapshots for each to compare against what we have in the pdf
+- after all the components are created move towards actually changing the pages
+- they only include mobile screens but the design should be responsive on the web
+- you should be allowed to change the theme by changing the main colors but we should provide a light and dark theme by default

@@ -46,6 +46,10 @@ themes. Neither suite starts Next or loads OCR/storage. See
 [Storybook testing](docs/storybook.md) for setup and deliberate baseline review
 with `npm run test:visual:update`.
 
+Browse **Design/Foundations** for theme/type tokens and **Kit/Reference** for the
+component specimens compared with `design_language.pdf`. Component verification
+precedes page composition changes; see the [implementation progress](docs/design-implementation-progress.md).
+
 ## TypeScript architecture
 
 Game rules, history and solving use TypeScript only. No Rust toolchain, generated
@@ -103,7 +107,9 @@ Immutable-clue solutions are cached by content; uncached solving runs in a brows
 
 Use the pencil button beside a puzzle title to rename it. Names are trimmed, limited to 80 characters, and saved in IndexedDB; renaming preserves original clues and every attempt, including completed attempts. Cancel or Escape discards an unfinished rename.
 
-Layouts adapt to narrow phones, tablets and landscape screens. The keypad uses two rows whenever its board container is narrow, maintaining large touch targets. The app follows `prefers-color-scheme` automatically; its light and dark palettes cover the board, notes, highlights, errors, library and forms without a separate toggle.
+Layouts adapt to narrow phones, tablets and landscape screens. The keypad uses two rows whenever its board container is narrow, maintaining large touch targets. The Theme control offers System, Light and Dark, remembers your preference locally, and applies it before hydration. System follows `prefers-color-scheme`, including changes while the app is open. Theme controls remain usable if local storage is blocked.
+
+The design foundation uses locally bundled Bricolage Grotesque for interface text and JetBrains Mono for digits and metadata; fonts never require a Google Fonts request at runtime. Shared palette, typography, spacing, and motion tokens live in `app/styles/`. For a custom palette, set `data-palette="custom"` on the root and override the `--palette-*` seeds in `themes.css`; related tints follow automatically. Verify contrast for each custom light/dark palette. See [design implementation progress](docs/design-implementation-progress.md) for the staged component and screen migration.
 
 ## Formatting
 

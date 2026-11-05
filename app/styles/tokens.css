@@ -1,0 +1,42 @@
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --page-gutter: var(--space-4);
+  --radius-none: 0;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --border-thin: 1px;
+  --border-box: 2px;
+  --border-frame: 3px;
+  --control-min: 44px;
+  --control-height: 52px;
+
+  --text-heading: 700 40px / 44px var(--font-interface);
+  --text-title: 600 24px / 28px var(--font-interface);
+  --text-body: 400 16px / 24px var(--font-interface);
+  --text-clue: 600 22px / 1 var(--font-mono);
+  --text-digit: 500 22px / 1 var(--font-mono);
+  --text-timer: 600 28px / 1.2 var(--font-mono);
+  --text-meta: 500 13px / 1.4 var(--font-mono);
+
+  --duration-entry: 120ms;
+  --duration-mistake: 240ms;
+  --duration-bracket: 160ms;
+  --duration-reduced: 100ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-entry: var(--duration-reduced);
+    --duration-mistake: var(--duration-reduced);
+    --duration-bracket: var(--duration-reduced);
+  }
+}
