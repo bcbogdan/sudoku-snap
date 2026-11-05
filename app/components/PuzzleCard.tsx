@@ -11,6 +11,7 @@ export interface PuzzleCardProps {
 }
 
 export default function PuzzleCard({ item, preview = item.preview }: PuzzleCardProps) {
+  const clueCount = item.clues.filter(Boolean).length;
   return (
     <a className="kit-puzzle-card" href={item.href}>
       <BoardPreview
@@ -33,7 +34,9 @@ export default function PuzzleCard({ item, preview = item.preview }: PuzzleCardP
           )}
         </div>
         <p className="kit-puzzle-card__meta">
-          <span>{item.clues.filter(Boolean).length} clues</span>
+          <span>
+            {clueCount} {clueCount === 1 ? 'clue' : 'clues'}
+          </span>
           <span>
             <span aria-hidden="true"> · </span>
             {item.attemptCount} {item.attemptCount === 1 ? 'attempt' : 'attempts'}

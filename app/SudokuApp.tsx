@@ -702,16 +702,14 @@ export default function Sudoku() {
                 check={check}
                 mistakes={position.mistakes}
                 status={
-                  <>
-                    {attempt ? (
-                      <AttemptTimer store={focusTimer.store} fixedElapsed={elapsed} />
-                    ) : null}
-                    {!queueStatus.error && !message && !timerError ? (
-                      <span role="status" className="save-state">
-                        {busy ? 'Saving…' : 'Saved'}
-                      </span>
-                    ) : null}
-                  </>
+                  attempt ? <AttemptTimer store={focusTimer.store} fixedElapsed={elapsed} /> : null
+                }
+                saveStatus={
+                  !queueStatus.error && !message && !timerError ? (
+                    <span role="status" className="save-state">
+                      {busy ? 'Saving…' : 'Saved'}
+                    </span>
+                  ) : null
                 }
                 busy={actionBusy}
                 readOnly={readOnly}

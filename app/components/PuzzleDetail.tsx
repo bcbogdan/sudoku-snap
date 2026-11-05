@@ -69,7 +69,9 @@ export default function PuzzleDetail({
             <div>
               <p className="eyebrow">{createdLabel}</p>
               {title}
-              <p>{clueCount} original clues</p>
+              <p>
+                {clueCount} original {clueCount === 1 ? 'clue' : 'clues'}
+              </p>
             </div>
           </div>
           <Badge kind={completedCount > 0 ? 'completed' : 'neutral'}>

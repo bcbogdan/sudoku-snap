@@ -157,6 +157,18 @@ export const NarrowReview: Story = {
   parameters: { frameWidth: 320 },
 };
 
+export const OneClue: Story = {
+  args: { mode: 'review', clueCount: 1, uncertainCount: 1 },
+  parameters: { frameWidth: 320 },
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByText(
+        '1 clue · Check the numbers before playing. 1 cell needs review.',
+      ),
+    ).toBeVisible();
+  },
+};
+
 export const Keyboard: Story = {
   play: async ({ canvasElement, args }) => {
     const notes = within(canvasElement).getByRole('button', { name: 'Pencil notes' });

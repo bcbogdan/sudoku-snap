@@ -47,6 +47,7 @@
 .kit-game-toolbar__status {
   grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
@@ -59,7 +60,9 @@
   margin-inline-start: auto;
 }
 
-.kit-game-toolbar__status > .kit-game-toolbar__mistakes {
-  margin: 0;
+.kit-game-toolbar__feedback {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
   margin-inline-start: auto;
 }

@@ -106,14 +106,23 @@ function collection() {
 
 export async function seedDesignScreens(
   page: Page,
-  mode: 'collection' | 'empty' | 'draft-only' = 'collection',
+  mode: 'collection' | 'empty' | 'draft-only' | 'worst-case' = 'collection',
 ) {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'My puzzles', exact: true })).toBeVisible();
   const data = collection();
+  if (mode === 'worst-case') {
+    data.puzzles[0].clues = clues.map((value, index) => (index === 5 ? value : 0));
+    data.puzzles[0].uncertain = [5];
+    data.puzzles[1].name =
+      'SundayNewspaperChampionshipNovember2026QualifyingRoundSudokuCollectionVolumeTwenty';
+    data.puzzles[2].name = '新聞の数独・秋の大会 👩🏽‍💻 家族と挑戦する週末のパズル';
+    data.puzzles[3].name = 'J';
+    data.attempts[0].activeMs = 1284 * 3600000;
+  }
   const puzzles =
     mode === 'empty' ? [] : mode === 'draft-only' ? data.puzzles.slice(0, 1) : data.puzzles;
-  const attempts = mode === 'collection' ? data.attempts : [];
+  const attempts = mode === 'collection' || mode === 'worst-case' ? data.attempts : [];
   const records = {
     puzzles,
     puzzleSummaries: puzzles.map(puzzleSummary),
@@ -125,7 +134,7 @@ export async function seedDesignScreens(
     attemptSummaries: attempts.map(attemptSummary),
     // Timer-only checkpoints intentionally leave the header and summary stale.
     timers: attempts.map((item) =>
-      item.id === screenIds.active
+      item.id === screenIds.active && mode !== 'worst-case'
         ? { ...timerRecord(item), activeMs: freshActiveMs, fallbackMs: freshActiveMs }
         : timerRecord(item),
     ),

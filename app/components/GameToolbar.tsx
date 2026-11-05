@@ -20,6 +20,7 @@ export interface PlayToolbarProps {
   check: boolean;
   mistakes: number;
   status?: ReactNode;
+  saveStatus?: ReactNode;
   busy: boolean;
   readOnly: boolean;
   onToggleNotes: () => void;
@@ -33,8 +34,11 @@ export default function GameToolbar(props: GameToolbarProps) {
     return (
       <div className="review-toolbar kit-game-toolbar kit-game-toolbar--review">
         <span>
-          {props.clueCount} clues · Check the numbers before playing.
-          {props.uncertainCount ? ` ${props.uncertainCount} cells need review.` : ''}
+          {props.clueCount} {props.clueCount === 1 ? 'clue' : 'clues'} · Check the numbers before
+          playing.
+          {props.uncertainCount
+            ? ` ${props.uncertainCount} ${props.uncertainCount === 1 ? 'cell needs' : 'cells need'} review.`
+            : ''}
         </span>
         {props.showConfirmation !== false ? (
           <Button variant="ink" disabled={props.busy} onClick={props.onBegin}>
@@ -49,9 +53,12 @@ export default function GameToolbar(props: GameToolbarProps) {
     <div className="play-toolbar kit-game-toolbar kit-game-toolbar--play">
       <div className="kit-game-toolbar__status">
         {props.status}
-        <span className="mistakes kit-game-toolbar__mistakes">
-          <MistakeCounter count={props.mistakes} />
-        </span>
+        <div className="kit-game-toolbar__feedback">
+          {props.saveStatus}
+          <span className="mistakes kit-game-toolbar__mistakes">
+            <MistakeCounter count={props.mistakes} />
+          </span>
+        </div>
       </div>
       <Toggle
         label="Pencil notes"

@@ -316,36 +316,3 @@
 .sudoku-app--play .puzzle-console {
   margin-bottom: var(--space-4);
 }
-
-.sudoku-app--play .puzzle-console .kit-game-toolbar__status {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  align-content: center;
-  justify-items: end;
-  gap: var(--space-1);
-}
-
-.sudoku-app--play .kit-game-toolbar__status > .kit-attempt-timer {
-  grid-column: 1;
-  grid-row: 1 / 3;
-}
-
-.sudoku-app--play .kit-game-toolbar__status > .save-state {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.sudoku-app--play .kit-game-toolbar__status > .kit-game-toolbar__mistakes {
-  grid-column: 2;
-  grid-row: 2;
-}
-
-@container (max-width: 320px) {
-  .sudoku-app--play .kit-game-toolbar__status > .kit-attempt-timer {
-    grid-row: 1;
-  }
-
-  .sudoku-app--play .kit-game-toolbar__status > .kit-game-toolbar__mistakes {
-    grid-column: 1 / -1;
-  }
-}

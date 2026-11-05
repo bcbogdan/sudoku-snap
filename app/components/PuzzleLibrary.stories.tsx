@@ -121,3 +121,75 @@ export const ControlledFilters: Story = {
     await expect(canvas.queryByRole('link', { name: /Quiet Maple/ })).not.toBeInTheDocument();
   },
 };
+
+const stressItems = mixedItems.map((item, index) => ({
+  ...item,
+  name: [
+    'SundayNewspaperChampionshipNovember2026QualifyingRoundSudokuCollectionVolumeTwenty',
+    '新聞の数独・秋の大会 👩🏽‍💻 家族と挑戦する週末のパズル',
+    'J',
+    'Đặng Thị Ngọc Hân — Sunday paper',
+  ][index],
+  clues: index === 1 ? item.clues.map((value, cell) => (cell === 1 ? value : 0)) : item.clues,
+}));
+
+function StressCollection() {
+  const [dataset, setDataset] = useState('Demo data');
+  const items =
+    dataset === 'Worst case'
+      ? stressItems
+      : dataset === 'Empty'
+        ? []
+        : dataset === 'One'
+          ? stressItems.slice(1, 2)
+          : dataset === 'Many'
+            ? Array.from({ length: 1000 }, (_, index) => ({
+                ...stressItems[index % stressItems.length],
+                id: `stress-${index}`,
+              }))
+            : mixedItems;
+  return (
+    <>
+      <div
+        role="group"
+        aria-label="Test dataset"
+        style={{
+          position: 'fixed',
+          bottom: 12,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          display: 'flex',
+          flexWrap: 'wrap',
+          width: 'max-content',
+          maxWidth: 'calc(100% - 24px)',
+          padding: 4,
+          borderRadius: 8,
+          background: '#e5e7eb',
+        }}
+      >
+        {['Demo data', 'Worst case', 'Empty', 'One', 'Many'].map((label) => (
+          <button key={label} aria-pressed={dataset === label} onClick={() => setDataset(label)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <PuzzleLibrary items={items} />
+    </>
+  );
+}
+
+export const StressCases: Story = {
+  parameters: { frameWidth: 320 },
+  render: () => <StressCollection />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: 'Worst case' }));
+    await expect(canvas.getByRole('heading', { name: stressItems[0].name })).toBeVisible();
+    await expect(canvas.getByText('1 clue', { exact: true })).toBeVisible();
+    await userEvent.click(canvas.getByRole('button', { name: 'Empty' }));
+    await expect(canvas.getByRole('link', { name: 'Create a puzzle' })).toBeVisible();
+    await userEvent.click(canvas.getByRole('button', { name: 'One' }));
+    await expect(canvas.getByText('1 puzzle · 0 puzzles completed')).toBeVisible();
+  },
+};
