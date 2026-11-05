@@ -8,8 +8,27 @@
   color: var(--color-text);
 }
 
-.kit-attempt-history > .kit-button {
-  align-self: flex-start;
+.kit-attempt-history__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.kit-attempt-history__announcement {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.kit-attempt-history__actions:empty {
+  display: none;
+}
+
+.kit-attempt-history__actions > .kit-button {
+  padding-inline: var(--space-2);
 }
 
 .kit-attempt-history .kit-attempt-history__completion {

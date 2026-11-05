@@ -116,6 +116,7 @@ test('aborted move is not published and the next command uses committed state', 
   await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
   await page.reload();
   await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
   await expect(page.getByText('Move 1 of 1', { exact: false })).toBeVisible();
 });
 
@@ -158,5 +159,6 @@ test('erasing an empty cell completes without rewriting its full history', async
     ),
   ).toEqual([]);
   await page.reload();
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
   await expect(page.getByText('Move 0 of 0', { exact: false })).toBeVisible();
 });

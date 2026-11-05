@@ -49,7 +49,6 @@ export default function PuzzleLibrary({ items, filter, onFilterChange }: PuzzleL
     <section className="library puzzle-library">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">YOUR COLLECTION</p>
           <h1>My puzzles</h1>
         </div>
         <a className="primary" href="/?new">

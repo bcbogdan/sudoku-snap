@@ -45,6 +45,11 @@
 }
 
 .kit-puzzle-card__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-block-size: 2lh;
   min-inline-size: 0;
   margin: 0;
   font: var(--text-body);

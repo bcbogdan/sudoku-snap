@@ -46,6 +46,7 @@ test('delayed IndexedDB commits preserve ordered digits and evaluate toggles at 
   await page.reload();
   await expect(page.locator('#cell-0')).toHaveAttribute('data-value', '8');
   await expect(page.locator('#cell-1')).toHaveAttribute('data-value', '0');
+  await page.getByRole('button', { name: 'Move history', exact: true }).click();
   await expect(page.getByText('Move 3 of 3', { exact: false })).toBeVisible();
 });
 
@@ -213,7 +214,9 @@ test('completed attempts replay independently and remain locked after exit and r
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
   await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
   await page.locator('#cell-0').press(String(solution[0]));
-  await expect(page.getByText(/This attempt is locked/)).toBeVisible();
+  await expect(page.locator('.kit-attempt-history__completion')).toContainText(
+    'This attempt is locked',
+  );
   const before = await storedReplayState(page);
   await page.getByRole('button', { name: 'Move history', exact: true }).click();
   await expect(page.locator('#cell-0')).toHaveAttribute('aria-current', 'step');
@@ -228,7 +231,9 @@ test('completed attempts replay independently and remain locked after exit and r
   await page.locator('#cell-0').press('Delete');
   expect((await storedReplayState(page)).history).toBe(before.history);
   await page.reload();
-  await expect(page.getByText(/This attempt is locked/)).toBeVisible();
+  await expect(page.locator('.kit-attempt-history__completion')).toContainText(
+    'This attempt is locked',
+  );
   await expect(page.locator('#cell-0')).toHaveAttribute('data-value', String(solution[0]));
 });
 

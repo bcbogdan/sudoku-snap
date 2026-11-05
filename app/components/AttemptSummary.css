@@ -31,16 +31,3 @@
   font-size: 18px;
   font-weight: 600;
 }
-
-@media (max-width: 480px) {
-  .kit-attempt-summary > div {
-    flex-basis: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .kit-attempt-summary dd {
-    order: 0;
-  }
-}

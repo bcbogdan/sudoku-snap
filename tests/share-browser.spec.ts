@@ -24,7 +24,7 @@ test('shared links import, reopen without duplication, and removal requires conf
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Shared weekend 🧩');
   await page.getByRole('button', { name: 'Confirm clues & play' }).click();
   const history = page.getByRole('group', { name: 'Move history', exact: true });
-  await expect(page.getByText('Move 0 of 0', { exact: true })).toBeVisible();
+  await expect(page.getByText('Move 0 of 0', { exact: true })).toHaveCount(0);
   await expect(history).toHaveCount(0);
   await page.getByRole('button', { name: 'Move history', exact: true }).click();
   await expect(history).toContainText('Move 0 of 0');
@@ -32,6 +32,7 @@ test('shared links import, reopen without duplication, and removal requires conf
   await page.getByRole('button', { name: 'Return to play', exact: true }).click();
   await expect(history).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'All attempts', exact: true }).click();
   page.once('dialog', async (dialog) => {
     expect(dialog.message()).toContain('all its attempts');
     await dialog.accept();

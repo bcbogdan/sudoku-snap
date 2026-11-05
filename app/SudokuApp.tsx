@@ -250,6 +250,7 @@ export default function Sudoku() {
     [position, screen, check, puzzle, solution],
   );
   const replay = attemptView === 'replay';
+  const [replaySelected, setReplaySelected] = useState(0);
   const historical = !!attempt && step < attempt.moves.length,
     complete = attempt?.completedAt !== null && !!attempt;
   const readOnly = replay || historical || complete;
@@ -264,6 +265,7 @@ export default function Sudoku() {
     if (!attempt || saving.current || busy) return;
     if (!Number.isInteger(next) || next < 0 || next > attempt.moves.length) return;
     setDialCell(null);
+    if (!replay) setReplaySelected(selected);
     setStep(next);
     setAttemptView('replay');
   }
@@ -438,7 +440,7 @@ export default function Sudoku() {
           }
         })
       }
-      onRemove={() => void removeCurrentPuzzle()}
+      onRemove={screen !== 'play' ? () => void removeCurrentPuzzle() : undefined}
     />
   ) : null;
   const header = (
@@ -538,12 +540,13 @@ export default function Sudoku() {
         clues={puzzle.clues}
         uncertain={puzzle.uncertain}
         wrongCells={wrongCells}
-        selected={selected}
+        selected={replay ? replaySelected : selected}
+        replay={replay}
         replayCurrentCell={replay && step ? attempt?.moves[step - 1].cell : undefined}
         completed={complete && !replay}
         readOnly={readOnly}
         busy={actionBusy || !!queueStatus.error}
-        onSelect={setSelected}
+        onSelect={replay ? setReplaySelected : setSelected}
         onEnter={(value, cell) => void enter(value, cell)}
         onToggleNotes={() => setNotesMode((v) => !v)}
         onOpenDial={setDialCell}

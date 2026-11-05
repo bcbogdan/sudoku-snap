@@ -40,10 +40,16 @@ export default function AttemptHistory({
   onBegin,
 }: AttemptHistoryProps) {
   const completion = useRef<HTMLDivElement>(null);
+  const announcement = useRef<HTMLParagraphElement>(null);
   const wasComplete = useRef(complete);
   useLayoutEffect(() => {
     const newlyComplete = complete && !wasComplete.current;
     wasComplete.current = complete;
+    if (newlyComplete && announcement.current) {
+      announcement.current.textContent = `Completed in ${completionDuration}. This attempt is locked.`;
+    } else if (!complete && announcement.current) {
+      announcement.current.textContent = '';
+    }
     const element = completion.current;
     if (!newlyComplete || !element) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -58,24 +64,28 @@ export default function AttemptHistory({
       },
     );
     return () => animation.cancel();
-  }, [complete]);
+  }, [complete, completionDuration]);
   return (
     <div className="history kit-attempt-history">
-      {!complete && !replay ? (
-        <Button disabled={busy || readOnly || !canUndo} onClick={onUndo}>
-          <Icon name="undo" /> Undo move
-        </Button>
-      ) : null}
-      {replay !== undefined ? (
-        <Button disabled={busy} onClick={replay ? onExitReplay : onEnterReplay}>
-          {replay ? 'Return to play' : 'Move history'}
-        </Button>
-      ) : null}
-      {replay === false ? (
-        <p className="hint">
-          Move {step} of {moveCount}
-        </p>
-      ) : (
+      <p
+        ref={announcement}
+        className="kit-attempt-history__announcement"
+        role="status"
+        aria-atomic="true"
+      />
+      <div className="kit-attempt-history__actions">
+        {!complete && !replay ? (
+          <Button disabled={busy || readOnly || !canUndo} onClick={onUndo}>
+            <Icon name="undo" /> Undo move
+          </Button>
+        ) : null}
+        {replay !== undefined ? (
+          <Button disabled={busy} onClick={replay ? onExitReplay : onEnterReplay}>
+            {replay ? 'Return to play' : 'Move history'}
+          </Button>
+        ) : null}
+      </div>
+      {replay !== false ? (
         <ReplayControls
           step={step}
           moveCount={moveCount}
@@ -90,7 +100,7 @@ export default function AttemptHistory({
                 : '')
           }
         />
-      )}
+      ) : null}
       {complete ? (
         <div ref={completion} className="completion kit-attempt-history__completion">
           <strong>Completed in {completionDuration}. This attempt is locked.</strong>

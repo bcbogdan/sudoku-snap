@@ -49,11 +49,9 @@ export default function AppHeader({ screen, backLink, status }: AppHeaderProps) 
         </a>
       )}
       {status ? <div className="kit-app-header__status">{status}</div> : null}
-      {!backLink && (
+      {!backLink && screen !== 'library' && (
         <nav className="kit-app-header__nav" aria-label="Main navigation">
-          <a href="/" aria-current={screen === 'library' ? 'page' : undefined}>
-            My puzzles
-          </a>
+          <a href="/">My puzzles</a>
           <a href="/?new" aria-current={screen === 'create' ? 'page' : undefined}>
             New puzzle
           </a>

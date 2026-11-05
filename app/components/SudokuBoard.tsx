@@ -15,6 +15,7 @@ export interface SudokuBoardProps {
   readOnly: boolean;
   busy: boolean;
   replayCurrentCell?: number;
+  replay?: boolean;
   completed?: boolean;
   onSelect: (cell: number) => void;
   onEnter: (value: number, cell: number) => void;
@@ -33,6 +34,7 @@ export default function SudokuBoard({
   readOnly,
   busy,
   replayCurrentCell,
+  replay = false,
   completed = false,
   onSelect,
   onEnter,
@@ -71,15 +73,17 @@ export default function SudokuBoard({
         } else if (event.key.toLowerCase() === 'n' && !readOnly) {
           onToggleNotes();
         } else {
-          const delta: Record<string, number> = {
-            ArrowUp: -9,
-            ArrowDown: 9,
-            ArrowLeft: -1,
-            ArrowRight: 1,
+          const row = Math.floor(selected / 9);
+          const column = selected % 9;
+          const destinations: Record<string, number> = {
+            ArrowUp: Math.max(0, row - 1) * 9 + column,
+            ArrowDown: Math.min(8, row + 1) * 9 + column,
+            ArrowLeft: row * 9 + Math.max(0, column - 1),
+            ArrowRight: row * 9 + Math.min(8, column + 1),
           };
-          if (event.key in delta) {
+          if (event.key in destinations) {
             event.preventDefault();
-            const next = Math.max(0, Math.min(80, selected + delta[event.key]));
+            const next = destinations[event.key];
             onSelect(next);
             boardElement.current?.querySelector<HTMLButtonElement>(`#cell-${next}`)?.focus();
           }
@@ -91,6 +95,9 @@ export default function SudokuBoard({
         const wrong = wrongCells.includes(index);
         const needsReview = mode === 'review' && uncertain.includes(index);
         const replayCurrent = replayCurrentCell === index;
+        const peer = !replay && peers(selected, index);
+        const match = !replay && !!value && value === board[selected];
+        const active = !replay && selected === index;
         const description = [
           !value && notes[index].length ? `Pencil notes: ${notes[index].join(', ')}.` : '',
           wrong ? 'Incorrect number.' : '',
@@ -109,14 +116,14 @@ export default function SudokuBoard({
             data-wrong={wrong}
             data-unclear={needsReview}
             data-replay-current={replayCurrent}
-            data-peer={peers(selected, index)}
-            data-match={!!value && value === board[selected]}
+            data-peer={peer}
+            data-match={match}
             aria-current={replayCurrent ? 'step' : undefined}
             aria-label={`Row ${Math.floor(index / 9) + 1} column ${(index % 9) + 1}, ${value || 'empty'}${given ? ', given' : ''}`}
             aria-description={description || undefined}
-            aria-pressed={selected === index}
+            aria-pressed={replay ? undefined : selected === index}
             tabIndex={selected === index ? 0 : -1}
-            className={`cell ${given ? 'given' : ''} ${peers(selected, index) ? 'peer' : ''} ${value && value === board[selected] ? 'match' : ''} ${selected === index ? 'selected' : ''} ${wrong ? 'wrong' : ''} ${needsReview ? 'uncertain' : ''}`}
+            className={`cell ${given ? 'given' : ''} ${peer ? 'peer' : ''} ${match ? 'match' : ''} ${active ? 'selected' : ''} ${wrong ? 'wrong' : ''} ${needsReview ? 'uncertain' : ''}`}
             onPointerDown={(event) => {
               cancelHold();
               if (given || readOnly || busy || event.button !== 0 || !event.isPrimary) return;

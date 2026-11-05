@@ -210,13 +210,14 @@ for (const theme of ['light', 'dark'] as const) {
           if (screen.name === 'library')
             await expect(page.locator('.kit-puzzle-card')).toHaveCount(4);
           if (screen.name === 'detail') {
-            await expect(page.getByRole('link', { name: 'Continue', exact: true })).toHaveAttribute(
-              'href',
-              designURL(screenIds.mixed, screenIds.active),
-            );
+            await expect(
+              page.getByRole('link', { name: 'Continue attempt 3', exact: true }),
+            ).toHaveAttribute('href', designURL(screenIds.mixed, screenIds.active));
           }
           if (screen.name === 'play') {
-            await expect(page.getByText('Move 3 of 3', { exact: true })).toBeVisible();
+            await expect(
+              page.getByRole('button', { name: 'Move history', exact: true }),
+            ).toBeVisible();
             await expect(page.getByLabel('Attempt history', { exact: true })).toHaveCount(0);
           }
           if (screen.name === 'review') {
@@ -383,10 +384,9 @@ for (const theme of ['light', 'dark'] as const) {
     const zero = page.getByRole('link', { name: /Attempt 2/ });
     const completed = page.getByRole('link', { name: /Attempt 1/ });
     await expect(current).toHaveAttribute('href', designURL(screenIds.mixed, screenIds.active));
-    await expect(page.getByRole('link', { name: 'Continue', exact: true })).toHaveAttribute(
-      'href',
-      designURL(screenIds.mixed, screenIds.active),
-    );
+    await expect(
+      page.getByRole('link', { name: 'Continue attempt 3', exact: true }),
+    ).toHaveAttribute('href', designURL(screenIds.mixed, screenIds.active));
     await expect(current).toContainText(durationLabel(freshActiveMs));
     await expect(current).toContainText('Mistakes 0');
     await expect(current).toContainText(`2 of ${emptyCells} squares filled`);
@@ -406,15 +406,14 @@ for (const theme of ['light', 'dark'] as const) {
     await capture(page, info, 'detail-fresh-timer');
     await page.reload();
     await expect(stat('Time played')).toHaveText(durationLabel(freshActiveMs));
-    await expect(page.getByRole('link', { name: 'Continue', exact: true })).toHaveAttribute(
-      'href',
-      designURL(screenIds.mixed, screenIds.active),
-    );
+    await expect(
+      page.getByRole('link', { name: 'Continue attempt 3', exact: true }),
+    ).toHaveAttribute('href', designURL(screenIds.mixed, screenIds.active));
     await page.goto(designURL(screenIds.ready));
     await expect(stat('Attempts')).toHaveText('0');
     await expect(stat('Best time')).toHaveText('—');
     await expect(stat('Time played')).toHaveText('00:00:00');
-    await expect(page.getByRole('link', { name: 'Continue', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /^Continue attempt/ })).toHaveCount(0);
   });
 
   test(`zero, completed and replay boundaries · ${theme}`, async ({ page }, info) => {
@@ -432,7 +431,7 @@ for (const theme of ['light', 'dark'] as const) {
     await capture(page, info, 'completed-replay');
     await page.goto(designURL(screenIds.completed));
     await expect(page.getByRole('link', { name: /Attempt 1/ })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Continue', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /^Continue attempt/ })).toHaveCount(0);
     await capture(page, info, 'completed-only-detail');
     await page.goto(designURL(screenIds.mixed, screenIds.zero));
     await page.getByRole('button', { name: 'Move history', exact: true }).click();
@@ -464,7 +463,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: 'Return to play', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Enter 1', exact: true })).toBeEnabled();
     await page.reload();
-    await expect(page.getByText('Move 3 of 3', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Move history', exact: true })).toBeVisible();
     await expect(page.getByLabel('Attempt history', { exact: true })).toHaveCount(0);
   });
 

@@ -347,7 +347,7 @@ export const WrongUnclearSelectedAndFocused: Story = {
 };
 
 export const CurrentReplay: Story = {
-  args: { board: mistakenBoard, readOnly: true, replayCurrentCell: 3, selected: -1 },
+  args: { board: mistakenBoard, readOnly: true, replay: true, replayCurrentCell: 3, selected: 3 },
   play: async ({ canvasElement }) => {
     const cell = canvasElement.querySelector('#cell-3');
     await expect(cell).toHaveAttribute('aria-current', 'step');
@@ -360,6 +360,7 @@ export const ReplayWrongUnclearSelected: Story = {
     mode: 'review',
     board: mistakenBoard,
     readOnly: true,
+    replay: true,
     replayCurrentCell: 3,
     wrongCells: [3],
     uncertain: [3],
@@ -372,6 +373,7 @@ export const ReplayNotesUnclearSelectedAndFocused: Story = {
     mode: 'review',
     notes: pencilNotes,
     readOnly: true,
+    replay: true,
     replayCurrentCell: 2,
     uncertain: [2],
     selected: 2,
@@ -380,7 +382,8 @@ export const ReplayNotesUnclearSelectedAndFocused: Story = {
     const cell = within(canvasElement).getByRole('button', { name: 'Row 1 column 3, empty' });
     cell.focus();
     await expect(cell).toHaveFocus();
-    await expect(cell).toHaveClass('uncertain', 'selected');
+    await expect(cell).toHaveClass('uncertain');
+    await expect(cell).not.toHaveClass('selected');
     await expect(cell).toHaveAttribute('aria-current', 'step');
     await expect(cell).toHaveAccessibleDescription(
       'Pencil notes: 1, 4, 8. Needs review. Current replay move.',

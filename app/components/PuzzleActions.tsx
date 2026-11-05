@@ -5,7 +5,7 @@ import './PuzzleActions.css';
 export interface PuzzleActionsProps {
   busy: boolean;
   onShare: () => void;
-  onRemove: () => void;
+  onRemove?: () => void;
 }
 
 export default function PuzzleActions({ busy, onShare, onRemove }: PuzzleActionsProps) {
@@ -20,15 +20,17 @@ export default function PuzzleActions({ busy, onShare, onRemove }: PuzzleActions
         <Icon name="copy" />
         Share puzzle
       </Button>
-      <Button
-        variant="quiet"
-        className="remove-button kit-puzzle-actions__remove"
-        disabled={busy}
-        onClick={onRemove}
-      >
-        <Icon name="delete" />
-        Remove puzzle
-      </Button>
+      {onRemove ? (
+        <Button
+          variant="quiet"
+          className="remove-button kit-puzzle-actions__remove"
+          disabled={busy}
+          onClick={onRemove}
+        >
+          <Icon name="delete" />
+          Remove puzzle
+        </Button>
+      ) : null}
     </div>
   );
 }

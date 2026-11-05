@@ -49,8 +49,9 @@ export default function PuzzleDetail({
   continueHref,
 }: PuzzleDetailProps) {
   const completedCount = attempts.filter((attempt) => attempt.complete).length;
-  const canContinue =
-    continueHref && attempts.some((attempt) => !attempt.complete && attempt.href === continueHref);
+  const continuation = attempts.find(
+    (attempt) => !attempt.complete && attempt.href === continueHref,
+  );
 
   return (
     <section className="library puzzle-detail">
@@ -74,31 +75,32 @@ export default function PuzzleDetail({
           <Badge kind={completedCount > 0 ? 'completed' : 'neutral'}>
             {completedCount} {completedCount === 1 ? 'attempt' : 'attempts'} completed
           </Badge>
-          {actions}
         </div>
+      </div>
+      <div className="puzzle-detail__primary-actions">
+        {continuation ? (
+          <a
+            className="primary puzzle-detail__continue"
+            href={continueHref ?? undefined}
+            aria-disabled={busy || undefined}
+            onClick={(event) => {
+              if (busy) event.preventDefault();
+            }}
+          >
+            Continue attempt {continuation.number} <Icon name="arrow-right" />
+          </a>
+        ) : null}
+        <Button variant="flash" disabled={busy} onClick={onBegin}>
+          <Icon name="plus" /> New attempt
+        </Button>
       </div>
       <AttemptSummary
         totalAttempts={attempts.length}
         bestTime={bestTime ?? null}
         totalTime={totalTime ?? '—'}
       />
-      {canContinue ? (
-        <a
-          className="primary puzzle-detail__continue"
-          href={continueHref ?? undefined}
-          aria-disabled={busy || undefined}
-          onClick={(event) => {
-            if (busy) event.preventDefault();
-          }}
-        >
-          Continue <Icon name="arrow-right" />
-        </a>
-      ) : null}
       <div className="puzzle-detail__attempts-heading">
         <h2>Attempts</h2>
-        <Button variant="flash" disabled={busy} onClick={onBegin}>
-          <Icon name="plus" /> New attempt
-        </Button>
       </div>
       {attempts.length > 0 ? (
         <div className="attempt-list">
@@ -117,6 +119,9 @@ export default function PuzzleDetail({
         Duration counts only while the attempt page is focused and visible. Completed attempts
         remain available to replay.
       </p>
+      <div className="puzzle-detail__management" aria-label="Puzzle management">
+        {actions}
+      </div>
     </section>
   );
 }
