@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import type CV from '@techstark/opencv-js';
-import { hasDarkBackground } from './image-polarity';
+import { detectGrid, extractDigit } from './sudoku-image-processing';
 import type { PreprocessRequest, PreprocessResponse } from './sudoku-reader-protocol';
 
 declare const self: DedicatedWorkerGlobalScope & { cv: typeof CV };
@@ -72,50 +72,9 @@ async function preprocess(
           source.getContext('2d')!.getImageData(0, 0, source.width, source.height),
         ),
       ),
-      gray = own(new cv.Mat()),
-      blur = own(new cv.Mat()),
-      binary = own(new cv.Mat());
+      gray = own(new cv.Mat());
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    // Normalize white-on-dark screenshots before grid detection and digit extraction.
-    if (hasDarkBackground(gray.data, gray.cols, gray.rows)) cv.bitwise_not(gray, gray);
-    cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0);
-    cv.adaptiveThreshold(
-      blur,
-      binary,
-      255,
-      cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-      cv.THRESH_BINARY_INV,
-      31,
-      9,
-    );
-    const contours = own(new cv.MatVector()),
-      hierarchy = own(new cv.Mat());
-    cv.findContours(binary, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-    let bestArea = 0;
-    let points: { x: number; y: number }[] = [];
-    for (let i = 0; i < contours.size(); i++) {
-      const contour = contours.get(i),
-        approx = new cv.Mat();
-      try {
-        cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
-        const area = cv.contourArea(contour);
-        if (
-          approx.rows === 4 &&
-          area > bestArea &&
-          area > source.width * source.height * 0.12 &&
-          cv.isContourConvex(approx)
-        ) {
-          bestArea = area;
-          points = Array.from({ length: 4 }, (_, j) => ({
-            x: approx.data32S[j * 2],
-            y: approx.data32S[j * 2 + 1],
-          }));
-        }
-      } finally {
-        contour.delete();
-        approx.delete();
-      }
-    }
+    const points = detectGrid(cv, gray);
     if (points.length !== 4)
       throw new Error('Could not find a Sudoku grid. Try a clear photo of the whole board.');
     const tl = points.reduce((a, b) => (a.x + a.y < b.x + b.y ? a : b)),
@@ -143,77 +102,21 @@ async function preprocess(
     );
     const cells: { index: number; image: Uint8Array }[] = [];
     for (let index = 0; index < 81; index++) {
-      const roi = ink.roi(
-        new cv.Rect((index % 9) * 100 + 10, Math.floor(index / 9) * 100 + 10, 80, 80),
-      );
-      const labels = new cv.Mat(),
-        stats = new cv.Mat(),
-        centers = new cv.Mat();
-      try {
-        const count = cv.connectedComponentsWithStats(roi, labels, stats, centers, 8, cv.CV_32S);
-        let selected = 0,
-          best = 0;
-        for (let k = 1; k < count; k++) {
-          const x = stats.intAt(k, cv.CC_STAT_LEFT),
-            y = stats.intAt(k, cv.CC_STAT_TOP),
-            w = stats.intAt(k, cv.CC_STAT_WIDTH),
-            h = stats.intAt(k, cv.CC_STAT_HEIGHT),
-            area = stats.intAt(k, cv.CC_STAT_AREA);
-          if (
-            x <= 1 ||
-            y <= 1 ||
-            x + w >= 79 ||
-            y + h >= 79 ||
-            h < 22 ||
-            w < 5 ||
-            area < 65 ||
-            Math.abs(x + w / 2 - 40) > 22 ||
-            Math.abs(y + h / 2 - 40) > 22
-          )
-            continue;
-          if (area > best) {
-            selected = k;
-            best = area;
-          }
-        }
-        if (!selected) continue;
-        const x = stats.intAt(selected, cv.CC_STAT_LEFT),
-          y = stats.intAt(selected, cv.CC_STAT_TOP),
-          w = stats.intAt(selected, cv.CC_STAT_WIDTH),
-          h = stats.intAt(selected, cv.CC_STAT_HEIGHT);
-        const digit = canvas(w, h),
-          ctx = digit.getContext('2d')!,
-          data = ctx.createImageData(w, h);
-        for (let py = 0; py < h; py++)
-          for (let px = 0; px < w; px++) {
-            const offset = (py * w + px) * 4,
-              value = labels.intAt(y + py, x + px) === selected ? 0 : 255;
-            data.data[offset] = value;
-            data.data[offset + 1] = value;
-            data.data[offset + 2] = value;
-            data.data[offset + 3] = 255;
-          }
-        ctx.putImageData(data, 0, 0);
-        const normalized = canvas(160, 160),
-          nctx = normalized.getContext('2d')!;
-        nctx.fillStyle = 'white';
-        nctx.fillRect(0, 0, 160, 160);
-        const factor = 110 / Math.max(w, h);
-        nctx.drawImage(
-          digit,
-          (160 - w * factor) / 2,
-          (160 - h * factor) / 2,
-          w * factor,
-          h * factor,
-        );
-        const blob = await normalized.convertToBlob({ type: 'image/png' });
-        cells.push({ index, image: new Uint8Array(await blob.arrayBuffer()) });
-      } finally {
-        roi.delete();
-        labels.delete();
-        stats.delete();
-        centers.delete();
-      }
+      const extracted = extractDigit(cv, ink, index);
+      if (!extracted) continue;
+      const { width: w, height: h, pixels } = extracted;
+      const digit = canvas(w, h),
+        ctx = digit.getContext('2d')!,
+        data = new ImageData(pixels, w, h);
+      ctx.putImageData(data, 0, 0);
+      const normalized = canvas(160, 160),
+        nctx = normalized.getContext('2d')!;
+      nctx.fillStyle = 'white';
+      nctx.fillRect(0, 0, 160, 160);
+      const factor = 110 / Math.max(w, h);
+      nctx.drawImage(digit, (160 - w * factor) / 2, (160 - h * factor) / 2, w * factor, h * factor);
+      const blob = await normalized.convertToBlob({ type: 'image/png' });
+      cells.push({ index, image: new Uint8Array(await blob.arrayBuffer()) });
     }
     return { cells };
   } finally {
